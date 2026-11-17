@@ -1,0 +1,213 @@
+
+    /* ── Category Hero Banner ───────────────────────────────── */
+    
+
+    .cat-breadcrumb-bar {
+      background: var(--gray-off);
+      border-bottom: 1px solid var(--orange-pale);
+      padding: 10px 20px;
+    }
+
+    /* Breadcrumb */
+    .cat-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.78rem;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      opacity: 0.9;
+      
+    }
+
+    .cat-breadcrumb a { color: rgba(0, 0, 0, 0.85); font-weight: 600; }
+    .cat-breadcrumb a:hover { color: var(--white); }
+    .cat-breadcrumb .sep { font-size: 0.6rem; opacity: 0.6; }
+    .cat-breadcrumb .current { color: var(--black); font-weight: 700; }    
+
+    
+
+    /* ── Subcategory Filter Tabs ──────── */
+    .subcat-tabs-wrapper {
+      background: var(--white);
+      border-bottom: 2px solid var(--orange-pale);
+      position: sticky;
+      /* CHANGED: was top:0 which caused the tab bar to stick at the very top of the
+         viewport and visually overlap/slide through the mega-menu-bar labels when
+         scrolling. Now uses --navbar-h (set by JS in main.js) so the tab bar always
+         sticks exactly at the bottom edge of the sticky navbar, not behind it.
+         Fallback of 72px covers the default navbar height before JS runs. */
+      top: var(--navbar-h, 72px);
+      z-index: 90;
+      box-shadow: 0 2px 12px rgba(255,107,0,0.08);
+    }
+
+    .subcat-tabs-wrapper .container {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .subcat-tabs-wrapper .container::-webkit-scrollbar { display: none; }
+
+    /* "All" + each subcategory tab */
+    .subcat-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 18px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--grey-dark);
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: var(--transition);
+      cursor: pointer;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-family: var(--font-display);
+      letter-spacing: 0.3px;
+    }
+
+    .subcat-tab:hover {
+      color: var(--orange-primary);
+      background: var(--white-off);
+    }
+
+    .subcat-tab.active {
+      color: var(--orange-primary);
+      border-bottom-color: var(--orange-primary);
+      background: var(--white-off);
+    }
+
+    .subcat-tab .tab-count {
+      background: var(--orange-pale);
+      color: var(--orange-primary);
+      border-radius: var(--radius-pill);
+      padding: 1px 7px;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+
+    .subcat-tab.active .tab-count {
+      background: var(--orange-primary);
+      color: var(--white);
+    }
+
+    /* ── Product Listing Area ─────────────────────────────── */
+    .cat-listing-section {
+      padding: 36px 0 60px;
+    }
+
+    /* Sort bar (above product grid) */
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sort-bar-left {
+      font-size: 0.85rem;
+      color: var(--grey-mid);
+    }
+
+    .sort-bar-left strong {
+      color: var(--grey-dark);
+    }
+
+    .sort-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sort-select {
+      border: 1px solid var(--orange-pale);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: var(--grey-dark);
+      background: var(--white);
+      cursor: pointer;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .sort-select:focus {
+      border-color: var(--orange-primary);
+    }
+
+    /* ── Product Grid (category page version) ─────────────── */
+    /* Reuses .product-card from style.css but overrides grid  */
+    .cat-product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    /* Subcategory section divider inside the grid */
+    .subcat-section-heading {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0 6px;
+      border-bottom: 2px solid var(--orange-pale);
+      margin-top: 12px;
+    }
+
+    .subcat-section-heading:first-child { margin-top: 0; }
+
+    .subcat-section-heading h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--orange-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .subcat-section-heading .count-tag {
+      font-size: 0.72rem;
+      background: var(--orange-pale);
+      color: var(--orange-primary);
+      border-radius: var(--radius-pill);
+      padding: 2px 9px;
+      font-weight: 700;
+    }
+
+    /* ── "No results" state ───────────────────────────────── */
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--grey-mid);
+    }
+
+    .no-results i {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      display: block;
+      color: var(--orange-pale);
+    }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .cat-hero { padding: 36px 16px 28px; }
+      .cat-product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+      .sort-bar { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 480px) {
+      .cat-product-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    }
+

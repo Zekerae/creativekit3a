@@ -1,0 +1,334 @@
+/* ============================================================
+   quote-modal.css
+   Styles for the "Request a Quote" modal ONLY.
+   Extends the existing .lm-* modal styles in style.css
+   without modifying any shared styles.
+   ============================================================ */
+
+
+/* ── Modal width override (slightly wider than auth modal) ── */
+.qm-modal {
+  max-width: 520px;
+}
+
+.qm-card {
+  /* Inherits from .lm-card */
+}
+
+
+/* ── Header ─────────────────────────────────────────────── */
+.qm-header {
+  /* Inherits .lm-header gradient background */
+  padding-bottom: 16px;
+}
+
+.qm-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--white);
+  letter-spacing: -0.3px;
+  margin: 6px 0 4px;
+}
+
+
+/* ── Step Indicator ─────────────────────────────────────── */
+.qm-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 16px 24px 12px;
+  background: var(--white-off);
+  border-bottom: 2px solid var(--orange-pale);
+}
+
+.qm-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.qm-step-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--grey-light);
+  color: var(--grey-mid);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+}
+
+.qm-step span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--grey-mid);
+  font-family: var(--font-display);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  transition: color 0.25s ease;
+}
+
+/* Active step */
+.qm-step.active .qm-step-dot {
+  background: var(--orange-primary);
+  color: var(--white);
+  border-color: var(--orange-primary);
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15);
+}
+
+.qm-step.active span {
+  color: var(--orange-primary);
+}
+
+/* Completed step */
+.qm-step.done .qm-step-dot {
+  background: var(--white);
+  color: var(--orange-primary);
+  border-color: var(--orange-primary);
+}
+
+.qm-step.done span {
+  color: var(--orange-primary);
+}
+
+/* Connector line between steps */
+.qm-step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--grey-light);
+  margin: 0 8px;
+  margin-bottom: 18px;    /* vertically align with dot centers */
+  transition: background 0.3s ease;
+  min-width: 28px;
+}
+
+.qm-step-line.done {
+  background: var(--orange-primary);
+}
+
+
+/* ── Panel (each step's form) ───────────────────────────── */
+.qm-panel {
+  /* Inherits .lm-panel padding & flex-column layout */
+}
+
+
+/* ── Select & Date inputs ───────────────────────────────── */
+.qm-select,
+.qm-date {
+  padding: 9px 13px;
+  border: 2px solid var(--orange-pale);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  background: var(--white-off);
+  color: var(--black);
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+
+  /* Custom dropdown arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23FF6B00' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.qm-select:focus,
+.qm-date:focus {
+  border-color: var(--orange-primary);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.09);
+}
+
+.qm-date {
+  background-image: none;
+  padding-right: 13px;
+}
+
+/* Remove default date picker icon on webkit */
+.qm-date::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+  filter: invert(0.4) sepia(1) saturate(4) hue-rotate(340deg);
+}
+
+
+/* ── Textarea ────────────────────────────────────────────── */
+.qm-textarea {
+  padding: 10px 13px;
+  border: 2px solid var(--orange-pale);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  background: var(--white-off);
+  color: var(--black);
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.55;
+}
+
+.qm-textarea:focus {
+  border-color: var(--orange-primary);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.09);
+}
+
+.qm-textarea::placeholder {
+  color: var(--grey-mid);
+  font-size: 0.83rem;
+}
+
+
+/* ── Checkbox grid ───────────────────────────────────────── */
+.qm-checkboxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 12px;
+  margin-top: 3px;
+}
+
+.qm-check-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--grey-dark);
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--orange-pale);
+  background: var(--white-off);
+  transition: var(--transition);
+  user-select: none;
+}
+
+.qm-check-item:hover {
+  border-color: var(--orange-primary);
+  background: var(--white);
+}
+
+.qm-check-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--orange-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.qm-check-item:has(input:checked) {
+  border-color: var(--orange-primary);
+  background: #fff3e8;
+  color: var(--orange-primary);
+}
+
+
+/* ── Required asterisk ───────────────────────────────────── */
+.qm-req {
+  color: var(--orange-primary);
+  font-size: 0.75rem;
+  margin-left: 2px;
+}
+
+
+/* ── Back + Next button row ─────────────────────────────── */
+.qm-btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.qm-back-btn {
+  flex: 0 0 auto;
+  padding: 11px 18px;
+  font-size: 0.85rem;
+}
+
+.qm-next-btn {
+  flex: 1;
+}
+
+
+/* ── Success panel ───────────────────────────────────────── */
+.qm-success-panel {
+  padding: 36px 28px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.qm-success-icon {
+  font-size: 3.2rem;
+  color: var(--orange-primary);
+  line-height: 1;
+  animation: qmPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes qmPopIn {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: scale(1);   }
+}
+
+.qm-success-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--black);
+  margin: 0;
+}
+
+.qm-success-msg {
+  font-size: 0.88rem;
+  color: var(--grey-dark);
+  line-height: 1.6;
+  max-width: 340px;
+  margin: 0;
+}
+
+.qm-success-contact {
+  font-size: 0.82rem;
+  color: var(--grey-mid);
+  margin: 0;
+}
+
+.qm-success-contact a {
+  color: var(--orange-primary);
+  font-weight: 700;
+}
+
+.qm-success-contact a:hover {
+  text-decoration: underline;
+}
+
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .qm-steps       { padding: 12px 16px 10px; }
+  .qm-step-line   { min-width: 16px; }
+  .qm-checkboxes  { grid-template-columns: 1fr; }
+  .qm-btn-row     { flex-direction: column-reverse; }
+  .qm-back-btn    { width: 100%; text-align: center; }
+}
+
+@media (max-width: 400px) {
+  .lm-field-row   { grid-template-columns: 1fr; }
+}
