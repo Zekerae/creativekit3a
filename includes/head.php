@@ -28,14 +28,14 @@ $extra_css = $extra_css ?? [];
         crossorigin="anonymous" referrerpolicy="no-referrer">
 
   <!-- Shared base: admin utilities (alerts, badges, modals, tooltips) -->
-  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/global.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset('/assets/css/global.css')) ?>">
   <!-- CreativeKit3A Main UI: top bar, header, mega menu, hero, cards, footer, auth modals -->
-  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
-  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/quote-modal.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset('/assets/css/style.css')) ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(asset('/assets/css/quote-modal.css')) ?>">
 
   <!-- Dedicated Per-Page Stylesheet(s) -->
   <?php foreach ($extra_css as $css): ?>
-    <link rel="stylesheet" href="<?= htmlspecialchars(url($css)) ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(asset($css)) ?>">
   <?php endforeach; ?>
   <!-- Base path for JS-built URLs (site may live in a subfolder, e.g. /creativekit3a) -->
   <script>window.BASE_URL = <?= json_encode(BASE_URL) ?>;</script>

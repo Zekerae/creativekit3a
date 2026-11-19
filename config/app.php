@@ -59,6 +59,19 @@ if (!function_exists('safe_return_to')) {
     }
 }
 
+if (!function_exists('asset')) {
+    /**
+     * URL for a local CSS/JS file with a cache-busting version
+     * (?v=<file modified time>). Every edit changes the URL, so browsers
+     * always load the current file instead of a stale cached copy.
+     */
+    function asset(string $path): string {
+        $file = realpath(__DIR__ . '/..' . $path);
+        $v = $file ? filemtime($file) : null;
+        return url($path) . ($v ? (strpos($path, '?') === false ? '?v=' : '&v=') . $v : '');
+    }
+}
+
 if (!function_exists('url')) {
     /**
      * Prefix a root-relative path with BASE_URL.

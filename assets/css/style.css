@@ -509,11 +509,13 @@ top-bar-auth {
   top: 100%;
   left: 0;
   width: max-content;
+  min-width: unset;
   max-width: calc(100vw - 32px);
+  right: auto;
   background: var(--white);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-  padding: 20px 24px;
+  padding: 24px 28px;
   border-top: 3px solid var(--orange-primary);
   animation: dropFade 0.2s ease;
   z-index: 1100;
@@ -527,8 +529,10 @@ top-bar-auth {
 .mega-menu-item:hover .mega-dropdown,
 .mega-menu-item:focus-within .mega-dropdown {
   display: grid;
-  grid-template-columns: repeat(var(--mega-cols, 3), minmax(150px, 190px));
-  gap: 20px 28px;
+  /* One track per subcategory column (Home Living = 3, Apparel = 3 …);
+     menus with more than 5 wrap into balanced rows instead of overflowing */
+  grid-template-columns: repeat(var(--mega-cols, 3), minmax(175px, max-content));
+  gap: 24px 32px;
 }
 
 .mega-dropdown-col { min-width: 0; }
@@ -549,12 +553,17 @@ top-bar-auth {
   font-size: 0.85rem;
   color: var(--grey-dark);
   font-weight: 500;
-  transition: var(--transition);
+  white-space: nowrap;
+  transition: color 0.2s ease;   /* colour only — never animate position */
 }
 
+/* Hover/focus: colour change only. The text never moves horizontally. */
 .mega-dropdown-col a:hover,
 .mega-dropdown-col a:focus-visible {
   color: var(--orange-primary);
+  transform: none !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
 }
 
 /* ============================================================
@@ -1743,6 +1752,20 @@ top-bar-auth {
 @media (max-width: 1180px) and (min-width: 901px) {
   .mega-menu-nav { padding: 0 12px; justify-content: space-between; }
   .mega-menu-item > a { padding: 14px 8px; font-size: 0.76rem; }
+  /* 5-column menus must still fit: narrower minimum columns, links may wrap */
+  .mega-menu-item:hover .mega-dropdown,
+  .mega-menu-item:focus-within .mega-dropdown {
+    grid-template-columns: repeat(var(--mega-cols, 3), minmax(140px, max-content));
+    gap: 20px 24px;
+  }
+  .mega-dropdown { padding: 20px 24px; }
+  .mega-dropdown-col a { white-space: normal; }
+}
+
+/* 901–980px: the 8 category labels need a little less spacing to fit */
+@media (max-width: 980px) and (min-width: 901px) {
+  .mega-menu-nav { padding: 0 6px; }
+  .mega-menu-item > a { padding: 14px 5px; font-size: 0.72rem; }
 }
 
 /* Phones: header keeps logo + hamburger + cart icon; Request a Quote lives in the sidenav */

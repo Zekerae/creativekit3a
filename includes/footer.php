@@ -249,8 +249,8 @@ $footer_flash = function_exists('get_flash') ? get_flash() : null;
 <?php include __DIR__ . '/quote-modal.php'; ?>
 
 <!-- Shared JavaScript: modal controller, sidenav, sticky nav, search, image fallback, auth modals -->
-<script src="<?= BASE_URL ?>/assets/js/global.js"></script>
-<script src="<?= BASE_URL ?>/assets/js/quote-modal.js"></script>
+<script src="<?= htmlspecialchars(asset('/assets/js/global.js')) ?>"></script>
+<script src="<?= htmlspecialchars(asset('/assets/js/quote-modal.js')) ?>"></script>
 
 <?php if ($login_errors || $register_errors || $footer_flash): ?>
 <script>
@@ -264,7 +264,7 @@ $footer_flash = function_exists('get_flash') ? get_flash() : null;
 
 <!-- Dedicated Per-Page JavaScript Files -->
 <?php foreach ($extra_js as $js): ?>
-  <script src="<?= htmlspecialchars(url($js)) ?>"></script>
+  <script src="<?= htmlspecialchars(asset($js)) ?>"></script>
 <?php endforeach; ?>
 
 </body>

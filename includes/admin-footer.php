@@ -21,11 +21,11 @@ $extra_js = $extra_js ?? [];
 <div class="lm-overlay" id="lm-overlay" onclick="closeAllModals()" aria-hidden="true"></div>
 <?php include __DIR__ . '/quote-modal.php'; ?>
 
-<script src="<?= BASE_URL ?>/assets/js/global.js"></script>
-<script src="<?= BASE_URL ?>/assets/js/quote-modal.js"></script>
-<script src="<?= BASE_URL ?>/assets/js/admin.js"></script>
+<script src="<?= htmlspecialchars(asset('/assets/js/global.js')) ?>"></script>
+<script src="<?= htmlspecialchars(asset('/assets/js/quote-modal.js')) ?>"></script>
+<script src="<?= htmlspecialchars(asset('/assets/js/admin.js')) ?>"></script>
 <?php foreach ($extra_js as $js): ?>
-  <script src="<?= htmlspecialchars(url($js)) ?>"></script>
+  <script src="<?= htmlspecialchars(asset($js)) ?>"></script>
 <?php endforeach; ?>
 
 </body>
