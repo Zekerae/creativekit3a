@@ -24,24 +24,4 @@
      ```text
      http://localhost/creativekit3a/
      ```
-
----
-
-## Extending the Catalog
-
-### Adding a New Product Variant Page
-
-1. Duplicate `product/car-charger-adapters.php` (e.g. `product/mobile-powerbanks.php`).
-2. Update the page metadata (`$title`, `$meta_desc`, `$extra_css`, `$extra_js`).
-3. Create or reuse the corresponding JS dataset in `assets/js/` matching the URL parameters.
-
-### Modifying Categories
-
-- Category definitions and product lists are managed in `assets/js/category-page.js` within `CATEGORY_DATA`.
-- Mega-menu categories and links are maintained in `includes/navbar.php`.
-
----
-
-## License
-
 All rights reserved © CreativeKit 3A.
