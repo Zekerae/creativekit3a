@@ -11,7 +11,8 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../auth/guard.php';
 
 $page_title = 'Manage Products | CreativeKit 3A';
-$extra_css  = ['/assets/css/products.css'];
+$extra_css  = ['/assets/css/admin.css', '/assets/css/products.css'];
+$admin_heading = 'Products';
 $extra_js   = ['/assets/js/products.js'];
 
 $flash = get_flash();
@@ -120,11 +121,8 @@ if ($pdo) {
 
 include __DIR__ . '/../includes/head.php';
 ?>
-<body>
-<?php
-include __DIR__ . '/../includes/topbar.php';
-include __DIR__ . '/../includes/navbar.php';
-?>
+<body class="admin-body">
+<?php include __DIR__ . '/../includes/admin-layout.php'; ?>
 
 <main class="products-wrapper">
   <div class="container">
@@ -414,4 +412,4 @@ include __DIR__ . '/../includes/navbar.php';
   </div>
 </div>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>

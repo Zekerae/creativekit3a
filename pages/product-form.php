@@ -14,7 +14,8 @@ $page_id = (int)($_GET['id'] ?? 0);
 $is_edit = ($page_id > 0);
 
 $page_title = $is_edit ? 'Edit Product | CreativeKit 3A' : 'Add New Product | CreativeKit 3A';
-$extra_css  = ['/assets/css/product-form.css'];
+$extra_css  = ['/assets/css/admin.css', '/assets/css/product-form.css'];
+$admin_heading = 'Product Editor';
 $extra_js   = ['/assets/js/product-form.js'];
 
 $flash = get_flash();
@@ -108,11 +109,8 @@ if (!empty($product['badge']) && !in_array($product['badge'], $badge_options, tr
 
 include __DIR__ . '/../includes/head.php';
 ?>
-<body>
-<?php
-include __DIR__ . '/../includes/topbar.php';
-include __DIR__ . '/../includes/navbar.php';
-?>
+<body class="admin-body">
+<?php include __DIR__ . '/../includes/admin-layout.php'; ?>
 
 <main class="form-page-wrapper">
   <div class="container form-container">
@@ -371,4 +369,4 @@ include __DIR__ . '/../includes/navbar.php';
   </div>
 </main>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>

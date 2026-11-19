@@ -148,6 +148,8 @@ The storefront uses the original **CreativeKit3A Main UI** (`assets/css/style.cs
 | `assets/images/categories/` | One banner per main category (`<category-slug>.png`) | `categories.image` |
 | `assets/images/placeholder.png` | Shown automatically if any image fails to load (`onerror` handler in `assets/js/global.js`) | every page |
 
+**Staff portal (admin UI):** every page in `pages/` (Dashboard, Products, Product form, Quotes, Reports) uses a separate admin layout — a fixed dark sidebar with navigation and a live "new quotes" badge, plus a slim top header with product search and the signed-in user. It is built by `includes/admin-layout.php` / `includes/admin-footer.php` with `assets/css/admin.css` and `assets/js/admin.js`. The Dashboard adds a **Quote Pipeline** chart (requests per status from a `GROUP BY` query).
+
 **To use your real photos:** overwrite a file with your photo using the **same file name** — no code or database change needed.
 
 ## 5. Demo Credentials for Defense

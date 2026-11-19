@@ -1,12 +1,14 @@
 <?php
-// Staff return to the portal login; storefront customers return to the shop
-$was_staff = null;
 /**
  * auth/logout.php — Logout Handler
  * Destroys session, logs audit trail, and redirects.
  */
 
 require_once __DIR__ . '/../config/db.php';
+
+// Staff return to the portal login; storefront customers return to the shop
+// (read the role now — the session is cleared below)
+$was_staff = in_array($_SESSION['user_role'] ?? '', ['admin', 'staff'], true);
 
 // Log the logout activity before destroying session
 if (isset($_SESSION['user_id']) && $pdo) {
@@ -39,7 +41,6 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-$was_staff = in_array($_SESSION['user_role'] ?? '', ['admin', 'staff'], true);
 session_destroy();
 
 // Start a fresh session just to hold the goodbye message

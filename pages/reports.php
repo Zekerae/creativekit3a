@@ -19,7 +19,8 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../auth/guard.php';
 
 $page_title = 'System Reports & Analytics | CreativeKit 3A';
-$extra_css  = ['/assets/css/reports.css'];
+$extra_css  = ['/assets/css/admin.css', '/assets/css/reports.css'];
+$admin_heading = 'Reports & Analytics';
 $extra_js   = ['/assets/js/reports.js'];
 
 $report_mode = $_GET['tab'] ?? 'summary';
@@ -117,11 +118,8 @@ if ($pdo) {
 
 include __DIR__ . '/../includes/head.php';
 ?>
-<body>
-<?php
-include __DIR__ . '/../includes/topbar.php';
-include __DIR__ . '/../includes/navbar.php';
-?>
+<body class="admin-body">
+<?php include __DIR__ . '/../includes/admin-layout.php'; ?>
 
 <main class="reports-wrapper">
   <div class="container">
@@ -372,4 +370,4 @@ include __DIR__ . '/../includes/navbar.php';
   </div>
 </main>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>

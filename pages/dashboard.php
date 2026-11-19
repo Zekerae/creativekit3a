@@ -11,7 +11,8 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../auth/guard.php';
 
 $page_title = 'System Dashboard | CreativeKit 3A';
-$extra_css  = ['/assets/css/dashboard.css'];
+$extra_css  = ['/assets/css/admin.css', '/assets/css/dashboard.css'];
+$admin_heading = 'Dashboard';
 $extra_js   = ['/assets/js/dashboard.js'];
 
 $flash = get_flash();
@@ -28,6 +29,8 @@ $total_staff       = 0;
 $assigned_to_me    = 0;
 $recent_quotes     = [];
 $recent_activities = [];
+$pipeline          = [];   // status => ['count' => n, 'units' => n]
+$pipeline_units    = 0;
 
 if ($pdo) {
     // 1. Total products count
@@ -78,15 +81,25 @@ if ($pdo) {
                          ORDER BY a.created_at DESC 
                          LIMIT 8");
     $recent_activities = $stmt->fetchAll();
+
+    // 10. Quote pipeline: requests and units per workflow status (GROUP BY)
+    foreach (['new', 'reviewing', 'quoted', 'accepted', 'declined'] as $st) {
+        $pipeline[$st] = ['count' => 0, 'units' => 0];
+    }
+    $stmt = $pdo->query('SELECT status, COUNT(*) AS cnt, COALESCE(SUM(quantity), 0) AS units
+                         FROM quote_requests
+                         GROUP BY status');
+    foreach ($stmt->fetchAll() as $row) {
+        $pipeline[$row['status']] = ['count' => (int)$row['cnt'], 'units' => (int)$row['units']];
+        $pipeline_units += (int)$row['units'];
+    }
 }
+$pipeline_max = max(1, ...array_column($pipeline, 'count'));
 
 include __DIR__ . '/../includes/head.php';
 ?>
-<body>
-<?php
-include __DIR__ . '/../includes/topbar.php';
-include __DIR__ . '/../includes/navbar.php';
-?>
+<body class="admin-body">
+<?php include __DIR__ . '/../includes/admin-layout.php'; ?>
 
 <main class="dashboard-wrapper">
   <div class="container">
@@ -193,67 +206,37 @@ include __DIR__ . '/../includes/navbar.php';
 
     </section>
 
-    <!-- Main Content Two-Column Grid -->
+    <!-- Pipeline chart + activity log -->
     <div class="dashboard-columns">
 
-      <!-- Left Column: Recent Quotes Table -->
-      <section class="dash-panel">
+      <!-- Quote Pipeline chart (single series: requests per status) -->
+      <section class="dash-panel" aria-labelledby="pipeline-title">
         <div class="panel-header">
           <div>
-            <h2><i class="fas fa-file-signature" style="color:var(--orange-primary);"></i> Recent Quote Requests</h2>
-            <p>Latest inquiries submitted via website storefront</p>
+            <h2 id="pipeline-title"><i class="fas fa-chart-bar" style="color:var(--orange-primary);"></i> Quote Pipeline</h2>
+            <p>Quote requests by workflow status</p>
           </div>
-          <a href="<?= BASE_URL ?>/pages/quotes.php" class="btn btn-outline btn-sm">View All (<?= $total_quotes ?>)</a>
+          <a href="<?= BASE_URL ?>/pages/reports.php" class="btn btn-outline btn-sm">Full Report</a>
         </div>
 
-        <div class="table-responsive">
-          <table class="dash-table" id="recent-quotes-table">
-            <thead>
-              <tr>
-                <th>Customer / Company</th>
-                <th>Product Type</th>
-                <th>Qty</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th style="text-align:right;">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (empty($recent_quotes)): ?>
-                <tr>
-                  <td colspan="6" class="table-empty">
-                    <i class="fas fa-inbox"></i> No quote requests recorded yet.
-                  </td>
-                </tr>
-              <?php else: ?>
-                <?php foreach ($recent_quotes as $q): ?>
-                  <tr>
-                    <td>
-                      <strong><?= htmlspecialchars($q['customer_name']) ?></strong>
-                      <div class="table-sub"><?= htmlspecialchars($q['company'] ?: 'Individual') ?></div>
-                    </td>
-                    <td>
-                      <?= htmlspecialchars($q['product_name'] ?? $q['product_type'] ?? 'Custom Merch') ?>
-                    </td>
-                    <td><?= number_format($q['quantity'] ?? 0) ?></td>
-                    <td>
-                      <span class="badge badge-<?= htmlspecialchars($q['status']) ?>">
-                        <?= ucfirst(htmlspecialchars($q['status'])) ?>
-                      </span>
-                    </td>
-                    <td style="font-size:0.8125rem; color:var(--grey-dark);">
-                      <?= date('M j, Y', strtotime($q['created_at'])) ?>
-                    </td>
-                    <td style="text-align:right;">
-                      <a href="<?= BASE_URL ?>/pages/quotes.php?id=<?= $q['id'] ?>" class="btn btn-secondary btn-sm" data-tooltip="Review Quote #<?= $q['id'] ?>">
-                        <i class="fas fa-eye"></i>
-                      </a>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
+        <div class="pipeline-chart" role="list" aria-label="Quote requests per status">
+          <?php foreach ($pipeline as $st => $p): ?>
+            <a class="pipeline-row" role="listitem"
+               href="<?= BASE_URL ?>/pages/quotes.php?status=<?= urlencode($st) ?>"
+               data-tooltip="<?= ucfirst($st) ?>: <?= $p['count'] ?> request<?= $p['count'] === 1 ? '' : 's' ?> · <?= number_format($p['units']) ?> units"
+               aria-label="<?= ucfirst($st) ?>: <?= $p['count'] ?> requests, <?= number_format($p['units']) ?> units">
+              <span class="pipeline-label"><?= ucfirst($st) ?></span>
+              <span class="pipeline-track"><span class="pipeline-bar" style="display:block; width:<?= round($p['count'] / $pipeline_max * 100, 1) ?>%;"></span></span>
+              <span class="pipeline-value"><?= $p['count'] ?></span>
+            </a>
+          <?php endforeach; ?>
+          <div class="pipeline-axis" aria-hidden="true"><span></span><span>Requests</span><span></span></div>
+        </div>
+
+        <div class="pipeline-summary">
+          <div><strong><?= number_format($total_quotes) ?></strong><span>Total requests</span></div>
+          <div><strong><?= number_format($pipeline_units) ?></strong><span>Units requested</span></div>
+          <div><strong><?= $total_quotes ? round($pipeline['accepted']['count'] / $total_quotes * 100) : 0 ?>%</strong><span>Accepted</span></div>
         </div>
       </section>
 
@@ -318,7 +301,68 @@ include __DIR__ . '/../includes/navbar.php';
 
     </div>
 
+    <!-- Recent Quote Requests (full width) -->
+    <section class="dash-panel dash-panel-wide">
+      <div class="panel-header">
+        <div>
+          <h2><i class="fas fa-file-signature" style="color:var(--orange-primary);"></i> Recent Quote Requests</h2>
+          <p>Latest inquiries submitted via website storefront</p>
+        </div>
+        <a href="<?= BASE_URL ?>/pages/quotes.php" class="btn btn-outline btn-sm">View All (<?= $total_quotes ?>)</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="dash-table" id="recent-quotes-table">
+          <thead>
+            <tr>
+              <th>Customer / Company</th>
+              <th>Product Type</th>
+              <th>Qty</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th style="text-align:right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (empty($recent_quotes)): ?>
+              <tr>
+                <td colspan="6" class="table-empty">
+                  <i class="fas fa-inbox"></i> No quote requests recorded yet.
+                </td>
+              </tr>
+            <?php else: ?>
+              <?php foreach ($recent_quotes as $q): ?>
+                <tr>
+                  <td>
+                    <strong><?= htmlspecialchars($q['customer_name']) ?></strong>
+                    <div class="table-sub"><?= htmlspecialchars($q['company'] ?: 'Individual') ?></div>
+                  </td>
+                  <td>
+                    <?= htmlspecialchars($q['product_name'] ?? $q['product_type'] ?? 'Custom Merch') ?>
+                  </td>
+                  <td><?= number_format($q['quantity'] ?? 0) ?></td>
+                  <td>
+                    <span class="badge badge-<?= htmlspecialchars($q['status']) ?>">
+                      <?= ucfirst(htmlspecialchars($q['status'])) ?>
+                    </span>
+                  </td>
+                  <td style="font-size:0.8125rem; color:var(--grey-dark);">
+                    <?= date('M j, Y', strtotime($q['created_at'])) ?>
+                  </td>
+                  <td style="text-align:right;">
+                    <a href="<?= BASE_URL ?>/pages/quotes.php?id=<?= $q['id'] ?>" class="btn btn-secondary btn-sm" data-tooltip="Review Quote #<?= $q['id'] ?>">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
 </main>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>

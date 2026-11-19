@@ -11,7 +11,8 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../auth/guard.php';
 
 $page_title = 'Quote Inquiries | CreativeKit 3A';
-$extra_css  = ['/assets/css/quotes.css'];
+$extra_css  = ['/assets/css/admin.css', '/assets/css/quotes.css'];
+$admin_heading = 'Quote Requests';
 $extra_js   = ['/assets/js/quotes.js'];
 
 $flash = get_flash();
@@ -112,11 +113,8 @@ if ($pdo) {
 
 include __DIR__ . '/../includes/head.php';
 ?>
-<body>
-<?php
-include __DIR__ . '/../includes/topbar.php';
-include __DIR__ . '/../includes/navbar.php';
-?>
+<body class="admin-body">
+<?php include __DIR__ . '/../includes/admin-layout.php'; ?>
 
 <main class="quotes-wrapper">
   <div class="container">
@@ -456,4 +454,4 @@ include __DIR__ . '/../includes/navbar.php';
   </div>
 </div>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>

@@ -10,7 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$title     = $title     ?? 'CreativeKit3A | Corporate Giveaways Philippines';
+$title     = $title     ?? $page_title ?? 'CreativeKit3A | Corporate Giveaways Philippines';
 $meta_desc = $meta_desc ?? 'Customized corporate giveaways, branded accessories, and promotional items in the Philippines. CreativeKit3A — your trusted partner.';
 $extra_css = $extra_css ?? [];
 ?>

@@ -359,3 +359,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Staff portal layout: full-width Recent Quotes panel below the chart row ---- */
+.dash-panel-wide { margin-top: 26px; }
+.dashboard-columns { align-items: stretch; }
+.pipeline-row { text-decoration: none; color: inherit; border-radius: 6px; padding: 2px 4px; margin: 0 -4px; }
+.pipeline-row:hover { background: #FFF5EE; }
+/* KPI cards without a link use the same icon-beside-text layout */
+.kpi-card:not(:has(> .kpi-card-link)) { display: flex; align-items: flex-start; gap: 16px; }
