@@ -50,10 +50,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Dependent Category Handler (Event 3: 'change')
   //    Suggests SKU prefix and spec details dynamically.
   // ============================================================
+  // Subcategories without their own helper fall back to the parent category's helper
+  function helperSlug(option) {
+    if (!option) return '';
+    const own = option.getAttribute('data-slug') || '';
+    return categoryHelpers[own] ? own : (option.getAttribute('data-parent-slug') || own);
+  }
+
   if (catSelect) {
     catSelect.addEventListener('change', function () {
       const selectedOption = this.options[this.selectedIndex];
-      const slug = selectedOption ? selectedOption.getAttribute('data-slug') : '';
+      const slug = helperSlug(selectedOption);
 
       if (slug && categoryHelpers[slug]) {
         const helper = categoryHelpers[slug];
@@ -95,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (genSkuBtn && skuInput) {
     genSkuBtn.addEventListener('click', () => {
       const selectedOption = catSelect ? catSelect.options[catSelect.selectedIndex] : null;
-      const slug = selectedOption ? selectedOption.getAttribute('data-slug') : '';
+      const slug = helperSlug(selectedOption);
       const prefix = (slug && categoryHelpers[slug]) ? categoryHelpers[slug].prefix : 'CK3A';
       const rand = Math.floor(1000 + Math.random() * 9000);
 

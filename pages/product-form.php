@@ -59,7 +59,11 @@ if (!empty($form_data)) {
 // Fetch all categories
 $categories = [];
 if ($pdo) {
-    $stmt = $pdo->query('SELECT id, parent_id, name, slug FROM categories ORDER BY parent_id IS NULL DESC, sort_order ASC, name ASC');
+    // Main categories with their subcategories grouped underneath (self LEFT JOIN)
+    $stmt = $pdo->query('SELECT c.id, c.parent_id, c.name, c.slug, pc.slug AS parent_slug
+                         FROM categories AS c
+                         LEFT JOIN categories AS pc ON c.parent_id = pc.id
+                         ORDER BY COALESCE(pc.sort_order, c.sort_order), c.parent_id IS NOT NULL, c.sort_order, c.name');
     $categories = $stmt->fetchAll();
 }
 
@@ -188,6 +192,7 @@ include __DIR__ . '/../includes/navbar.php';
                   <option 
                     value="<?= $cat['id'] ?>" 
                     data-slug="<?= htmlspecialchars($cat['slug']) ?>"
+                    data-parent-slug="<?= htmlspecialchars($cat['parent_slug'] ?? '') ?>"
                     <?= ((int)$product['category_id'] === (int)$cat['id']) ? 'selected' : '' ?>
                   >
                     <?= $cat['parent_id'] ? '&nbsp;&nbsp;↳ ' : '' ?><?= htmlspecialchars($cat['name']) ?>

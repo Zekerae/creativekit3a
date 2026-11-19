@@ -96,8 +96,11 @@ if ($pdo) {
 
     // Search query using LIKE
     if (!empty($search_query)) {
-        $sql .= ' AND (q.customer_name LIKE :search OR q.company LIKE :search OR q.email LIKE :search OR q.product_type LIKE :search)';
-        $params[':search'] = '%' . $search_query . '%';
+        // Native prepares (EMULATE_PREPARES=false) forbid reusing a named placeholder,
+        // so each LIKE gets its own parameter.
+        $sql .= ' AND (q.customer_name LIKE :s1 OR q.company LIKE :s2 OR q.email LIKE :s3 OR q.product_type LIKE :s4)';
+        $like = '%' . $search_query . '%';
+        $params += [':s1' => $like, ':s2' => $like, ':s3' => $like, ':s4' => $like];
     }
 
     $sql .= ' ORDER BY q.created_at DESC';

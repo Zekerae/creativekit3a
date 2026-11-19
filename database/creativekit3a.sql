@@ -1,7 +1,23 @@
 -- ============================================================
---  CreativeKit3A — Full Database Schema & Seed Data
---  Database: creativekit3a_db
+--  CreativeKit3A — Unified Database (Schema + Seed + SQL Demos)
+--  ONE database for the whole system: creativekit3a_db
 --  Engine: InnoDB | Charset: utf8mb4 | Collation: utf8mb4_unicode_ci
+--
+--  Every PHP page connects to this database through ONE file:
+--      config/db.php   (PDO, prepared statements)
+--
+--  6 related tables (Primary Keys + Foreign Keys):
+--
+--      users ─────────────┬──< products         (created_by)
+--                         ├──< quote_requests   (assigned_to)
+--                         └──< activity_log     (user_id)
+--      categories ────────┬──< categories       (parent_id, self-reference)
+--                         └──< products         (category_id)
+--      products ──────────┬──< product_variants (product_id)
+--                         └──< quote_requests   (product_id)
+--
+--  Import:  phpMyAdmin → Import → this file
+--      or:  mysql -u root < database/creativekit3a.sql
 -- ============================================================
 
 DROP DATABASE IF EXISTS creativekit3a_db;
@@ -18,7 +34,7 @@ CREATE TABLE users (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   first_name    VARCHAR(100)    NOT NULL,
   last_name     VARCHAR(100)    NOT NULL,
-  email         VARCHAR(255)    NOT NULL UNIQUE,
+  email         VARCHAR(255)    NOT NULL,
   phone         VARCHAR(30)     DEFAULT NULL,
   password_hash VARCHAR(255)    NOT NULL COMMENT 'Bcrypt hash',
   role          ENUM('admin','staff') NOT NULL DEFAULT 'staff',
@@ -32,19 +48,22 @@ CREATE TABLE users (
 ) ENGINE=InnoDB;
 
 -- ============================================================
---  TABLE 2: categories
+--  TABLE 2: categories (main categories + subcategories)
+--  parent_id = NULL  → main category (e.g. Drinkware)
+--  parent_id = <id>  → subcategory   (e.g. Tumblers & Flasks)
 -- ============================================================
 CREATE TABLE categories (
   id          INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   parent_id   INT UNSIGNED    DEFAULT NULL,
   name        VARCHAR(150)    NOT NULL,
-  slug        VARCHAR(160)    NOT NULL UNIQUE,
+  slug        VARCHAR(160)    NOT NULL,
   description TEXT            DEFAULT NULL,
   icon        VARCHAR(50)     DEFAULT 'fa-box',
   sort_order  SMALLINT        NOT NULL DEFAULT 0,
   is_active   TINYINT(1)      NOT NULL DEFAULT 1,
   created_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE INDEX idx_cat_slug (slug),
   INDEX idx_parent (parent_id),
   CONSTRAINT fk_cat_parent
     FOREIGN KEY (parent_id) REFERENCES categories(id)
@@ -52,17 +71,17 @@ CREATE TABLE categories (
 ) ENGINE=InnoDB;
 
 -- ============================================================
---  TABLE 3: products (Full CRUD target)
+--  TABLE 3: products (catalog cards — full CRUD target)
 -- ============================================================
 CREATE TABLE products (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   category_id   INT UNSIGNED    NOT NULL,
   name          VARCHAR(200)    NOT NULL,
   slug          VARCHAR(220)    NOT NULL,
-  sku           VARCHAR(50)     DEFAULT NULL UNIQUE,
+  sku           VARCHAR(50)     DEFAULT NULL,
   description   TEXT            DEFAULT NULL,
   specs         VARCHAR(255)    DEFAULT NULL,
-  price_min     DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  price_min     DECIMAL(10,2)   NOT NULL DEFAULT 0.00 COMMENT '0.00 = Ask for Quote',
   image         VARCHAR(255)    DEFAULT '/assets/images/1.png',
   badge         VARCHAR(50)     DEFAULT NULL,
   status        ENUM('active','draft','archived') NOT NULL DEFAULT 'active',
@@ -71,6 +90,8 @@ CREATE TABLE products (
   created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE INDEX idx_sku (sku),
+  INDEX idx_slug     (slug),
   INDEX idx_category (category_id),
   INDEX idx_status   (status),
   INDEX idx_featured (is_featured),
@@ -83,7 +104,31 @@ CREATE TABLE products (
 ) ENGINE=InnoDB;
 
 -- ============================================================
---  TABLE 4: quote_requests (Lead Management)
+--  TABLE 4: product_variants (individual items of a product)
+--  e.g. product "Car Charger Adapters" → "Single USB-A", "Dual Port"…
+-- ============================================================
+CREATE TABLE product_variants (
+  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  product_id    INT UNSIGNED    NOT NULL,
+  variant_type  VARCHAR(50)     DEFAULT NULL COMMENT 'Filter tab key, e.g. single | dual',
+  variant_label VARCHAR(100)    DEFAULT NULL COMMENT 'Filter tab label, e.g. Single Port',
+  type_order    SMALLINT        NOT NULL DEFAULT 0,
+  name          VARCHAR(200)    NOT NULL,
+  specs         VARCHAR(255)    DEFAULT NULL,
+  price         DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  image         VARCHAR(512)    DEFAULT NULL,
+  badge         VARCHAR(50)     DEFAULT NULL,
+  sort_order    SMALLINT        NOT NULL DEFAULT 0,
+  created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_variant_product (product_id),
+  CONSTRAINT fk_variant_product
+    FOREIGN KEY (product_id) REFERENCES products(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================================
+--  TABLE 5: quote_requests (Lead Management)
 -- ============================================================
 CREATE TABLE quote_requests (
   id             INT UNSIGNED    NOT NULL AUTO_INCREMENT,
@@ -103,6 +148,8 @@ CREATE TABLE quote_requests (
   updated_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   INDEX idx_status (status),
+  INDEX idx_quote_product (product_id),
+  INDEX idx_quote_assigned (assigned_to),
   CONSTRAINT fk_quote_product
     FOREIGN KEY (product_id) REFERENCES products(id)
     ON DELETE SET NULL ON UPDATE CASCADE,
@@ -112,7 +159,7 @@ CREATE TABLE quote_requests (
 ) ENGINE=InnoDB;
 
 -- ============================================================
---  TABLE 5: activity_log (Audit Trail)
+--  TABLE 6: activity_log (Audit Trail)
 -- ============================================================
 CREATE TABLE activity_log (
   id          INT UNSIGNED    NOT NULL AUTO_INCREMENT,
@@ -146,65 +193,268 @@ INSERT INTO users (id, first_name, last_name, email, phone, password_hash, role,
   (3, 'Juan',    'Cruz',    'juan@creativekit3a.com',   '+63 917 714 2774', '$2y$12$ADGGe7Q/OVwQaN5yvItdY.zlzlFD/lUUO64ozQwwapHYANYFZeIxe', 'staff', 1),
   (4, 'Regina',  'Reyes',   'regina@creativekit3a.com', '+63 918 555 1234', '$2y$12$ADGGe7Q/OVwQaN5yvItdY.zlzlFD/lUUO64ozQwwapHYANYFZeIxe', 'staff', 1);
 
--- ---- Categories (8 Main Categories + Subcategories) ----
+-- ---- Categories (8 main categories + 30 subcategories, self-referencing FK) ----
 INSERT INTO categories (id, parent_id, name, slug, description, icon, sort_order, is_active) VALUES
-  (1, NULL, 'Accessories & Gadgets', 'accessories-gadgets', 'Car, computer, desk, mobile accessories and gadgets', 'fa-plug',         1, 1),
-  (2, NULL, 'Apparel',               'apparel',             'Caps, jackets, and corporate shirts',                 'fa-tshirt',       2, 1),
-  (3, NULL, 'Bags & Pouches',        'bags-pouches',        'Backpacks, eco bags, laptop bags, tote bags',         'fa-shopping-bag', 3, 1),
-  (4, NULL, 'Drinkware',             'drinkware',           'Tumblers, mugs, insulated water bottles',             'fa-glass-water',  4, 1),
-  (5, NULL, 'Gift Set',              'giftset',             'Curated corporate gift sets for all occasions',       'fa-gift',         5, 1),
-  (6, NULL, 'Home Living',           'home-living',         'Cleaning essentials, cutlery, towels, pillows',       'fa-house',        6, 1),
-  (7, NULL, 'Pen & Paper',           'pen-paper',           'Pens, notebooks, calendars, padfolios',               'fa-pen',          7, 1),
-  (8, NULL, 'PU Leather',            'pu-leather',          'Card cases, desk mats, wallets, keychains',           'fa-wallet',       8, 1),
-  -- Subcategories under Accessories & Gadgets (id: 1)
-  (9,  1,   'Car Accessories',       'car-accessories',     'In-car chargers, organizers, dashcams',               'fa-car',          1, 1),
-  (10, 1,   'Computer Accessories',  'computer-accessories','Mice, pads, USB hubs, audio',                         'fa-laptop',       2, 1),
-  (11, 1,   'Desk Accessories',      'desk-accessories',    'Clocks, pen holders, stands',                         'fa-desktop',      3, 1),
-  (12, 1,   'Mobile Accessories',    'mobile-accessories',  'Power banks, stands, cables',                         'fa-mobile',       4, 1),
-  (13, 1,   'Gadgets',               'gadgets',             'Portable fans, rechargeable gadgets',                 'fa-microchip',    5, 1);
+  (1, NULL, 'Accessories & Gadgets', 'accessories-gadgets', 'Browse our full range of custom accessories, gadgets, tech items, and desk essentials — perfect for corporate giveaways and events.', 'fa-mobile-alt', 1, 1),
+  (2, NULL, 'Apparel', 'apparel', 'Custom-printed caps, jackets, shirts, and uniforms for your brand, team, or event.', 'fa-tshirt', 2, 1),
+  (3, NULL, 'Bags & Pouches', 'bags-pouches', 'Custom bags for every purpose — from backpacks to eco bags, laptop bags, totes, and travel luggage.', 'fa-shopping-bag', 3, 1),
+  (4, NULL, 'Drinkware', 'drinkware', 'Custom tumblers, mugs, water bottles, and drinkware — great for corporate gifts, events, and everyday use.', 'fa-coffee', 4, 1),
+  (5, NULL, 'Gift Set', 'giftset', 'Curated gift sets for corporate events, onboarding, wellness, travel, and occasions — fully branded for your company.', 'fa-gift', 5, 1),
+  (6, NULL, 'Home Living', 'home-living', 'Branded home & lifestyle items — from cleaning essentials and outdoor chairs to personal care and portable fans.', 'fa-home', 6, 1),
+  (7, NULL, 'Pen & Paper', 'pen-paper', 'Custom pens, notebooks, journals, planners, and stationery sets — ideal for corporate giveaways and office use.', 'fa-pen', 7, 1),
+  (8, NULL, 'PU Leather', 'pu-leather', 'Elegant PU leather products for corporate gifting — wallets, card cases, organizers, keychains, and more.', 'fa-briefcase', 8, 1),
+  (9, 1, 'Car Accessories', 'car-accessories', NULL, 'fa-tag', 1, 1),
+  (10, 1, 'Computer Accessories', 'computer-accessories', NULL, 'fa-tag', 2, 1),
+  (11, 1, 'Desk Accessories', 'desk-accessories', NULL, 'fa-tag', 3, 1),
+  (12, 1, 'Mobile Accessories', 'mobile-accessories', NULL, 'fa-tag', 4, 1),
+  (13, 1, 'Gadgets', 'gadgets', NULL, 'fa-tag', 5, 1),
+  (14, 2, 'Caps', 'caps', NULL, 'fa-tag', 1, 1),
+  (15, 2, 'Jackets', 'jackets', NULL, 'fa-tag', 2, 1),
+  (16, 2, 'Shirts', 'shirts', NULL, 'fa-tag', 3, 1),
+  (17, 3, 'Backpacks', 'backpacks', NULL, 'fa-tag', 1, 1),
+  (18, 3, 'Eco Bags', 'eco-bags', NULL, 'fa-tag', 2, 1),
+  (19, 3, 'Laptop Bags', 'laptop-bags', NULL, 'fa-tag', 3, 1),
+  (20, 3, 'Tote Bags', 'tote-bags', NULL, 'fa-tag', 4, 1),
+  (21, 3, 'Travel Bags', 'travel-bags', NULL, 'fa-tag', 5, 1),
+  (22, 3, 'Lunch Bags', 'lunch-bags', NULL, 'fa-tag', 6, 1),
+  (23, 3, 'Organizer Pouches', 'organizer-pouches', NULL, 'fa-tag', 7, 1),
+  (24, 4, 'Tumblers & Flasks', 'tumblers-and-flasks', NULL, 'fa-tag', 1, 1),
+  (25, 4, 'Mugs & Cups', 'mugs-and-cups', NULL, 'fa-tag', 2, 1),
+  (26, 4, 'Water Bottles', 'water-bottles', NULL, 'fa-tag', 3, 1),
+  (27, 4, 'Eco-Friendly', 'eco-friendly', NULL, 'fa-tag', 4, 1),
+  (28, 5, 'Corporate', 'corporate', NULL, 'fa-tag', 1, 1),
+  (29, 5, 'Lifestyle', 'lifestyle', NULL, 'fa-tag', 2, 1),
+  (30, 5, 'Health & Wellness', 'health-and-wellness', NULL, 'fa-tag', 3, 1),
+  (31, 6, 'Kitchen & Dining', 'kitchen-and-dining', NULL, 'fa-tag', 1, 1),
+  (32, 6, 'Personal Care', 'personal-care', NULL, 'fa-tag', 2, 1),
+  (33, 6, 'Outdoor & Lifestyle', 'outdoor-and-lifestyle', NULL, 'fa-tag', 3, 1),
+  (34, 7, 'Pens', 'pens', NULL, 'fa-tag', 1, 1),
+  (35, 7, 'Paper & Notebooks', 'paper-and-notebooks', NULL, 'fa-tag', 2, 1),
+  (36, 8, 'Wallets & Cases', 'wallets-and-cases', NULL, 'fa-tag', 1, 1),
+  (37, 8, 'Organizers & Bags', 'organizers-and-bags', NULL, 'fa-tag', 2, 1),
+  (38, 8, 'Keychains & Tags', 'keychains-and-tags', NULL, 'fa-tag', 3, 1);
 
--- ---- Products ----
+-- ---- Products (catalog cards shown on category-page.php) ----
 INSERT INTO products (id, category_id, name, slug, sku, description, specs, price_min, image, badge, status, is_featured, created_by) VALUES
-  (1,  9,  'Single USB Car Charger',        'car-charger-single',     'ACC-CC-001', 'Custom-branded single USB car charger adapter for promotional giveaways', '5V / 2.1A • USB-A • Compact',              85.00,  '/assets/images/1.png',                    '',            'active',   1, 1),
-  (2,  9,  'Dual USB Fast Car Adapter',     'car-charger-dual',       'ACC-CC-002', 'Dual-port fast charging car adapter with custom full-color logo print',   '2x USB-A • 3.1A Total • Logo Printing',   110.00,  '/assets/images/dual-usb-adapter.png',     'Best Seller', 'active',   1, 1),
-  (3,  9,  'USB-C Car Charger Adapter',     'car-charger-usbc',       'ACC-CC-003', 'Modern USB-C compact car charger with rapid Power Delivery support',      '5V / 3A • USB-C • Compact',                95.00,  '/assets/images/usb-c-adapter.png',        'New',         'active',   1, 1),
-  (4,  9,  'Car Seat-Back Organizer',       'car-organizer',          'ACC-CO-001', 'Multi-pocket Oxford cloth seat organizer for corporate travel gifts',     'Oxford Cloth • 5 Pockets',                 88.00,  '/assets/images/car-organizer.png',        '',            'active',   1, 1),
-  (5,  9,  '1080p HD Dash Cam',             'car-dashcam',            'ACC-DC-001', 'Full HD dash camera with 140-degree wide angle and night vision lens',    '1080p • 140° FOV • Loop Recording',       379.90,  '/assets/images/dash-cam.png',             '',            'active',   0, 1),
-  (6,  10, 'Custom Branded Mouse Pad',      'mouse-pad',              'ACC-MP-001', 'Full-color sublimation mouse pad with durable stitched non-slip base',    'Full-color print • Non-slip base',          80.00,  '/assets/images/mouse-pad.png',            '',            'active',   1, 1),
-  (7,  10, '4-Port USB Hub Adapter',        'usb-hub',                'ACC-UH-001', 'High-speed 4-port USB 3.0 expander with custom laser etched brand logo',  '4-Port • USB 3.0 • Plug & Play',          195.00,  '/assets/images/usb-hub.png',              '',            'active',   0, 1),
-  (8,  10, 'Wireless Bluetooth Earbuds',    'audio-accessories',      'ACC-AU-001', 'TWS wireless earbuds with custom printed charging case',                   'Bluetooth 5.0 • TWS • Charging Case',     380.00,  '/assets/images/audio-accessories.png',    '',            'active',   0, 1),
-  (9,  11, 'Woven Bamboo Desktop Clock',    'woven-clock',            'ACC-WC-001', 'Eco-friendly desktop clock with natural bamboo weave exterior casing',    'Bamboo frame • Silent mechanism',          149.40,  '/assets/images/wooven-clock.png',         '',            'active',   1, 1),
-  (10, 11, 'Leatherette Desk Organizer',    'desk-organizer',         'ACC-DO-001', 'Multi-compartment desk caddy with debossed corporate logo placement',     'PU Leather • 5 slots • Logo emboss',        95.00,  '/assets/images/desk-organizer.png',       '',            'active',   0, 1),
-  (11, 12, '10,000mAh Slim Power Bank',     'mobile-powerbank',       'ACC-PB-001', 'Slim portable power bank with dual fast charging outputs & LED display',   '10000mAh • Dual USB • LED indicator',     350.00,  '/assets/images/mobile-powerbank.png',     'Best Seller', 'active',   1, 1),
-  (12, 12, 'Foldable Aluminum Phone Stand', 'mobile-stand',           'ACC-MS-001', 'Pocket foldable universal smartphone & tablet desktop desk holder',       'Aluminum • Foldable • Universal fit',       65.00,  '/assets/images/mobile-stand.png',         '',            'active',   0, 1),
-  (13, 13, 'Portable Rechargeable Mini Fan','portable-fan',           'ACC-PF-001', 'Handheld 3-speed USB rechargeable fan with lanyard for outdoor events',    'USB-C charge • 3 speed • 6hr battery',    180.00,  '/assets/images/portable-fan.png',         '',            'active',   1, 1),
-  (14, 13, '20,000mAh High Capacity Bank',  'powerbank-20000',        'ACC-PB-002', 'Heavy-duty power bank with 20W Power Delivery for business travelers',    '20000mAh • PD 20W • LED display',         380.00,  '/assets/images/power-banks.png',          'Premium',     'active',   0, 1),
-  (15, 2,  'Custom Corporate Jacket',       'corporate-jacket',       'APP-CJ-001', 'Premium lightweight windbreaker jacket with embroidered breast logo',     'Polyester blend • Custom embroidery',      650.00,  '/assets/images/corporate-jacket.jpg',     '',            'active',   1, 1),
-  (16, 3,  'Executive Laptop Backpack',     'laptop-backpack',        'BAG-LB-001', 'Waterproof business laptop backpack with padded straps & USB pass-thru',  '15.6" laptop • Water resistant',           167.90,  '/assets/images/laptop-bag.png',           '',            'active',   1, 1),
-  (17, 4,  'Eco Bamboo Tumbler 450ml',      'bamboo-tumbler',         'DRK-BT-001', 'Vacuum insulated stainless steel tumbler with natural bamboo outer shell', '450ml • Bamboo Shell • Leak-Proof',        250.00,  '/assets/images/bamboo-tumbler.png',       'Eco-Friendly','active',   1, 1),
-  (18, 6,  'Cordless Handheld Vacuum',      'handheld-vacuum',        'HOM-HV-001', 'Compact rechargeable car and desk vacuum with HEPA washable filter',      'USB-C charge • HEPA • 4000Pa',            499.00,  '/assets/images/handheld-vacuum.png',      '',            'active',   1, 1),
-  (19, 1,  'Car Charger Adapters Set',      'car-charger-adapters',   'ACC-CB-001', 'Showcase line of custom promotional car charger adapters and cables',     'Single, Dual, Fast-Charge variants',       85.00,  '/assets/images/car-charger-adapters.png', '',            'active',   0, 1),
-  (20, 4,  'EcoSip Double-Wall Tumbler',    'ecosip-tumbler',         'DRK-ES-001', 'Double-walled reusable travel tumbler with splash-proof slider lid',      '500ml • BPA-Free • Double-walled',         220.00,  '/assets/images/EcoSip_list_us.png',       'New',         'draft',    0, 2);
+  (1, 9, 'Car Charger Adapters', 'car-charger-adapter', 'ACC-001', 'Custom-branded car charger adapters — ideal for corporate giveaways, events, and everyday use. Choose from single-port, dual-port, and fast-charge variants.', NULL, 85.00, '/assets/images/car-charger-adapters.png', 'Best Seller', 'active', 1, 1),
+  (2, 9, 'Car Organizers & Holders', 'car-organizers', 'ACC-002', 'Keep your car tidy and your brand visible. Choose from seat-back organizers, console trays, cup holders, and more — all customizable with your company logo.', NULL, 120.00, '/assets/images/car-organizer.png', NULL, 'active', 0, 1),
+  (3, 9, 'Dash Cams', 'car-dashcams', 'ACC-003', 'Brand your fleet or gift your clients a dash cam. Choose from single-lens, dual-lens, and 360° variants — all customizable with your company logo on the casing.', NULL, 450.00, '/assets/images/dash-cam.png', NULL, 'active', 0, 1),
+  (4, 10, 'Audio Accessories', 'computer-audio', 'ACC-004', 'Custom-branded earphones, headsets, and speakers for corporate giveaways, events, and WFH kits.', NULL, 95.00, '/assets/images/audio-accessories.png', NULL, 'active', 0, 1),
+  (5, 10, 'Mouse & Mouse Pads', 'computer-mouse', 'ACC-005', 'Custom-branded mouse & mouse pads from our Computer Accessories line — ideal for corporate giveaways and events.', NULL, 75.00, '/assets/images/mouse-pad.png', NULL, 'active', 1, 2),
+  (6, 11, 'Desk Organizers & Pen Holders', 'desk-organizers', 'ACC-006', 'Custom-branded desk organizers & pen holders from our Desk Accessories line — ideal for corporate giveaways and events.', NULL, 95.00, '/assets/images/desk-organizer.png', NULL, 'active', 0, 1),
+  (7, 11, 'Clocks & Timepieces', 'desk-clocks', 'ACC-007', 'Custom-branded clocks & timepieces from our Desk Accessories line — ideal for corporate giveaways and events.', NULL, 220.00, '/assets/images/wooven-clock.png', NULL, 'active', 1, 1),
+  (8, 12, 'Mobile Power Banks', 'mobile-powerbanks', 'ACC-008', 'Keep devices charged on the go. Corporate-branded power banks available in slim card-style, standard, and high-capacity options.', NULL, 350.00, '/assets/images/mobile-powerbank.png', 'Best Seller', 'active', 1, 1),
+  (9, 12, 'Mobile Stands', 'mobile-stands', 'ACC-009', 'Custom-branded mobile stands from our Mobile Accessories line — ideal for corporate giveaways and events.', NULL, 65.00, '/assets/images/mobile-stand.png', NULL, 'active', 0, 1),
+  (10, 13, 'Portable Fans', 'gadgets-portable-fans', 'ACC-010', 'Custom-branded portable fans from our Gadgets line — ideal for corporate giveaways and events.', NULL, 180.00, '/assets/images/portable-fan.png', NULL, 'active', 1, 2),
+  (11, 13, 'Power Banks', 'gadgets-powerbanks', 'ACC-011', 'Custom-branded power banks from our Gadgets line — ideal for corporate giveaways and events.', NULL, 380.00, '/assets/images/power-banks.png', 'Premium', 'active', 0, 1),
+  (12, 14, 'Baseball Cap', 'cap-baseball', 'APP-001', 'Custom-branded baseball cap from our Caps line — ideal for corporate giveaways and events.', NULL, 180.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 1),
+  (13, 14, 'Bucket Hat', 'cap-bucket-hat', 'APP-002', 'Custom-branded bucket hat from our Caps line — ideal for corporate giveaways and events.', NULL, 190.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (14, 15, 'Bomber Jackets', 'jacket-bomber', 'APP-003', 'Custom-branded bomber jackets from our Jackets line — ideal for corporate giveaways and events.', NULL, 650.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (15, 15, 'Corporate Jackets', 'jackets-corporate', 'APP-004', 'Custom-branded corporate jackets from our Jackets line — ideal for corporate giveaways and events.', NULL, 720.00, '/assets/images/corporate-jacket.jpg', 'New', 'active', 1, 2),
+  (16, 15, 'Hoodies', 'jacket-hoodies', 'APP-005', 'Custom-branded hoodies from our Jackets line — ideal for corporate giveaways and events.', NULL, 480.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/ID-Lace-Lanyards-AIFUL-FINANCE-PHILIPPINES-INC-300x142.png', NULL, 'active', 0, 1),
+  (17, 15, 'Varsity Jackets', 'jacket-varsity-jackets', 'APP-006', 'Custom-branded varsity jackets from our Jackets line — ideal for corporate giveaways and events.', NULL, 800.00, 'https://pinoyballers.com/wp-content/uploads/2019/10/Custom-Tote-Bags-0422-194x300.png', NULL, 'active', 0, 1),
+  (18, 16, 'Collared Shirt', 'shirt-collared', 'APP-007', 'Custom-branded collared shirt from our Shirts line — ideal for corporate giveaways and events.', NULL, 280.00, 'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', NULL, 'active', 0, 1),
+  (19, 16, 'Dri Fit Shirt', 'shirt-dri-fit', 'APP-008', 'Custom-branded dri fit shirt from our Shirts line — ideal for corporate giveaways and events.', NULL, 250.00, 'https://pinoyballers.com/wp-content/uploads/2019/11/Fabric-Wristbands-International-School-Manila-Inc-1-298x300.jpeg', NULL, 'active', 0, 1),
+  (20, 16, 'Round Neck Shirt', 'shirt-round-neck', 'APP-009', 'Custom-branded round neck shirt from our Shirts line — ideal for corporate giveaways and events.', NULL, 220.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 2),
+  (21, 17, 'Computer Backpacks', 'backpacks-computer', 'BAG-001', 'Custom-branded computer backpacks from our Backpacks line — ideal for corporate giveaways and events.', NULL, 480.00, 'https://pinoyballers.com/wp-content/uploads/2019/10/Custom-Tote-Bags-0422-194x300.png', NULL, 'active', 0, 1),
+  (22, 17, 'Sports Backpacks', 'backpacks-sports', 'BAG-002', 'Custom-branded sports backpacks from our Backpacks line — ideal for corporate giveaways and events.', NULL, 420.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 1),
+  (23, 17, 'Travel Backpacks', 'backpacks-travel', 'BAG-003', 'Custom-branded travel backpacks from our Backpacks line — ideal for corporate giveaways and events.', NULL, 550.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (24, 18, 'Foldable Shopping Totes', 'ecobags-shopping-tote', 'BAG-004', 'Custom-branded foldable shopping totes from our Eco Bags line — ideal for corporate giveaways and events.', NULL, 95.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (25, 18, 'Non Woven Shopping Bags', 'ecobags-non-woven', 'BAG-005', 'Custom-branded non woven shopping bags from our Eco Bags line — ideal for corporate giveaways and events.', NULL, 75.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', NULL, 'active', 0, 2),
+  (26, 19, 'Laptop Backpacks', 'laptop-backpack', 'BAG-006', 'Custom-branded laptop backpacks from our Laptop Bags line — ideal for corporate giveaways and events.', NULL, 520.00, '/assets/images/laptop-bag.png', NULL, 'active', 1, 1),
+  (27, 19, 'Laptop Shoulder Bags', 'laptop-shoulder-bag', 'BAG-007', 'Custom-branded laptop shoulder bags from our Laptop Bags line — ideal for corporate giveaways and events.', NULL, 450.00, 'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', NULL, 'active', 0, 1),
+  (28, 20, 'Classic Zip Totes', 'tote-bag-classic-zip', 'BAG-008', 'Custom-branded classic zip totes from our Tote Bags line — ideal for corporate giveaways and events.', NULL, 120.00, 'https://pinoyballers.com/wp-content/uploads/2019/10/Custom-Tote-Bags-0422-194x300.png', NULL, 'active', 0, 1),
+  (29, 20, 'Foldable Totes', 'tote-bag-foldable-zip', 'BAG-009', 'Custom-branded foldable totes from our Tote Bags line — ideal for corporate giveaways and events.', NULL, 95.00, 'https://pinoyballers.com/wp-content/uploads/2019/11/Fabric-Wristbands-International-School-Manila-Inc-1-298x300.jpeg', NULL, 'active', 0, 1),
+  (30, 21, 'Duffel Travel Bags', 'travel-bag-duffel', 'BAG-010', 'Custom-branded duffel travel bags from our Travel Bags line — ideal for corporate giveaways and events.', NULL, 680.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 2),
+  (31, 21, 'Weekender Travel Bag', 'travel-bag-weekender', 'BAG-011', 'Custom-branded weekender travel bag from our Travel Bags line — ideal for corporate giveaways and events.', NULL, 750.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (32, 22, 'Hand Carry Lunch Bags', 'lunch-bag-hand-carry', 'BAG-012', 'Custom-branded hand carry lunch bags from our Lunch Bags line — ideal for corporate giveaways and events.', NULL, 180.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (33, 23, 'Clutch Pouches', 'organizer-clutch-pouche', 'BAG-013', 'Custom-branded clutch pouches from our Organizer Pouches line — ideal for corporate giveaways and events.', NULL, 95.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', NULL, 'archived', 0, 1),
+  (34, 24, 'Bamboo Tumblers', 'tumbler-bamboo', 'DRK-001', 'Eco-friendly bamboo tumblers with stainless steel liner — a perfect sustainable corporate giveaway. Available in multiple sizes and color wrap options.', NULL, 220.00, '/assets/images/bamboo-tumbler.png', 'Eco-Friendly', 'active', 1, 1),
+  (35, 24, 'Insulated & Double-Walled', 'tumbler-insulated', 'DRK-002', 'Custom-branded insulated & double-walled from our Tumblers & Flasks line — ideal for corporate giveaways and events.', NULL, 280.00, '/assets/images/EcoSip_list_us.png', NULL, 'draft', 0, 2),
+  (36, 24, 'Stainless Steel Tumblers', 'tumbler-stainless', 'DRK-003', 'Custom-branded stainless steel tumblers from our Tumblers & Flasks line — ideal for corporate giveaways and events.', NULL, 310.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (37, 25, 'Ceramic Mugs', 'mugs-ceramic', 'DRK-004', 'Custom-branded ceramic mugs from our Mugs & Cups line — ideal for corporate giveaways and events.', NULL, 95.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', NULL, 'active', 0, 1),
+  (38, 25, 'Coffee Mugs', 'mugs-coffee', 'DRK-005', 'Custom-branded coffee mugs from our Mugs & Cups line — ideal for corporate giveaways and events.', NULL, 110.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/ID-Lace-Lanyards-AIFUL-FINANCE-PHILIPPINES-INC-300x142.png', NULL, 'active', 0, 1),
+  (39, 25, 'Travel Mugs with Lids', 'mugs-travel-mugs', 'DRK-006', 'Custom-branded travel mugs with lids from our Mugs & Cups line — ideal for corporate giveaways and events.', NULL, 195.00, 'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', NULL, 'active', 0, 1),
+  (40, 25, 'Stainless Steel Mugs', 'mugs-stainless', 'DRK-007', 'Custom-branded stainless steel mugs from our Mugs & Cups line — ideal for corporate giveaways and events.', NULL, 165.00, 'https://pinoyballers.com/wp-content/uploads/2019/10/Custom-Tote-Bags-0422-194x300.png', NULL, 'active', 0, 2),
+  (41, 26, 'BPA-Free Bottles', 'water-bottle-bpa', 'DRK-008', 'Custom-branded bpa-free bottles from our Water Bottles line — ideal for corporate giveaways and events.', NULL, 120.00, 'https://pinoyballers.com/wp-content/uploads/2019/11/Fabric-Wristbands-International-School-Manila-Inc-1-298x300.jpeg', NULL, 'active', 0, 1),
+  (42, 26, 'Sports Bottles', 'water-bottle-sports', 'DRK-009', 'Custom-branded sports bottles from our Water Bottles line — ideal for corporate giveaways and events.', NULL, 140.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 1),
+  (43, 27, 'Bamboo Drinkware', 'eco-friendly-bamboo', 'DRK-010', 'Custom-branded bamboo drinkware from our Eco-Friendly line — ideal for corporate giveaways and events.', NULL, 195.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (44, 29, 'Active Outdoors Gift Sets', 'gift-set-active-outdoors', 'GFT-001', 'Custom-branded active outdoors gift sets from our Lifestyle line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 1),
+  (45, 28, 'Desk Essentials Gift Sets', 'gift-set-desk-essentials', 'GFT-002', 'Custom-branded desk essentials gift sets from our Corporate line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 2),
+  (46, 28, 'Employee Onboarding Sets', 'gift-set-employee-onboarding', 'GFT-003', 'Custom-branded employee onboarding sets from our Corporate line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (47, 28, 'Gadget Gift Sets', 'gift-set-gadget', 'GFT-004', 'Custom-branded gadget gift sets from our Corporate line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', NULL, 'active', 0, 1),
+  (48, 30, 'Health & Wellness Gift Sets', 'gift-set-health-wellness', 'GFT-005', 'Custom-branded health & wellness gift sets from our Health & Wellness line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/ID-Lace-Lanyards-AIFUL-FINANCE-PHILIPPINES-INC-300x142.png', NULL, 'active', 0, 1),
+  (49, 29, 'Sustainable Gift Sets', 'gift-set-sustainable', 'GFT-006', 'Custom-branded sustainable gift sets from our Lifestyle line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', NULL, 'active', 0, 1),
+  (50, 28, 'Work From Home Gift Sets', 'gift-set-work-from-home', 'GFT-007', 'Custom-branded work from home gift sets from our Corporate line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/10/Custom-Tote-Bags-0422-194x300.png', NULL, 'active', 0, 2),
+  (51, 29, 'Travel Executive Gift Sets', 'gift-set-travel-executive', 'GFT-008', 'Custom-branded travel executive gift sets from our Lifestyle line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/11/Fabric-Wristbands-International-School-Manila-Inc-1-298x300.jpeg', NULL, 'active', 0, 1),
+  (52, 31, 'Cleaning Essentials', 'home-living-cleaning-essentials', 'HOM-001', 'Custom-branded cleaning essentials from our Kitchen & Dining line — ideal for corporate giveaways and events.', NULL, 0.00, '/assets/images/handheld-vacuum.png', NULL, 'active', 1, 1),
+  (53, 31, 'Cutlery Sets', 'home-living-cutlery-sets', 'HOM-002', 'Custom-branded cutlery sets from our Kitchen & Dining line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (54, 32, 'Hand Towels', 'home-living-hand-towels', 'HOM-003', 'Custom-branded hand towels from our Personal Care line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (55, 32, 'Personal Care', 'home-living-personal-care', 'HOM-004', 'Custom-branded personal care from our Personal Care line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', NULL, 'active', 0, 2),
+  (56, 32, 'Pillows', 'home-living-pillows', 'HOM-005', 'Custom-branded pillows from our Personal Care line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/ID-Lace-Lanyards-AIFUL-FINANCE-PHILIPPINES-INC-300x142.png', NULL, 'active', 0, 1),
+  (57, 33, 'Outdoor Chairs', 'home-living-outdoor-chairs', 'HOM-006', 'Custom-branded outdoor chairs from our Outdoor & Lifestyle line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', NULL, 'active', 0, 1),
+  (58, 33, 'Portable Fans', 'home-living-portable-fans', 'HOM-007', 'Custom-branded portable fans from our Outdoor & Lifestyle line — ideal for corporate giveaways and events.', NULL, 0.00, '/assets/images/portable-fan.png', NULL, 'active', 0, 1),
+  (59, 33, 'Lifestyle Gift Sets', 'home-living-lifestyle', 'HOM-008', 'Custom-branded lifestyle gift sets from our Outdoor & Lifestyle line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/11/Fabric-Wristbands-International-School-Manila-Inc-1-298x300.jpeg', NULL, 'draft', 0, 1),
+  (60, 34, 'Bamboo Pens', 'pen-bamboo', 'PEN-001', 'Custom-branded bamboo pens from our Pens line — ideal for corporate giveaways and events.', NULL, 35.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 2),
+  (61, 34, 'Metal Pens', 'pen-metal', 'PEN-002', 'Sleek metal ballpoint and rollerball pens — a timeless corporate giveaway. Laser-engrave your logo for a premium executive look.', NULL, 55.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (62, 34, 'Multi-Functional Pens', 'pen-multi-functional', 'PEN-003', 'Custom-branded multi-functional pens from our Pens line — ideal for corporate giveaways and events.', NULL, 75.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (63, 34, 'Plastic Pens', 'pen-plastic', 'PEN-004', 'Custom-branded plastic pens from our Pens line — ideal for corporate giveaways and events.', NULL, 22.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', NULL, 'active', 0, 1),
+  (64, 34, 'Pen Gift Sets', 'pen-gift-set', 'PEN-005', 'Custom-branded pen gift sets from our Pens line — ideal for corporate giveaways and events.', NULL, 120.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/ID-Lace-Lanyards-AIFUL-FINANCE-PHILIPPINES-INC-300x142.png', NULL, 'active', 0, 1),
+  (65, 35, 'Custom Notebooks & Journals', 'paper-notebooks-journals', 'PEN-006', 'Custom-branded custom notebooks & journals from our Paper & Notebooks line — ideal for corporate giveaways and events.', NULL, 95.00, 'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', NULL, 'active', 0, 2),
+  (66, 35, 'Custom Desk Calendars', 'paper-desk-calendars', 'PEN-007', 'Custom-branded custom desk calendars from our Paper & Notebooks line — ideal for corporate giveaways and events.', NULL, 120.00, 'https://pinoyballers.com/wp-content/uploads/2019/10/Custom-Tote-Bags-0422-194x300.png', NULL, 'active', 0, 1),
+  (67, 35, 'Stationery Sets', 'paper-stationery-sets', 'PEN-008', 'Custom-branded stationery sets from our Paper & Notebooks line — ideal for corporate giveaways and events.', NULL, 145.00, 'https://pinoyballers.com/wp-content/uploads/2019/11/Fabric-Wristbands-International-School-Manila-Inc-1-298x300.jpeg', NULL, 'active', 0, 1),
+  (68, 35, 'Memo Solutions', 'paper-memo-solutions', 'PEN-009', 'Custom-branded memo solutions from our Paper & Notebooks line — ideal for corporate giveaways and events.', NULL, 55.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 1),
+  (69, 35, 'Padfolios', 'paper-padfolios', 'PEN-010', 'Custom-branded padfolios from our Paper & Notebooks line — ideal for corporate giveaways and events.', NULL, 195.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (70, 36, 'Wallets', 'pu-leather-wallets', 'PUL-001', 'Custom-branded wallets from our Wallets & Cases line — ideal for corporate giveaways and events.', NULL, 195.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 2),
+  (71, 36, 'Card Cases', 'pu-leather-card-cases', 'PUL-002', 'Custom-branded card cases from our Wallets & Cases line — ideal for corporate giveaways and events.', NULL, 120.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 'active', 0, 1),
+  (72, 36, 'Leather Pouches', 'pu-leather-pouches', 'PUL-003', 'Custom-branded leather pouches from our Wallets & Cases line — ideal for corporate giveaways and events.', NULL, 145.00, 'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', NULL, 'active', 0, 1),
+  (73, 37, 'Desk Mats', 'pu-leather-desk-mats', 'PUL-004', 'Custom-branded desk mats from our Organizers & Bags line — ideal for corporate giveaways and events.', NULL, 220.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', NULL, 'active', 0, 1),
+  (74, 37, 'Organizers', 'pu-leather-organizers', 'PUL-005', 'Custom-branded organizers from our Organizers & Bags line — ideal for corporate giveaways and events.', NULL, 175.00, 'https://pinoyballers.com/wp-content/uploads/2019/08/ID-Lace-Lanyards-AIFUL-FINANCE-PHILIPPINES-INC-300x142.png', NULL, 'active', 0, 1),
+  (75, 37, 'Gift Sets', 'pu-leather-gift-sets', 'PUL-006', 'Custom-branded gift sets from our Organizers & Bags line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', NULL, 'active', 0, 2),
+  (76, 37, 'Travel-Related Leather Gifts', 'pu-leather-travel-related', 'PUL-007', 'Custom-branded travel-related leather gifts from our Organizers & Bags line — ideal for corporate giveaways and events.', NULL, 0.00, 'https://pinoyballers.com/wp-content/uploads/2019/10/Custom-Tote-Bags-0422-194x300.png', NULL, 'active', 0, 1),
+  (77, 38, 'Keychains', 'pu-leather-keychains', 'PUL-008', 'Custom-branded keychains from our Keychains & Tags line — ideal for corporate giveaways and events.', NULL, 65.00, 'https://pinoyballers.com/wp-content/uploads/2019/11/Fabric-Wristbands-International-School-Manila-Inc-1-298x300.jpeg', NULL, 'active', 0, 1),
+  (78, 38, 'Luggage Tags', 'pu-leather-luggage-tags', 'PUL-009', 'Custom-branded luggage tags from our Keychains & Tags line — ideal for corporate giveaways and events.', NULL, 95.00, 'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg', NULL, 'active', 0, 1);
+
+-- ---- Product Variants (item cards shown on product/car-charger-adapters.php) ----
+INSERT INTO product_variants (id, product_id, variant_type, variant_label, type_order, name, specs, price, image, badge, sort_order) VALUES
+  (1, 1, 'single', 'Single Port', 1, 'Single USB-A Car Charger', '5V / 2.1A • USB-A • Compact', 85.00, '/assets/images/1.png', NULL, 1),
+  (2, 1, 'single', 'Single Port', 1, 'Single USB-C Car Charger', '5V / 3A • USB-C • Compact', 95.00, '/assets/images/usb-c-adapter.png', 'New', 2),
+  (3, 1, 'dual', 'Dual Port', 2, 'Dual Port USB-A Charger', '2x USB-A • 3.1A Total • Logo Printing', 110.00, '/assets/images/dual-usb-adapter.png', 'Best Seller', 3),
+  (4, 2, 'seatback', 'Seat-Back', 1, 'Seat-Back Organizer (5 Pocket)', 'Oxford Cloth • 5 Pockets • Fits All Seats', 120.00, '/assets/images/car-organizer-seatback-5p.jpg', 'Best Seller', 1),
+  (5, 2, 'seatback', 'Seat-Back', 1, 'Seat-Back Tablet Holder', 'Fits 7"–10" Tablets • Adjustable Strap', 145.00, '/assets/images/car-organizer-tablet-holder.jpg', NULL, 2),
+  (6, 2, 'console', 'Console', 2, 'Center Console Organizer', 'PU Leather • Armrest Box Insert', 195.00, '/assets/images/car-organizer-console.jpg', NULL, 3),
+  (7, 2, 'console', 'Console', 2, 'Cup & Card Holder Insert', 'Fits Standard Cup Holders • Logo Pad', 135.00, '/assets/images/car-organizer-cup-card.jpg', NULL, 4),
+  (8, 2, 'dashboard', 'Dashboard', 3, 'Dashboard Phone Mount & Tray', 'Non-Slip Mat • Multi-Device Tray', 110.00, '/assets/images/car-organizer-dash-tray.jpg', NULL, 5),
+  (9, 2, 'dashboard', 'Dashboard', 3, 'Magnetic Dashboard Mount', '360° Rotation • Universal Phone Fit', 125.00, '/assets/images/car-organizer-mag-mount.jpg', 'New', 6),
+  (10, 3, 'single', 'Single Lens', 1, '1080p Full HD Dash Cam', '1080p • 140° FOV • Loop Recording', 450.00, '/assets/images/dashcam-1080p.jpg', NULL, 1),
+  (11, 3, 'single', 'Single Lens', 1, '2K QHD Night Vision Dash Cam', '2K • Night Vision • G-Sensor • WDR', 680.00, '/assets/images/dashcam-2k-night.jpg', 'Popular', 2),
+  (12, 3, 'single', 'Single Lens', 1, '4K Ultra HD Dash Cam', '4K • Sony Sensor • Parking Mode', 950.00, '/assets/images/dashcam-4k.jpg', 'Premium', 3),
+  (13, 3, 'dual', 'Dual Lens', 2, 'Dual-Lens Front & Rear', 'FHD + FHD • Front & Rear • 170° FOV', 780.00, '/assets/images/dashcam-dual-fhd.jpg', NULL, 4),
+  (14, 3, 'dual', 'Dual Lens', 2, 'Dual-Lens 4K + 1080p', '4K Front + 1080p Rear • GPS Logger', 1100.00, '/assets/images/dashcam-dual-4k.jpg', 'New', 5),
+  (15, 3, '360', '360°', 3, '360° Interior & Exterior Cam', '360° Cabin View • IR Night Vision • 4CH', 1350.00, '/assets/images/dashcam-360.jpg', NULL, 6),
+  (16, 4, 'earphone', 'Earphones', 1, 'Wired Earphones (3.5mm)', '3.5mm Jack • In-Ear • Logo Print', 95.00, '/assets/images/audio-earphone-wired.jpg', NULL, 1),
+  (17, 4, 'earphone', 'Earphones', 1, 'TWS Wireless Earbuds', 'Bluetooth 5.0 • TWS • Charging Case', 380.00, '/assets/images/audio-earphone-tws.jpg', 'Best Seller', 2),
+  (18, 4, 'headset', 'Headsets', 2, 'USB Mono Headset', 'USB • Noise Cancelling Mic • Foldable', 180.00, '/assets/images/audio-headset-usb.jpg', NULL, 3),
+  (19, 4, 'headset', 'Headsets', 2, 'Wireless Over-Ear Headset', 'BT 5.0 • 20hr Battery • Foldable', 560.00, '/assets/images/audio-headset-wireless.jpg', 'Premium', 4),
+  (20, 4, 'speaker', 'Speakers', 3, 'Mini Bluetooth Speaker', 'BT 5.0 • IPX5 • 6hr Battery', 280.00, '/assets/images/audio-speaker-mini.jpg', NULL, 5),
+  (21, 4, 'speaker', 'Speakers', 3, 'Cylindrical BT Speaker', '360° Sound • BT 5.0 • Fabric Body', 450.00, '/assets/images/audio-speaker-cylinder.jpg', 'New', 6),
+  (22, 8, 'slim', 'Slim / Card', 1, 'Card-Style Power Bank 5,000mAh', '5,000mAh • Credit Card Size • USB-C', 350.00, '/assets/images/pb-card-5000.jpg', NULL, 1),
+  (23, 8, 'slim', 'Slim / Card', 1, 'Slim Bar 8,000mAh', '8,000mAh • Slim Body • Dual Output', 420.00, '/assets/images/pb-slim-8000.jpg', 'Best Seller', 2),
+  (24, 8, 'standard', 'Standard 10,000mAh', 2, 'Standard 10,000mAh Power Bank', '10,000mAh • USB-A + USB-C • 18W PD', 480.00, '/assets/images/pb-std-10000.jpg', NULL, 3),
+  (25, 8, 'standard', 'Standard 10,000mAh', 2, 'Premium 10,000mAh with Display', '10,000mAh • LED Display • 22.5W Fast', 580.00, '/assets/images/pb-disp-10000.jpg', 'New', 4),
+  (26, 8, 'high', 'High Capacity', 3, '20,000mAh High Capacity', '20,000mAh • 65W PD • Airline Safe', 780.00, '/assets/images/pb-high-20000.jpg', NULL, 5),
+  (27, 8, 'high', 'High Capacity', 3, '30,000mAh Rugged Power Bank', '30,000mAh • IP67 • Solar Panel', 980.00, '/assets/images/pb-rugged-30000.jpg', 'Premium', 6),
+  (28, 8, 'solar', 'Solar', 4, 'Solar Charging Power Bank', '10,000mAh • Solar + USB-C • Rugged', 650.00, '/assets/images/pb-solar.jpg', 'Eco', 7),
+  (29, 34, 'small', '350ml', 1, 'Bamboo Tumbler 350ml', '350ml • Bamboo Shell • Stainless Liner', 220.00, '/assets/images/tumbler-bamboo-350.jpg', NULL, 1),
+  (30, 34, 'medium', '500ml', 2, 'Bamboo Tumbler 500ml', '500ml • Bamboo Shell • Leak-Proof Lid', 250.00, '/assets/images/tumbler-bamboo-500.jpg', 'Best Seller', 2),
+  (31, 34, 'large', '700ml', 3, 'Bamboo Tumbler 700ml', '700ml • Bamboo Shell • Wide Mouth', 290.00, '/assets/images/tumbler-bamboo-700.jpg', NULL, 3),
+  (32, 34, 'medium', '500ml', 2, 'Bamboo Travel Flask 500ml', '500ml • Flask Shape • Gift Box Option', 310.00, '/assets/images/tumbler-bamboo-flask.jpg', 'New', 4),
+  (33, 61, 'ballpoint', 'Ballpoint', 1, 'Classic Metal Ballpoint', 'Twist Mechanism • Refillable • Chrome', 55.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 1),
+  (34, 61, 'ballpoint', 'Ballpoint', 1, 'Slim Executive Ballpoint', 'Slim Body • Satin Finish • Laser Engrave', 75.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', 'Best Seller', 2),
+  (35, 61, 'ballpoint', 'Ballpoint', 1, 'Capacitive Stylus Ballpoint', 'Ballpoint + Stylus Tip • Multi-Surface', 95.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', 'New', 3),
+  (36, 61, 'rollerball', 'Rollerball', 2, 'Metal Rollerball Pen', 'Fine 0.5mm Tip • Smooth Flow Ink', 110.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 4),
+  (37, 61, 'rollerball', 'Rollerball', 2, 'Executive Rollerball w/ Case', 'Rollerball • Velvet Pouch Included', 180.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', 'Premium', 5),
+  (38, 61, 'giftset', 'Gift Set', 3, '2-Pen Presentation Gift Set', '1x Ballpoint + 1x Rollerball • Box Included', 220.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', NULL, 6),
+  (39, 61, 'giftset', 'Gift Set', 3, '3-Pen Executive Gift Set', 'Ballpoint + Rollerball + Pencil • Leather Box', 380.00, 'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', 'Premium', 7);
 
 -- ---- Quote Requests ----
 INSERT INTO quote_requests (id, product_id, customer_name, company, email, phone, product_type, quantity, budget, deadline, details, status, assigned_to, created_at) VALUES
-  (1,  1,    'Carlo Reyes',     'TechCorp Philippines', 'carlo@techcorp.ph',     '+63 917 111 1111', 'Car Charger',     500,  '₱50,000',  '2026-12-15', 'Need custom logo printing on single USB chargers for year-end team giveaway.',   'new',       NULL, '2026-11-10 09:15:00'),
-  (2,  17,   'Angela Lim',      'GreenLeaf Ventures',   'angela@greenleaf.com',  '+63 917 222 2222', 'Bamboo Tumbler',  1000, '₱250,000', '2026-12-01', 'Laser-engraved company logo on bamboo tumblers for annual CSR summit.',           'reviewing', 2,    '2026-11-11 10:30:00'),
-  (3,  15,   'Roberto Tan',     'Apex BPO Solutions',   'roberto@apexbpo.com',   '+63 917 333 3333', 'Corporate Jacket',200,  '₱130,000', '2027-01-10', 'Embroidered jackets for new employee onboarding welcome kits.',                  'quoted',    2,    '2026-11-12 14:20:00'),
-  (4,  11,   'Lisa Chen',       'FinTech Innovators',   'lisa@fintech.co',       '+63 917 444 4444', 'Power Bank',      300,  '₱105,000', '2026-12-20', 'Custom branded 10,000mAh power banks featuring corporate gradient logo.',         'accepted',  3,    '2026-11-13 16:45:00'),
-  (5,  16,   'Mark Villanueva', 'EventsPro Manila',     'mark@eventspro.ph',     '+63 917 555 5555', 'Laptop Bag',      150,  '₱30,000',  '2027-01-05', 'Laptop backpacks for tech conference VIP speaker tokens.',                         'new',       NULL, '2026-11-14 11:00:00'),
-  (6,  NULL, 'Sarah Garcia',    'Manila Heritage Council','sarah@heritage.gov.ph','+63 917 666 6666', 'Mixed Giveaways', 2000, '₱500,000', '2027-02-14', 'Assorted corporate giveaways for foundation anniversary: tumblers, pens, notebooks.','new',    NULL, '2026-11-15 13:10:00'),
-  (7,  6,    'David Sy',        'Pixel Studio Design',  'david@pixelstudio.ph',  '+63 917 777 7777', 'Mouse Pad',       1000, '₱80,000',  '2026-12-28', 'Full-color custom printed gaming-grade mouse pads for client appreciation gifts.', 'declined', 3,    '2026-11-16 15:30:00');
+  (1,  1,    'Carlo Reyes',     'TechCorp Philippines',   'carlo@techcorp.ph',     '+63 917 111 1111', 'Car Charger',      500,  '₱50,000',  '2026-12-15', 'Need custom logo printing on single USB chargers for year-end team giveaway.',     'new',       NULL, '2026-11-10 09:15:00'),
+  (2,  34,   'Angela Lim',      'GreenLeaf Ventures',     'angela@greenleaf.com',  '+63 917 222 2222', 'Bamboo Tumbler',   1000, '₱250,000', '2026-12-01', 'Laser-engraved company logo on bamboo tumblers for annual CSR summit.',             'reviewing', 2,    '2026-11-11 10:30:00'),
+  (3,  15,   'Roberto Tan',     'Apex BPO Solutions',     'roberto@apexbpo.com',   '+63 917 333 3333', 'Corporate Jacket', 200,  '₱130,000', '2027-01-10', 'Embroidered jackets for new employee onboarding welcome kits.',                    'quoted',    2,    '2026-11-12 14:20:00'),
+  (4,  8,    'Lisa Chen',       'FinTech Innovators',     'lisa@fintech.co',       '+63 917 444 4444', 'Power Bank',       300,  '₱105,000', '2026-12-20', 'Custom branded 10,000mAh power banks featuring corporate gradient logo.',           'accepted',  3,    '2026-11-13 16:45:00'),
+  (5,  26,   'Mark Villanueva', 'EventsPro Manila',       'mark@eventspro.ph',     '+63 917 555 5555', 'Laptop Bag',       150,  '₱30,000',  '2027-01-05', 'Laptop backpacks for tech conference VIP speaker tokens.',                         'new',       NULL, '2026-11-14 11:00:00'),
+  (6,  NULL, 'Sarah Garcia',    'Manila Heritage Council','sarah@heritage.gov.ph', '+63 917 666 6666', 'Mixed Giveaways',  2000, '₱500,000', '2027-02-14', 'Assorted corporate giveaways for foundation anniversary: tumblers, pens, notebooks.', 'new',     NULL, '2026-11-15 13:10:00'),
+  (7,  5,    'David Sy',        'Pixel Studio Design',    'david@pixelstudio.ph',  '+63 917 777 7777', 'Mouse Pad',        1000, '₱80,000',  '2026-12-28', 'Full-color custom printed gaming-grade mouse pads for client appreciation gifts.',   'declined',  3,    '2026-11-16 15:30:00');
 
 -- ---- Activity Log ----
 INSERT INTO activity_log (id, user_id, action, entity_type, entity_id, details, ip_address, created_at) VALUES
-  (1,  1, 'login',          NULL,       NULL, 'Admin User logged in successfully',                        '127.0.0.1',   '2026-11-10 09:00:00'),
-  (2,  1, 'create_product', 'product',  1,    'Created product: Single USB Car Charger (ACC-CC-001)',     '127.0.0.1',   '2026-11-10 09:10:00'),
-  (3,  1, 'create_product', 'product',  2,    'Created product: Dual USB Fast Car Adapter (ACC-CC-002)',  '127.0.0.1',   '2026-11-10 09:25:00'),
-  (4,  2, 'login',          NULL,       NULL, 'Staff Maria Santos logged in successfully',                '192.168.1.5', '2026-11-11 10:00:00'),
-  (5,  2, 'update_quote',   'quote',    2,    'Assigned Quote #2 to Maria Santos and set to reviewing',   '192.168.1.5', '2026-11-11 10:45:00'),
-  (6,  1, 'create_product', 'product',  15,   'Created product: Custom Corporate Jacket (APP-CJ-001)',    '127.0.0.1',   '2026-11-12 11:30:00'),
-  (7,  3, 'login',          NULL,       NULL, 'Staff Juan Cruz logged in successfully',                   '192.168.1.10','2026-11-13 14:00:00'),
-  (8,  3, 'update_quote',   'quote',    4,    'Updated Quote #4 status to accepted',                      '192.168.1.10','2026-11-13 16:50:00'),
-  (9,  1, 'create_user',    'user',     4,    'Registered new staff account: Regina Reyes',               '127.0.0.1',   '2026-11-14 09:20:00'),
-  (10, 2, 'update_quote',   'quote',    3,    'Sent quotation for Quote #3 (200 jackets)',                '192.168.1.5', '2026-11-15 15:00:00');
+  (1,  1, 'login',          NULL,      NULL, 'Admin User logged in successfully',                      '127.0.0.1',    '2026-11-10 09:00:00'),
+  (2,  1, 'create_product', 'product', 1,    'Created product: Car Charger Adapters (ACC-001)',        '127.0.0.1',    '2026-11-10 09:10:00'),
+  (3,  1, 'create_product', 'product', 2,    'Created product: Car Organizers & Holders (ACC-002)',    '127.0.0.1',    '2026-11-10 09:25:00'),
+  (4,  2, 'login',          NULL,      NULL, 'Staff Maria Santos logged in successfully',              '192.168.1.5',  '2026-11-11 10:00:00'),
+  (5,  2, 'update_quote',   'quote',   2,    'Assigned Quote #2 to Maria Santos and set to reviewing', '192.168.1.5',  '2026-11-11 10:45:00'),
+  (6,  1, 'create_product', 'product', 15,   'Created product: Corporate Jackets (APP-004)',           '127.0.0.1',    '2026-11-12 11:30:00'),
+  (7,  3, 'login',          NULL,      NULL, 'Staff Juan Cruz logged in successfully',                 '192.168.1.10', '2026-11-13 14:00:00'),
+  (8,  3, 'update_quote',   'quote',   4,    'Updated Quote #4 status to accepted',                    '192.168.1.10', '2026-11-13 16:50:00'),
+  (9,  1, 'create_user',    'user',    4,    'Registered new staff account: Regina Reyes',             '127.0.0.1',    '2026-11-14 09:20:00'),
+  (10, 2, 'update_quote',   'quote',   3,    'Sent quotation for Quote #3 (200 jackets)',              '192.168.1.5',  '2026-11-15 15:00:00');
+
+
+-- ============================================================
+--  SQL REQUIREMENT DEMONSTRATIONS
+--  INSERT, SELECT, UPDATE, DELETE, WHERE, LIKE, ORDER BY,
+--  INNER JOIN, LEFT JOIN, RIGHT JOIN, AS, CONCAT()
+--
+--  The same kinds of statements run live in the PHP app (see the
+--  "Used in" note on each). The INSERT → UPDATE → DELETE demo
+--  removes its own row, so the seed data is left unchanged.
+-- ============================================================
+
+-- ---- 1. INSERT  (Used in: actions/quote-actions.php → submit, actions/product-actions.php → create) ----
+INSERT INTO quote_requests (product_id, customer_name, company, email, product_type, quantity, details)
+VALUES (1, 'Demo Customer', 'Demo Corp', 'demo@example.com', 'Car Charger', 250, 'SQL demo row');
+
+-- ---- 2. SELECT + WHERE  (Used in: pages/dashboard.php KPI cards) ----
+SELECT id, customer_name, status
+FROM quote_requests
+WHERE email = 'demo@example.com';
+
+-- ---- 3. UPDATE + WHERE  (Used in: actions/quote-actions.php → update_status, actions/product-actions.php → update) ----
+UPDATE quote_requests
+SET status = 'reviewing', assigned_to = 2
+WHERE email = 'demo@example.com';
+
+-- ---- 4. DELETE + WHERE  (Used in: actions/quote-actions.php → delete, actions/product-actions.php → delete) ----
+DELETE FROM quote_requests
+WHERE email = 'demo@example.com';
+
+-- ---- 5. LIKE + ORDER BY + AS  (Used in: pages/products.php and pages/quotes.php search) ----
+SELECT p.name AS product_name, p.sku AS product_code, p.price_min AS starting_price
+FROM products AS p
+WHERE p.name LIKE '%Tumbler%' OR p.sku LIKE 'DRK-%'
+ORDER BY p.price_min DESC, p.name ASC;
+
+-- ---- 6. INNER JOIN + CONCAT() + AS  (Used in: pages/reports.php → Active Catalog, index.php) ----
+--      Only products that HAVE a matching category are returned.
+SELECT CONCAT(p.name, ' (SKU: ', p.sku, ')') AS product_label,
+       sc.name AS subcategory,
+       mc.name AS main_category
+FROM products AS p
+INNER JOIN categories AS sc ON p.category_id = sc.id
+INNER JOIN categories AS mc ON sc.parent_id  = mc.id
+WHERE p.status = 'active'
+ORDER BY mc.sort_order, sc.sort_order, p.name;
+
+-- ---- 7. LEFT JOIN  (Used in: pages/quotes.php, pages/dashboard.php, category-page.php) ----
+--      ALL quotes are returned, even those with no product (product_name = NULL).
+SELECT q.id AS quote_id,
+       q.customer_name,
+       p.name AS product_name,
+       CONCAT(u.first_name, ' ', u.last_name) AS assigned_staff
+FROM quote_requests AS q
+LEFT JOIN products AS p ON q.product_id  = p.id
+LEFT JOIN users    AS u ON q.assigned_to = u.id
+ORDER BY q.created_at DESC;
+
+-- ---- 8. RIGHT JOIN  (Used in: pages/reports.php → Staff Assignments) ----
+--      ALL users are returned, even staff with zero assigned quotes.
+SELECT CONCAT(u.first_name, ' ', u.last_name) AS staff_name,
+       u.role,
+       COUNT(q.id) AS assigned_quotes
+FROM quote_requests AS q
+RIGHT JOIN users AS u ON q.assigned_to = u.id
+GROUP BY u.id, staff_name, u.role
+ORDER BY assigned_quotes DESC, staff_name ASC;
+
+-- ---- 9. 4-table JOIN  (Used in: product/car-charger-adapters.php) ----
+SELECT mc.name AS category,
+       sc.name AS subcategory,
+       p.name  AS product,
+       CONCAT(v.name, ' — ₱', FORMAT(v.price, 2)) AS variant_with_price
+FROM product_variants AS v
+INNER JOIN products   AS p  ON v.product_id  = p.id
+INNER JOIN categories AS sc ON p.category_id = sc.id
+LEFT  JOIN categories AS mc ON sc.parent_id  = mc.id
+WHERE p.slug = 'car-charger-adapter'
+ORDER BY v.type_order, v.sort_order;

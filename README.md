@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-
-=======
 # CreativeKit 3A — Corporate Giveaways & Custom Merchandising Platform
 
 A comprehensive, modular full-stack PHP, JavaScript, CSS, and MySQL e-commerce and administrative merchandising management platform for **CreativeKit 3A** (Philippines).
@@ -68,7 +65,7 @@ creativekit3a/
 │       ├── logo.png                     # Standardized Brand Logo
 │       └── [30+ Product Images]         # High-resolution merchandise photos & banners
 ├── database/
-│   └── creativekit3a.sql                # 5 Normalized Tables with Seed Data & Verified Hashes
+│   └── creativekit3a.sql                # THE single database: 6 related tables, seed data & SQL demos
 ├── _trash/                              # Deprecated / Archived Files (Ignored by Git)
 ├── .gitignore                           # Git Exclusion Rules
 └── README.md                            # Comprehensive Setup & Defense Documentation
@@ -97,7 +94,9 @@ Launch the **XAMPP Control Panel** and start both **Apache** and **MySQL**.
    database/creativekit3a.sql
    ```
 4. Click **Go** (or **Import**).
-5. The script will automatically create `creativekit3a_db`, establish all 5 normalized tables with Foreign Key constraints, and insert all sample seed data.
+5. The script will automatically create `creativekit3a_db`, establish all 6 related tables with Primary/Foreign Key constraints, insert all sample seed data, and run the SQL demonstration queries.
+
+> **One database only.** `database/creativekit3a.sql` is the only SQL file. Do not create any other database — every page connects through `config/db.php` to `creativekit3a_db`.
 
 ### Step 4: Open the Application
 Navigate to the storefront in your web browser:
@@ -106,9 +105,37 @@ http://localhost/creativekit3a/
 ```
 
 ---
->>>>>>> 60fed33 (feat: complete full-stack upgrade with modular per-page architecture, RBAC, CRUD, and advanced reports)
 
-## 3. Demo Credentials for Defense
+## 3. Database Design (Single MySQL Database: `creativekit3a_db`)
+
+| # | Table | Primary Key | Foreign Keys | Used by |
+| :- | :--- | :--- | :--- | :--- |
+| 1 | `users` | `id` | — | Login, RBAC, dashboard, reports |
+| 2 | `categories` | `id` | `parent_id → categories.id` (subcategories) | Catalog, product form, reports |
+| 3 | `products` | `id` | `category_id → categories.id`, `created_by → users.id` | Homepage, catalog, product CRUD, reports |
+| 4 | `product_variants` | `id` | `product_id → products.id` | Product items page |
+| 5 | `quote_requests` | `id` | `product_id → products.id`, `assigned_to → users.id` | Quote modal, quotes page, dashboard, reports |
+| 6 | `activity_log` | `id` | `user_id → users.id` | Audit trail on dashboard |
+
+### SQL requirement coverage
+
+| Requirement | In `creativekit3a.sql` (demo section) | Live in the app |
+| :--- | :--- | :--- |
+| `INSERT` | Demo 1 | `actions/product-actions.php` (create), `actions/quote-actions.php` (submit), activity logging |
+| `SELECT` / `WHERE` | Demo 2 | Every page — e.g. `pages/dashboard.php` KPI cards |
+| `UPDATE` | Demo 3 | Product edit, quote status/assignment, `auth/login.php` (last login) |
+| `DELETE` | Demo 4 | Product delete, quote delete (admin only) |
+| `LIKE` | Demo 5 | Search on `pages/products.php` and `pages/quotes.php` |
+| `ORDER BY` | Demos 5–9 | Sorting on products page, catalog, reports |
+| `INNER JOIN` | Demo 6 | `index.php`, `category-page.php`, `pages/reports.php` (Active Catalog) |
+| `LEFT JOIN` | Demo 7 | `pages/quotes.php`, `pages/dashboard.php`, `pages/reports.php` (Category Breakdown) |
+| `RIGHT JOIN` | Demo 8 | `pages/reports.php` (Staff Assignments) |
+| `AS` | All demos | Column and table aliases throughout |
+| `CONCAT()` | Demos 6–9 | Staff full names, product labels, variant price labels |
+
+All dynamic content — including the public catalog (`category-page.php`) and the product items page (`product/car-charger-adapters.php`) — is queried from this database; the JavaScript files only render data the PHP page passes in.
+
+## 4. Demo Credentials for Defense
 
 The system includes two distinct roles demonstrating **Role-Based Access Control (RBAC)**:
 
@@ -117,25 +144,4 @@ The system includes two distinct roles demonstrating **Role-Based Access Control
 | **Administrator** | `admin@creativekit3a.com` | `admin123` | Full CRUD, Delete Products (with confirmation modal), Assign Quote Leads, System Audit Trail, Summary Reports |
 | **Staff Member** | `maria@creativekit3a.com` | `staff123` | View & Add Products, Edit Products, Update Quote Workflow Statuses (Delete is blocked) |
 
-<<<<<<< HEAD
-### Installation & Local Setup
-
-1. **Clone or move the project into your web server root:**
-   - For XAMPP on macOS: `/Applications/XAMPP/xamppfiles/htdocs/creativekit3a`
-   - For XAMPP on Windows: `C:\xampp\htdocs\creativekit3a`
-
-2. **Database Setup:**
-   - Start Apache and MySQL from the XAMPP Control Panel.
-   - Open phpMyAdmin (`http://localhost/phpmyadmin/`).
-   - Create a new database named `creativekit3a`.
-   - Import `database/schema.sql`, followed by `database/items-page.sql`.
-
-3. **Accessing the Site:**
-   - Open your browser and navigate to:
-     ```text
-     http://localhost/creativekit3a/
-     ```
-All rights reserved © CreativeKit 3A.
-=======
 *(Note: The login page at `/pages/login.php` features **1-Click Autofill buttons** for both roles to make testing seamless during defense).*
->>>>>>> 60fed33 (feat: complete full-stack upgrade with modular per-page architecture, RBAC, CRUD, and advanced reports)

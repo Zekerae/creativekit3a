@@ -49,7 +49,12 @@ switch ($sort_by) {
 // -------------------------------------------------------------
 $categories = [];
 if ($pdo) {
-    $cat_stmt = $pdo->query('SELECT id, name FROM categories ORDER BY name ASC');
+    // Main categories with their subcategories grouped underneath (self LEFT JOIN)
+    $cat_stmt = $pdo->query("SELECT c.id,
+                                    CONCAT(IF(c.parent_id IS NULL, '', '↳ '), c.name) AS name
+                             FROM categories AS c
+                             LEFT JOIN categories AS pc ON c.parent_id = pc.id
+                             ORDER BY COALESCE(pc.sort_order, c.sort_order), c.parent_id IS NOT NULL, c.sort_order, c.name");
     $categories = $cat_stmt->fetchAll();
 }
 
@@ -85,8 +90,11 @@ if ($pdo) {
 
     // Filter by category
     if ($filter_cat > 0) {
-        $sql .= ' AND (p.category_id = :cat_id OR c.parent_id = :cat_id)';
-        $params[':cat_id'] = $filter_cat;
+        // Matches the category itself or any of its subcategories.
+        // (Native prepares forbid reusing a named placeholder, hence :cat_id2.)
+        $sql .= ' AND (p.category_id = :cat_id OR c.parent_id = :cat_id2)';
+        $params[':cat_id']  = $filter_cat;
+        $params[':cat_id2'] = $filter_cat;
     }
 
     // Filter by status
@@ -97,8 +105,9 @@ if ($pdo) {
 
     // Search query using LIKE
     if (!empty($search_query)) {
-        $sql .= ' AND (p.name LIKE :search OR p.sku LIKE :search OR p.description LIKE :search)';
-        $params[':search'] = '%' . $search_query . '%';
+        $sql .= ' AND (p.name LIKE :s1 OR p.sku LIKE :s2 OR p.description LIKE :s3)';
+        $like = '%' . $search_query . '%';
+        $params += [':s1' => $like, ':s2' => $like, ':s3' => $like];
     }
 
     $sql .= ' ORDER BY ' . $order_clause;

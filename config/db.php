@@ -1,6 +1,12 @@
 <?php
 /**
- * config/db.php — Database Connection & Global Helpers
+ * config/db.php — THE single, centralized database connection.
+ *
+ * Every page, dashboard metric, search/filter, report and CRUD action
+ * includes this file and uses its $pdo / get_db() handle. The whole
+ * system runs on ONE MySQL database: creativekit3a_db
+ * (schema + seed: database/creativekit3a.sql).
+ *
  * Uses PHP PDO with prepared statements to prevent SQL injection.
  */
 
@@ -9,7 +15,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $db_host = '127.0.0.1';
-$db_name = 'creativekit3a_db';
+$db_name = getenv('CK3A_DB_NAME') ?: 'creativekit3a_db';
 $db_user = 'root';
 $db_pass = '';
 $db_port = 3306;

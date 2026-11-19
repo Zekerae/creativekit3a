@@ -1,24 +1,139 @@
 <?php
 /**
- * product/car-charger-adapters.php — Items / Variants Page
- * Converted from car-charger-adapters.html (was items-page.html).
+ * product/car-charger-adapters.php — Product Items / Variants Page (database-driven)
  *
- * This is a TEMPLATE for any product variant page.
- * To create a new product page (e.g. mobile-powerbanks.php):
- *   1. Copy this file.
- *   2. Update $title, $meta_desc, and $extra_js.
- *   3. The JS file (car-charger-adapters.js) already contains
- *      all product data — just make sure the URL params match:
- *      ?cat=accessories-gadgets&subcat=car&item=car-charger-adapter
+ * One template serves every product that has rows in product_variants.
+ * The product, its variants and related products are read from the single
+ * creativekit3a_db database through config/db.php; car-charger-adapters.js
+ * only renders what this file prints into window.ITEMS_DATA / SIBLING_DATA.
  *
  * URL example:
- *   /product/car-charger-adapters?cat=accessories-gadgets&subcat=car&item=car-charger-adapter
+ *   /product/car-charger-adapters.php?cat=accessories-gadgets&subcat=car-accessories&item=car-charger-adapter
+ *
+ * SQL used: SELECT, WHERE, ORDER BY, AS, INNER JOIN, LEFT JOIN, CONCAT()
  */
 
-$title      = 'Car Charger Adapters | CreativeKit3A';
-$meta_desc  = 'Custom-branded car charger adapters — single, dual, fast-charge, and wireless variants. Ideal for corporate giveaways.';
+require_once __DIR__ . '/../config/db.php';
+
+$item_slug    = trim($_GET['item'] ?? 'car-charger-adapter');
+$items_data   = [];   // { catSlug: { itemSlug: { name, eyebrow, price, heroImg, desc, catName, variantTypes[], items[] } } }
+$sibling_data = [];   // { catSlug: [ { name, price, img, url } ] }
+$product      = null;
+
+/** Format a DECIMAL price the way the storefront shows it */
+function ck_price_label(float $price): string {
+    return $price > 0 ? 'As low as ₱' . number_format($price, 2) : 'Ask for Quote';
+}
+
+if ($pdo) {
+    try {
+        // 1. The product with its subcategory and main category
+        //    (INNER JOIN to subcategory, LEFT JOIN to parent in case it is top-level)
+        $stmt = $pdo->prepare(
+            "SELECT p.id, p.name, p.slug, p.description, p.price_min, p.image,
+                    sc.name AS subcat_name, sc.slug AS subcat_slug,
+                    COALESCE(mc.slug, sc.slug) AS cat_slug,
+                    COALESCE(mc.name, sc.name) AS cat_name,
+                    COALESCE(mc.id,   sc.id)   AS cat_id
+             FROM products AS p
+             INNER JOIN categories AS sc ON p.category_id = sc.id
+             LEFT JOIN categories  AS mc ON sc.parent_id  = mc.id
+             WHERE p.slug = :slug AND p.status = 'active'
+             LIMIT 1"
+        );
+        $stmt->execute([':slug' => $item_slug]);
+        $product = $stmt->fetch() ?: null;
+
+        if ($product) {
+            // 2. Variants of this product (CONCAT builds the price label)
+            $vstmt = $pdo->prepare(
+                "SELECT v.id, v.name, v.specs, v.price, v.image, v.badge,
+                        v.variant_type, v.variant_label,
+                        CONCAT('As low as ₱', FORMAT(v.price, 2)) AS price_label
+                 FROM product_variants AS v
+                 WHERE v.product_id = :pid
+                 ORDER BY v.type_order ASC, v.sort_order ASC, v.id ASC"
+            );
+            $vstmt->execute([':pid' => $product['id']]);
+            $variants = $vstmt->fetchAll();
+
+            $variant_types = [];
+            $items = [];
+            foreach ($variants as $v) {
+                if ($v['variant_type'] && !isset($variant_types[$v['variant_type']])) {
+                    $variant_types[$v['variant_type']] = [
+                        'key'   => $v['variant_type'],
+                        'label' => $v['variant_label'] ?: $v['variant_type'],
+                    ];
+                }
+                $items[] = [
+                    'id'          => (int)$v['id'],
+                    'name'        => $v['name'],
+                    'specs'       => $v['specs'] ?? '',
+                    'price'       => ((float)$v['price'] > 0) ? $v['price_label'] : 'Ask for Quote',
+                    'priceValue'  => (float)$v['price'],
+                    'img'         => $v['image'] ?: '/assets/images/1.png',
+                    'badge'       => $v['badge'] ?? '',
+                    'variantType' => $v['variant_type'] ?? '',
+                ];
+            }
+
+            $items_data[$product['cat_slug']][$product['slug']] = [
+                'name'         => $product['name'],
+                'eyebrow'      => $product['subcat_name'],
+                'catName'      => $product['cat_name'],
+                'price'        => ck_price_label((float)$product['price_min']),
+                'heroImg'      => $product['image'] ?: '/assets/images/1.png',
+                'desc'         => $product['description'] ?? '',
+                'variantTypes' => array_values($variant_types),
+                'items'        => $items,
+            ];
+
+            // 3. Related products: other active products in the same main category
+            //    (LEFT JOIN + COUNT so products with variants are listed first)
+            $rstmt = $pdo->prepare(
+                "SELECT p.name, p.slug, p.price_min, p.image, sc.slug AS subcat_slug,
+                        COUNT(v.id) AS variant_count
+                 FROM products AS p
+                 INNER JOIN categories AS sc ON p.category_id = sc.id
+                 LEFT JOIN product_variants AS v ON v.product_id = p.id
+                 WHERE (sc.parent_id = :cat_id OR sc.id = :cat_id2)
+                   AND p.status = 'active'
+                   AND p.id <> :pid
+                 GROUP BY p.id, p.name, p.slug, p.price_min, p.image, sc.slug
+                 ORDER BY variant_count DESC, p.name ASC
+                 LIMIT 4"
+            );
+            $rstmt->execute([':cat_id' => $product['cat_id'], ':cat_id2' => $product['cat_id'], ':pid' => $product['id']]);
+            foreach ($rstmt->fetchAll() as $r) {
+                $sibling_data[$product['cat_slug']][] = [
+                    'name' => $r['name'],
+                    'slug' => $r['slug'],
+                    'price'=> ck_price_label((float)$r['price_min']),
+                    'img'  => $r['image'] ?: '/assets/images/1.png',
+                    'url'  => ((int)$r['variant_count'] > 0)
+                        ? '/product/car-charger-adapters.php?' . http_build_query([
+                              'cat' => $product['cat_slug'], 'subcat' => $r['subcat_slug'], 'item' => $r['slug'],
+                          ])
+                        : '/category-page.php?cat=' . urlencode($product['cat_slug']),
+                ];
+            }
+        }
+    } catch (PDOException $e) {
+        $product = null;
+    }
+}
+
+// Unknown / inactive product → back to the catalog
+if (!$product) {
+    header('Location: /category-page.php');
+    exit;
+}
+
+$title      = $product['name'] . ' | CreativeKit3A';
+$meta_desc  = $product['description'] ?: 'Custom-branded corporate giveaways from CreativeKit3A.';
 $extra_css  = ['/assets/css/car-charger-adapters.css'];
-$active_nav = 'accessories-gadgets';
+$active_nav = $product['cat_slug'];
 
 include __DIR__ . '/../includes/head.php';
 ?>
@@ -129,6 +244,12 @@ include __DIR__ . '/../includes/navbar.php';
       </div>
     </div>
   </section>
+
+  <!-- Item data from MySQL (creativekit3a_db) for car-charger-adapters.js -->
+  <script>
+    window.ITEMS_DATA   = <?= json_encode($items_data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    window.SIBLING_DATA = <?= json_encode($sibling_data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+  </script>
 
 <?php
 $extra_js = ['/assets/js/car-charger-adapters.js'];

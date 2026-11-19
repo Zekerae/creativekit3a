@@ -211,3 +211,6 @@
       .cat-product-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     }
 
+
+    /* Main-category switcher links (category-page.php) */
+    a.subcat-tab { text-decoration: none; }

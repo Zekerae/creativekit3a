@@ -50,7 +50,8 @@ if ($pdo) {
                           COALESCE(MIN(p.price_min), 0.0) AS min_price,
                           COALESCE(MAX(p.price_min), 0.0) AS max_price
                       FROM categories AS c
-                      LEFT JOIN products AS p ON c.id = p.category_id
+                      LEFT JOIN categories AS sc ON (sc.parent_id = c.id OR sc.id = c.id)
+                      LEFT JOIN products AS p ON p.category_id = sc.id
                       WHERE c.parent_id IS NULL
                       GROUP BY c.id, c.name, c.icon
                       ORDER BY product_count DESC, c.name ASC";
@@ -193,7 +194,7 @@ include __DIR__ . '/../includes/navbar.php';
           <div>
             <h2><i class="fas fa-layer-group" style="color:var(--orange-primary);"></i> Category Inventory Aggregation</h2>
             <p class="sql-badge">
-              <i class="fas fa-database"></i> Executed with: <code>LEFT JOIN products ON categories.id = products.category_id</code>
+              <i class="fas fa-database"></i> Executed with: <code>categories LEFT JOIN categories (subcategories) LEFT JOIN products</code>
             </p>
           </div>
           <span class="section-count"><?= count($category_summary) ?> Main Categories</span>

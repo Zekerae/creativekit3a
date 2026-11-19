@@ -17,13 +17,25 @@ $extra_js  = ['/assets/js/home.js'];
 $featured_products = [];
 if ($pdo) {
     try {
-        $stmt = $pdo->query("SELECT p.*, c.name AS category_name, c.slug AS cat_slug 
-                             FROM products AS p 
-                             INNER JOIN categories AS c ON p.category_id = c.id 
-                             WHERE p.is_featured = 1 AND p.status = 'active' 
-                             ORDER BY p.id ASC 
+        // INNER JOIN subcategory, LEFT JOIN parent category + variants (AS aliases)
+        $stmt = $pdo->query("SELECT p.*, c.name AS category_name, c.slug AS subcat_slug,
+                                    COALESCE(mc.slug, c.slug) AS cat_slug,
+                                    COUNT(v.id) AS variant_count
+                             FROM products AS p
+                             INNER JOIN categories AS c  ON p.category_id = c.id
+                             LEFT JOIN categories  AS mc ON c.parent_id   = mc.id
+                             LEFT JOIN product_variants AS v ON v.product_id = p.id
+                             WHERE p.is_featured = 1 AND p.status = 'active'
+                             GROUP BY p.id
+                             ORDER BY p.id ASC
                              LIMIT 8");
         $featured_products = $stmt->fetchAll();
+        foreach ($featured_products as &$fp) {
+            $fp['url'] = ((int)$fp['variant_count'] > 0)
+                ? '/product/car-charger-adapters.php?' . http_build_query(['cat' => $fp['cat_slug'], 'subcat' => $fp['subcat_slug'], 'item' => $fp['slug']])
+                : '/category-page.php?cat=' . urlencode($fp['cat_slug']);
+        }
+        unset($fp);
     } catch (Exception $e) {
         $featured_products = [];
     }
@@ -110,7 +122,7 @@ include __DIR__ . '/includes/navbar.php';
         <?php if (!empty($featured_products)): ?>
           <!-- Rendered dynamically from MySQL database -->
           <?php foreach ($featured_products as $prod): ?>
-            <div class="product-card" data-url="/category-page.php" data-tooltip="View <?= htmlspecialchars($prod['name']) ?>">
+            <div class="product-card" data-url="<?= htmlspecialchars($prod['url']) ?>" data-tooltip="View <?= htmlspecialchars($prod['name']) ?>">
               <div class="product-card-img">
                 <img src="<?= htmlspecialchars($prod['image'] ?: '/assets/images/1.png') ?>" 
                      alt="<?= htmlspecialchars($prod['name']) ?>" 
@@ -121,7 +133,7 @@ include __DIR__ . '/includes/navbar.php';
                 <?php if (!empty($prod['badge'])): ?>
                   <span class="prod-inline-badge" style="width:fit-content; margin-bottom:6px;"><?= htmlspecialchars($prod['badge']) ?></span>
                 <?php endif; ?>
-                <p class="product-card-price">As low as ₱<?= number_format($prod['price_min'], 2) ?> ea</p>
+                <p class="product-card-price"><?= ((float)$prod['price_min'] > 0) ? 'As low as ₱' . number_format($prod['price_min'], 2) . ' ea' : 'Ask for Quote' ?></p>
               </div>
               <div class="product-card-footer">
                 <span class="customize-btn">
