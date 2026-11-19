@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CreativeKit 3A — Corporate Giveaways & Custom Merchandising Platform
 
 A comprehensive, modular full-stack PHP, JavaScript, CSS, and MySQL e-commerce and administrative merchandising management platform for **CreativeKit 3A** (Philippines).
@@ -145,3 +146,6 @@ The system includes two distinct roles demonstrating **Role-Based Access Control
 | **Staff Member** | `maria@creativekit3a.com` | `staff123` | View & Add Products, Edit Products, Update Quote Workflow Statuses (Delete is blocked) |
 
 *(Note: The login page at `/pages/login.php` features **1-Click Autofill buttons** for both roles to make testing seamless during defense).*
+=======
+
+>>>>>>> refs/remotes/origin/main
