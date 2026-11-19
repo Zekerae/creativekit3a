@@ -21,7 +21,17 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
     if (function_exists('set_flash')) {
         set_flash('warning', 'Please sign in to access this page.');
     }
-    header('Location: /pages/login.php?msg=please_login');
+    header('Location: ' . BASE_URL . '/pages/login.php?msg=please_login');
+    exit;
+}
+
+// The staff portal is for admin & staff accounts only — customers
+// (registered from the storefront) are sent back to the shop.
+if (!in_array($_SESSION['user_role'] ?? '', ['admin', 'staff'], true)) {
+    if (function_exists('set_flash')) {
+        set_flash('warning', 'The staff portal is for CreativeKit3A staff only.');
+    }
+    header('Location: ' . BASE_URL . '/');
     exit;
 }
 
@@ -36,7 +46,7 @@ if (isset($required_role)) {
         if (function_exists('set_flash')) {
             set_flash('danger', 'Access denied. You do not have permission to view that resource.');
         }
-        header('Location: /pages/dashboard.php?msg=access_denied');
+        header('Location: ' . BASE_URL . '/pages/dashboard.php?msg=access_denied');
         exit;
     }
 }

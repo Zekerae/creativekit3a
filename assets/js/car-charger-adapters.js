@@ -44,7 +44,10 @@
 
   /** Open the shared "Request a Quote" modal (includes/quote-modal.php) */
   function openQuote() {
-    if (typeof window.openModal === 'function') window.openModal('quote-modal');
+    const params = getParams();
+    const data   = params.cat ? ITEMS_DATA[params.cat][params.item] : null;
+    if (data && typeof window.openQuoteFor === 'function') window.openQuoteFor(data.id);
+    else if (typeof window.openModal === 'function') window.openModal('quote-modal');
   }
 
 
@@ -56,7 +59,7 @@
     const bcCatLink    = document.getElementById('bc-category-link');
     const bcSubcatLink = document.getElementById('bc-subcat-link');
     const bcItemName   = document.getElementById('bc-item-name');
-    const catUrl       = '/category-page.php?cat=' + encodeURIComponent(params.cat);
+    const catUrl       = (window.BASE_URL || '') + '/category-page.php?cat=' + encodeURIComponent(params.cat);
 
     if (bcCatLink) {
       bcCatLink.textContent = itemData.catName;

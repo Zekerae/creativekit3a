@@ -14,7 +14,7 @@
 require_once __DIR__ . '/../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /index.php');
+    header('Location: ' . BASE_URL . '/index.php');
     exit;
 }
 
@@ -36,7 +36,7 @@ if (!$pdo) {
         exit;
     }
     set_flash('danger', 'Database connection not available.');
-    header('Location: /index.php');
+    header('Location: ' . BASE_URL . '/index.php');
     exit;
 }
 
@@ -81,12 +81,21 @@ switch ($action) {
             }
             $_SESSION['quote_errors'] = $errors;
             $_SESSION['quote_data']   = $_POST;
-            header('Location: /index.php?quote=error#quote-modal');
+            header('Location: ' . BASE_URL . '/index.php?quote=error#quote-modal');
             exit;
         }
 
+        // Only link to a product that actually exists (FK quote_requests.product_id → products.id)
+        if ($product_id !== null) {
+            $chk = $pdo->prepare('SELECT id FROM products WHERE id = :id LIMIT 1');
+            $chk->execute([':id' => $product_id]);
+            if (!$chk->fetchColumn()) {
+                $product_id = null;
+            }
+        }
+
         // Insert quote using prepared statement (INSERT requirement)
-        $sql = 'INSERT INTO quote_requests 
+        $sql = 'INSERT INTO quote_requests
             (product_id, customer_name, company, email, phone, product_type, quantity, budget, deadline, details, status)
             VALUES 
             (:product_id, :customer_name, :company, :email, :phone, :product_type, :quantity, :budget, :deadline, :details, :status)';
@@ -126,7 +135,7 @@ switch ($action) {
         }
 
         set_flash('success', "Thank you, {$customer_name}! Your quote request has been received (Ref #{$new_id}). We'll get back to you within 24 hours.");
-        header('Location: /index.php?quote=success');
+        header('Location: ' . BASE_URL . '/index.php?quote=success');
         exit;
 
     // =========================================================
@@ -141,7 +150,7 @@ switch ($action) {
         $allowed_statuses = ['new', 'reviewing', 'quoted', 'accepted', 'declined'];
         if ($quote_id <= 0 || !in_array($new_status, $allowed_statuses, true)) {
             set_flash('danger', 'Invalid quote ID or status value.');
-            header('Location: /pages/quotes.php');
+            header('Location: ' . BASE_URL . '/pages/quotes.php');
             exit;
         }
 
@@ -161,7 +170,7 @@ switch ($action) {
         ]);
 
         set_flash('success', "Quote #{$quote_id} status updated to '" . ucfirst($new_status) . "'.");
-        header('Location: /pages/quotes.php');
+        header('Location: ' . BASE_URL . '/pages/quotes.php');
         exit;
 
     // =========================================================
@@ -172,7 +181,7 @@ switch ($action) {
 
         if ($current_user_role !== 'admin') {
             set_flash('danger', 'Only administrators can assign quotes.');
-            header('Location: /pages/quotes.php');
+            header('Location: ' . BASE_URL . '/pages/quotes.php');
             exit;
         }
 
@@ -194,7 +203,7 @@ switch ($action) {
         ]);
 
         set_flash('success', "Quote #{$quote_id} assignment updated.");
-        header('Location: /pages/quotes.php');
+        header('Location: ' . BASE_URL . '/pages/quotes.php');
         exit;
 
     // =========================================================
@@ -205,14 +214,14 @@ switch ($action) {
 
         if ($current_user_role !== 'admin') {
             set_flash('danger', 'Only administrators can delete quote records.');
-            header('Location: /pages/quotes.php');
+            header('Location: ' . BASE_URL . '/pages/quotes.php');
             exit;
         }
 
         $quote_id = (int)($_POST['id'] ?? 0);
         if ($quote_id <= 0) {
             set_flash('danger', 'Invalid quote ID.');
-            header('Location: /pages/quotes.php');
+            header('Location: ' . BASE_URL . '/pages/quotes.php');
             exit;
         }
 
@@ -231,7 +240,7 @@ switch ($action) {
         ]);
 
         set_flash('success', "Quote request #{$quote_id} was removed.");
-        header('Location: /pages/quotes.php');
+        header('Location: ' . BASE_URL . '/pages/quotes.php');
         exit;
 
     // =========================================================
@@ -239,6 +248,6 @@ switch ($action) {
     // =========================================================
     default:
         set_flash('danger', 'Unknown quote action.');
-        header('Location: /pages/quotes.php');
+        header('Location: ' . BASE_URL . '/pages/quotes.php');
         exit;
 }

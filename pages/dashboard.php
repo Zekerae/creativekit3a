@@ -117,13 +117,13 @@ include __DIR__ . '/../includes/navbar.php';
       </div>
 
       <div class="header-actions">
-        <a href="/pages/product-form.php" class="btn btn-primary" data-tooltip="Create a new promotional product">
+        <a href="<?= BASE_URL ?>/pages/product-form.php" class="btn btn-primary" data-tooltip="Create a new promotional product">
           <i class="fas fa-plus"></i> Add Product
         </a>
-        <a href="/pages/quotes.php" class="btn btn-outline" data-tooltip="Manage incoming quotation leads">
+        <a href="<?= BASE_URL ?>/pages/quotes.php" class="btn btn-outline" data-tooltip="Manage incoming quotation leads">
           <i class="fas fa-file-invoice-dollar"></i> View Quotes
         </a>
-        <a href="/pages/reports.php" class="btn btn-secondary" data-tooltip="Open summary analytics">
+        <a href="<?= BASE_URL ?>/pages/reports.php" class="btn btn-secondary" data-tooltip="Open summary analytics">
           <i class="fas fa-chart-bar"></i> Reports
         </a>
       </div>
@@ -134,7 +134,7 @@ include __DIR__ . '/../includes/navbar.php';
 
       <!-- Card 1: Total Products -->
       <article class="kpi-card" data-tooltip="Click to view all products">
-        <a href="/pages/products.php" class="kpi-card-link">
+        <a href="<?= BASE_URL ?>/pages/products.php" class="kpi-card-link">
           <div class="kpi-icon icon-orange"><i class="fas fa-box-open"></i></div>
           <div class="kpi-content">
             <span class="kpi-label">Total Products</span>
@@ -146,7 +146,7 @@ include __DIR__ . '/../includes/navbar.php';
 
       <!-- Card 2: Quote Inquiries -->
       <article class="kpi-card" data-tooltip="Click to view quote inquiries">
-        <a href="/pages/quotes.php" class="kpi-card-link">
+        <a href="<?= BASE_URL ?>/pages/quotes.php" class="kpi-card-link">
           <div class="kpi-icon icon-blue"><i class="fas fa-file-invoice"></i></div>
           <div class="kpi-content">
             <span class="kpi-label">Quote Requests</span>
@@ -180,7 +180,7 @@ include __DIR__ . '/../includes/navbar.php';
         </article>
       <?php else: ?>
         <article class="kpi-card" data-tooltip="Inquiries assigned to you">
-          <a href="/pages/quotes.php?assigned=me" class="kpi-card-link">
+          <a href="<?= BASE_URL ?>/pages/quotes.php?assigned=me" class="kpi-card-link">
             <div class="kpi-icon icon-green"><i class="fas fa-tasks"></i></div>
             <div class="kpi-content">
               <span class="kpi-label">Assigned To Me</span>
@@ -203,7 +203,7 @@ include __DIR__ . '/../includes/navbar.php';
             <h2><i class="fas fa-file-signature" style="color:var(--orange-primary);"></i> Recent Quote Requests</h2>
             <p>Latest inquiries submitted via website storefront</p>
           </div>
-          <a href="/pages/quotes.php" class="btn btn-outline btn-sm">View All (<?= $total_quotes ?>)</a>
+          <a href="<?= BASE_URL ?>/pages/quotes.php" class="btn btn-outline btn-sm">View All (<?= $total_quotes ?>)</a>
         </div>
 
         <div class="table-responsive">
@@ -245,7 +245,7 @@ include __DIR__ . '/../includes/navbar.php';
                       <?= date('M j, Y', strtotime($q['created_at'])) ?>
                     </td>
                     <td style="text-align:right;">
-                      <a href="/pages/quotes.php?id=<?= $q['id'] ?>" class="btn btn-secondary btn-sm" data-tooltip="Review Quote #<?= $q['id'] ?>">
+                      <a href="<?= BASE_URL ?>/pages/quotes.php?id=<?= $q['id'] ?>" class="btn btn-secondary btn-sm" data-tooltip="Review Quote #<?= $q['id'] ?>">
                         <i class="fas fa-eye"></i>
                       </a>
                     </td>

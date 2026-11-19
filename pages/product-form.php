@@ -31,7 +31,7 @@ $product = [
     'price_min'   => '0.00',
     'specs'       => '',
     'description' => '',
-    'image'       => '/assets/images/1.png',
+    'image'       => '/assets/images/placeholder.png',
     'badge'       => '',
     'status'      => 'active',
     'is_featured' => 0,
@@ -46,7 +46,7 @@ if ($is_edit && $pdo) {
         $product = $existing;
     } else {
         set_flash('danger', 'Product not found.');
-        header('Location: /pages/products.php');
+        header('Location: ' . BASE_URL . '/pages/products.php');
         exit;
     }
 }
@@ -60,36 +60,51 @@ if (!empty($form_data)) {
 $categories = [];
 if ($pdo) {
     // Main categories with their subcategories grouped underneath (self LEFT JOIN)
-    $stmt = $pdo->query('SELECT c.id, c.parent_id, c.name, c.slug, pc.slug AS parent_slug
+    $stmt = $pdo->query('SELECT c.id, c.parent_id, c.name, c.slug, pc.slug AS parent_slug,
+                                COALESCE(c.sku_prefix, pc.sku_prefix)       AS sku_prefix,
+                                COALESCE(c.default_specs, pc.default_specs) AS default_specs
                          FROM categories AS c
                          LEFT JOIN categories AS pc ON c.parent_id = pc.id
                          ORDER BY COALESCE(pc.sort_order, c.sort_order), c.parent_id IS NOT NULL, c.sort_order, c.name');
     $categories = $stmt->fetchAll();
 }
 
-// Available product images in assets/images/
-$sample_images = [
-    '/assets/images/1.png'                   => 'Single USB Car Charger',
-    '/assets/images/2.png'                   => 'Fast Dual Adapter',
-    '/assets/images/dual-usb-adapter.png'    => 'Dual USB Adapter',
-    '/assets/images/usb-c-adapter.png'       => 'USB-C Adapter',
-    '/assets/images/car-charger-adapters.png'=> 'Car Charger Bundle',
-    '/assets/images/car-organizer.png'       => 'Car Organizer',
-    '/assets/images/dash-cam.png'            => 'Dash Cam',
-    '/assets/images/mouse-pad.png'           => 'Mouse Pad',
-    '/assets/images/usb-hub.png'             => '4-Port USB Hub',
-    '/assets/images/audio-accessories.png'   => 'Audio Earbuds',
-    '/assets/images/wooven-clock.png'        => 'Woven Bamboo Clock',
-    '/assets/images/desk-organizer.png'      => 'Desk Organizer',
-    '/assets/images/mobile-powerbank.png'    => 'Slim Power Bank',
-    '/assets/images/mobile-stand.png'        => 'Mobile Phone Stand',
-    '/assets/images/portable-fan.png'        => 'Portable Mini Fan',
-    '/assets/images/power-banks.png'         => 'High-Capacity Power Bank',
-    '/assets/images/corporate-jacket.jpg'    => 'Corporate Jacket',
-    '/assets/images/laptop-bag.png'          => 'Laptop Backpack',
-    '/assets/images/bamboo-tumbler.png'      => 'Bamboo Tumbler',
-    '/assets/images/handheld-vacuum.png'     => 'Handheld Vacuum',
-];
+// Product photos already used by products / variants in the database
+// (UNION of both tables, labelled with the product name) — nothing hardcoded.
+$sample_images = [];
+$badge_options = [];
+if ($pdo) {
+    $img_rows = $pdo->query(
+        "SELECT image, MIN(label) AS label FROM (
+             SELECT p.image AS image, p.name AS label FROM products AS p WHERE p.image IS NOT NULL AND p.image <> ''
+             UNION ALL
+             SELECT v.image, CONCAT(pp.name, ' – ', v.name)
+             FROM product_variants AS v
+             INNER JOIN products AS pp ON v.product_id = pp.id
+             WHERE v.image IS NOT NULL AND v.image <> ''
+         ) AS imgs
+         GROUP BY image
+         ORDER BY label ASC"
+    )->fetchAll();
+    foreach ($img_rows as $r) {
+        $sample_images[$r['image']] = $r['label'];
+    }
+
+    // Promotional badges currently in use (products + variants)
+    $badge_options = $pdo->query(
+        "SELECT badge FROM products WHERE badge IS NOT NULL AND badge <> ''
+         UNION
+         SELECT badge FROM product_variants WHERE badge IS NOT NULL AND badge <> ''
+         ORDER BY badge ASC"
+    )->fetchAll(PDO::FETCH_COLUMN);
+}
+// Keep the product's current values selectable even if no other row uses them
+if (!empty($product['image']) && !isset($sample_images[$product['image']])) {
+    $sample_images = [$product['image'] => 'Current image'] + $sample_images;
+}
+if (!empty($product['badge']) && !in_array($product['badge'], $badge_options, true)) {
+    $badge_options[] = $product['badge'];
+}
 
 include __DIR__ . '/../includes/head.php';
 ?>
@@ -112,9 +127,9 @@ include __DIR__ . '/../includes/navbar.php';
 
     <!-- Breadcrumbs -->
     <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-      <a href="/pages/dashboard.php">Dashboard</a>
+      <a href="<?= BASE_URL ?>/pages/dashboard.php">Dashboard</a>
       <span>/</span>
-      <a href="/pages/products.php">Products</a>
+      <a href="<?= BASE_URL ?>/pages/products.php">Products</a>
       <span>/</span>
       <span class="current"><?= $is_edit ? 'Edit Product' : 'Add New Product' ?></span>
     </nav>
@@ -125,7 +140,7 @@ include __DIR__ . '/../includes/navbar.php';
         <h1><?= $is_edit ? 'Edit Promotional Product' : 'Create New Promotional Product' ?></h1>
         <p><?= $is_edit ? 'Update merchandise specifications, pricing, and catalog visibility.' : 'Fill in the required information to add an item to the corporate catalog.' ?></p>
       </div>
-      <a href="/pages/products.php" class="btn btn-secondary">
+      <a href="<?= BASE_URL ?>/pages/products.php" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i> Back to Products
       </a>
     </div>
@@ -151,7 +166,7 @@ include __DIR__ . '/../includes/navbar.php';
     </div>
 
     <!-- The Product CRUD Form -->
-    <form action="/actions/product-actions.php" method="POST" id="product-form" class="product-form-card" novalidate>
+    <form action="<?= BASE_URL ?>/actions/product-actions.php" method="POST" id="product-form" class="product-form-card" novalidate>
       <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
       <?php if ($is_edit): ?>
         <input type="hidden" name="id" value="<?= (int)$product['id'] ?>">
@@ -192,7 +207,8 @@ include __DIR__ . '/../includes/navbar.php';
                   <option 
                     value="<?= $cat['id'] ?>" 
                     data-slug="<?= htmlspecialchars($cat['slug']) ?>"
-                    data-parent-slug="<?= htmlspecialchars($cat['parent_slug'] ?? '') ?>"
+                    data-prefix="<?= htmlspecialchars($cat['sku_prefix'] ?? '') ?>"
+                    data-spec="<?= htmlspecialchars($cat['default_specs'] ?? '') ?>"
                     <?= ((int)$product['category_id'] === (int)$cat['id']) ? 'selected' : '' ?>
                   >
                     <?= $cat['parent_id'] ? '&nbsp;&nbsp;↳ ' : '' ?><?= htmlspecialchars($cat['name']) ?>
@@ -254,10 +270,9 @@ include __DIR__ . '/../includes/navbar.php';
               </label>
               <select name="badge" id="prod-badge" class="form-control">
                 <option value="" <?= empty($product['badge']) ? 'selected' : '' ?>>None</option>
-                <option value="Best Seller" <?= ($product['badge'] === 'Best Seller') ? 'selected' : '' ?>>Best Seller</option>
-                <option value="New" <?= ($product['badge'] === 'New') ? 'selected' : '' ?>>New</option>
-                <option value="Eco-Friendly" <?= ($product['badge'] === 'Eco-Friendly') ? 'selected' : '' ?>>Eco-Friendly</option>
-                <option value="Premium" <?= ($product['badge'] === 'Premium') ? 'selected' : '' ?>>Premium</option>
+                <?php foreach ($badge_options as $b): ?>
+                  <option value="<?= htmlspecialchars($b) ?>" <?= ($product['badge'] === $b) ? 'selected' : '' ?>><?= htmlspecialchars($b) ?></option>
+                <?php endforeach; ?>
               </select>
             </div>
           </div>
@@ -322,14 +337,14 @@ include __DIR__ . '/../includes/navbar.php';
             <h4><i class="fas fa-image"></i> Product Image</h4>
             
             <div class="image-preview-wrap">
-              <img src="<?= htmlspecialchars($product['image'] ?: '/assets/images/1.png') ?>" alt="Preview" id="img-live-preview">
+              <img src="<?= htmlspecialchars(url($product['image'] ?: '/assets/images/placeholder.png')) ?>" alt="Preview" id="img-live-preview">
             </div>
 
             <div class="form-group" style="margin-top:14px;">
               <label for="prod-image">Select Existing Photo</label>
               <select name="image" id="prod-image" class="form-control">
                 <?php foreach ($sample_images as $path => $name): ?>
-                  <option value="<?= $path ?>" <?= ($product['image'] === $path) ? 'selected' : '' ?>>
+                  <option value="<?= htmlspecialchars($path) ?>" <?= ($product['image'] === $path) ? 'selected' : '' ?>>
                     <?= htmlspecialchars($name) ?>
                   </option>
                 <?php endforeach; ?>
@@ -343,7 +358,7 @@ include __DIR__ . '/../includes/navbar.php';
 
       <!-- Form Action Buttons -->
       <div class="form-footer-actions">
-        <a href="/pages/products.php" class="btn btn-secondary">
+        <a href="<?= BASE_URL ?>/pages/products.php" class="btn btn-secondary">
           Cancel
         </a>
         <button type="submit" class="btn btn-primary btn-lg" id="btn-save-product">

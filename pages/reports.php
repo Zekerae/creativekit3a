@@ -130,7 +130,7 @@ include __DIR__ . '/../includes/navbar.php';
     <header class="reports-header">
       <div>
         <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-          <a href="/pages/dashboard.php">Dashboard</a>
+          <a href="<?= BASE_URL ?>/pages/dashboard.php">Dashboard</a>
           <span>/</span>
           <span class="current">Executive Reports</span>
         </nav>
@@ -150,16 +150,16 @@ include __DIR__ . '/../includes/navbar.php';
 
     <!-- Report Mode Navigation Tabs -->
     <div class="report-tabs no-print">
-      <a href="/pages/reports.php?tab=summary" class="report-tab <?= ($report_mode === 'summary') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/reports.php?tab=summary" class="report-tab <?= ($report_mode === 'summary') ? 'active' : '' ?>">
         <i class="fas fa-chart-pie"></i> Complete Summary
       </a>
-      <a href="/pages/reports.php?tab=categories" class="report-tab <?= ($report_mode === 'categories') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/reports.php?tab=categories" class="report-tab <?= ($report_mode === 'categories') ? 'active' : '' ?>">
         <i class="fas fa-layer-group"></i> Category Breakdown (LEFT JOIN)
       </a>
-      <a href="/pages/reports.php?tab=staff" class="report-tab <?= ($report_mode === 'staff') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/reports.php?tab=staff" class="report-tab <?= ($report_mode === 'staff') ? 'active' : '' ?>">
         <i class="fas fa-users"></i> Staff Assignments (RIGHT JOIN)
       </a>
-      <a href="/pages/reports.php?tab=catalog" class="report-tab <?= ($report_mode === 'catalog') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/reports.php?tab=catalog" class="report-tab <?= ($report_mode === 'catalog') ? 'active' : '' ?>">
         <i class="fas fa-boxes"></i> Active Catalog (INNER JOIN)
       </a>
     </div>

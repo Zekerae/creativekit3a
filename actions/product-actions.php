@@ -16,7 +16,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../auth/guard.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /pages/products.php');
+    header('Location: ' . BASE_URL . '/pages/products.php');
     exit;
 }
 
@@ -24,7 +24,7 @@ $action = $_POST['action'] ?? '';
 
 if (!$pdo) {
     set_flash('danger', 'Database connection not available.');
-    header('Location: /pages/products.php');
+    header('Location: ' . BASE_URL . '/pages/products.php');
     exit;
 }
 
@@ -48,7 +48,7 @@ switch ($action) {
         $is_featured = isset($_POST['is_featured']) ? 1 : 0;
         $image       = trim($_POST['image'] ?? '');
         if (empty($image)) {
-            $image = '/assets/images/1.png';
+            $image = '/assets/images/placeholder.png';
         }
 
         // Generate URL slug using regex
@@ -81,7 +81,7 @@ switch ($action) {
         if (!empty($errors)) {
             $_SESSION['form_errors'] = $errors;
             $_SESSION['form_data']   = $_POST;
-            header('Location: /pages/product-form.php');
+            header('Location: ' . BASE_URL . '/pages/product-form.php');
             exit;
         }
 
@@ -121,7 +121,7 @@ switch ($action) {
         ]);
 
         set_flash('success', "Product '{$name}' was created successfully.");
-        header('Location: /pages/products.php');
+        header('Location: ' . BASE_URL . '/pages/products.php');
         exit;
 
     // =========================================================
@@ -140,12 +140,12 @@ switch ($action) {
         $is_featured = isset($_POST['is_featured']) ? 1 : 0;
         $image       = trim($_POST['image'] ?? '');
         if (empty($image)) {
-            $image = '/assets/images/1.png';
+            $image = '/assets/images/placeholder.png';
         }
 
         if ($id <= 0) {
             set_flash('danger', 'Invalid product ID.');
-            header('Location: /pages/products.php');
+            header('Location: ' . BASE_URL . '/pages/products.php');
             exit;
         }
 
@@ -171,7 +171,7 @@ switch ($action) {
         if (!empty($errors)) {
             $_SESSION['form_errors'] = $errors;
             $_SESSION['form_data']   = $_POST;
-            header("Location: /pages/product-form.php?id={$id}");
+            header("Location: " . BASE_URL . "/pages/product-form.php?id={$id}");
             exit;
         }
 
@@ -220,7 +220,7 @@ switch ($action) {
         ]);
 
         set_flash('success', "Product '{$name}' was updated successfully.");
-        header('Location: /pages/products.php');
+        header('Location: ' . BASE_URL . '/pages/products.php');
         exit;
 
     // =========================================================
@@ -232,13 +232,13 @@ switch ($action) {
         // RBAC: Only Admin can delete products
         if ($current_user_role !== 'admin') {
             set_flash('danger', 'Unauthorized action. Only administrators can delete records.');
-            header('Location: /pages/products.php');
+            header('Location: ' . BASE_URL . '/pages/products.php');
             exit;
         }
 
         if ($id <= 0) {
             set_flash('danger', 'Invalid product ID.');
-            header('Location: /pages/products.php');
+            header('Location: ' . BASE_URL . '/pages/products.php');
             exit;
         }
 
@@ -249,7 +249,7 @@ switch ($action) {
 
         if (!$prod) {
             set_flash('warning', 'Product was not found or already deleted.');
-            header('Location: /pages/products.php');
+            header('Location: ' . BASE_URL . '/pages/products.php');
             exit;
         }
 
@@ -269,7 +269,7 @@ switch ($action) {
         ]);
 
         set_flash('success', "Product '{$prod['name']}' was permanently deleted.");
-        header('Location: /pages/products.php');
+        header('Location: ' . BASE_URL . '/pages/products.php');
         exit;
 
     // =========================================================
@@ -277,6 +277,6 @@ switch ($action) {
     // =========================================================
     default:
         set_flash('danger', 'Invalid action requested.');
-        header('Location: /pages/products.php');
+        header('Location: ' . BASE_URL . '/pages/products.php');
         exit;
 }

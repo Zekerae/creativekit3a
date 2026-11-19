@@ -66,7 +66,7 @@ creativekit3a/
 │       ├── logo.png                     # Standardized Brand Logo
 │       └── [30+ Product Images]         # High-resolution merchandise photos & banners
 ├── database/
-│   └── creativekit3a.sql                # THE single database: 6 related tables, seed data & SQL demos
+│   └── creativekit3a.sql                # THE single database: 7 related tables, seed data & SQL demos
 ├── _trash/                              # Deprecated / Archived Files (Ignored by Git)
 ├── .gitignore                           # Git Exclusion Rules
 └── README.md                            # Comprehensive Setup & Defense Documentation
@@ -95,7 +95,7 @@ Launch the **XAMPP Control Panel** and start both **Apache** and **MySQL**.
    database/creativekit3a.sql
    ```
 4. Click **Go** (or **Import**).
-5. The script will automatically create `creativekit3a_db`, establish all 6 related tables with Primary/Foreign Key constraints, insert all sample seed data, and run the SQL demonstration queries.
+5. The script will automatically create `creativekit3a_db`, establish all 7 related tables with Primary/Foreign Key constraints, insert all sample seed data, and run the SQL demonstration queries.
 
 > **One database only.** `database/creativekit3a.sql` is the only SQL file. Do not create any other database — every page connects through `config/db.php` to `creativekit3a_db`.
 
@@ -112,11 +112,12 @@ http://localhost/creativekit3a/
 | # | Table | Primary Key | Foreign Keys | Used by |
 | :- | :--- | :--- | :--- | :--- |
 | 1 | `users` | `id` | — | Login, RBAC, dashboard, reports |
-| 2 | `categories` | `id` | `parent_id → categories.id` (subcategories) | Catalog, product form, reports |
-| 3 | `products` | `id` | `category_id → categories.id`, `created_by → users.id` | Homepage, catalog, product CRUD, reports |
+| 2 | `categories` | `id` | `parent_id → categories.id` (subcategories) | Catalog, quote modal, product form (SKU prefix / spec hints), reports |
+| 3 | `products` | `id` | `category_id → categories.id`, `created_by → users.id` | Homepage, catalog, quote modal, product CRUD (image & badge pickers), reports |
 | 4 | `product_variants` | `id` | `product_id → products.id` | Product items page |
 | 5 | `quote_requests` | `id` | `product_id → products.id`, `assigned_to → users.id` | Quote modal, quotes page, dashboard, reports |
 | 6 | `activity_log` | `id` | `user_id → users.id` | Audit trail on dashboard |
+| 7 | `hero_banners` | `id` | `product_id → products.id` | Homepage carousel |
 
 ### SQL requirement coverage
 
@@ -134,9 +135,22 @@ http://localhost/creativekit3a/
 | `AS` | All demos | Column and table aliases throughout |
 | `CONCAT()` | Demos 6–9 | Staff full names, product labels, variant price labels |
 
-All dynamic content — including the public catalog (`category-page.php`) and the product items page (`product/car-charger-adapters.php`) — is queried from this database; the JavaScript files only render data the PHP page passes in.
+**No product data is hardcoded.** Every product, variant, category, carousel slide, price and image — on the homepage, catalog (`category-page.php`), product items page (`product/car-charger-adapters.php`), quote modal and admin product form — is queried from this database. The JavaScript files only render data the PHP page passes in. To add or change items, add/edit rows (e.g. via the admin Products page or phpMyAdmin).
 
-## 4. Demo Credentials for Defense
+## 4. Main UI & Images
+
+The storefront uses the original **CreativeKit3A Main UI** (`assets/css/style.css`): dark top bar with **Sign In / Register**, white header with search, **Request a Quote** and **Cart**, the 8-category **mega menu** (built from the database), the sliding **hero carousel** (arrows, dots, autoplay), and **OUR PRODUCTS**. Admin pages share the same header, colors and buttons.
+
+| Folder | Contents | Used by |
+| :--- | :--- | :--- |
+| `assets/images/hero/` | Carousel slides (`slide-1-custom-corporate-jackets.png`, …) | `hero_banners.image` |
+| `assets/images/items/` | One file per product and per variant (`<product-slug>.png`, `<product-slug>--<variant>.png`) | `products.image`, `product_variants.image` |
+| `assets/images/categories/` | One banner per main category (`<category-slug>.png`) | `categories.image` |
+| `assets/images/placeholder.png` | Shown automatically if any image fails to load (`onerror` handler in `assets/js/global.js`) | every page |
+
+**To use your real photos:** overwrite a file with your photo using the **same file name** — no code or database change needed.
+
+## 5. Demo Credentials for Defense
 
 The system includes two distinct roles demonstrating **Role-Based Access Control (RBAC)**:
 
@@ -144,6 +158,7 @@ The system includes two distinct roles demonstrating **Role-Based Access Control
 | :--- | :--- | :--- | :--- |
 | **Administrator** | `admin@creativekit3a.com` | `admin123` | Full CRUD, Delete Products (with confirmation modal), Assign Quote Leads, System Audit Trail, Summary Reports |
 | **Staff Member** | `maria@creativekit3a.com` | `staff123` | View & Add Products, Edit Products, Update Quote Workflow Statuses (Delete is blocked) |
+| **Customer** | *(create one with the top-bar **Register** button)* | — | Browse the catalog and submit quote requests; blocked from the staff portal |
 
 *(Note: The login page at `/pages/login.php` features **1-Click Autofill buttons** for both roles to make testing seamless during defense).*
 =======

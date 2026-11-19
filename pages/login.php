@@ -10,7 +10,7 @@ require_once __DIR__ . '/../config/db.php';
 
 // If already logged in, redirect straight to dashboard
 if (isset($_SESSION['user_id'])) {
-    header('Location: /pages/dashboard.php');
+    header('Location: ' . BASE_URL . '/pages/dashboard.php');
     exit;
 }
 
@@ -78,7 +78,7 @@ include __DIR__ . '/../includes/navbar.php';
         </div>
 
         <!-- Login Form -->
-        <form action="/auth/login.php" method="POST" id="login-form" novalidate>
+        <form action="<?= BASE_URL ?>/auth/login.php" method="POST" id="login-form" novalidate>
           <div class="form-group">
             <label for="email">
               <i class="fas fa-envelope"></i> Work Email Address
@@ -124,7 +124,7 @@ include __DIR__ . '/../includes/navbar.php';
         </form>
 
         <div class="login-footer">
-          <a href="/index.php"><i class="fas fa-arrow-left"></i> Return to CreativeKit 3A Storefront</a>
+          <a href="<?= BASE_URL ?>/index.php"><i class="fas fa-arrow-left"></i> Return to CreativeKit 3A Storefront</a>
         </div>
       </div>
 

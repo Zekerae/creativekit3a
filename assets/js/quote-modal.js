@@ -138,6 +138,34 @@
   }
 
 
+  /* ── Product link (hidden #qm-product, data from window.QM_PRODUCTS = products table) ── */
+
+  const qmCategory = document.getElementById('qm-product-type');
+  const qmProduct  = document.getElementById('qm-product');
+
+  function fillProducts(catId, selectId) {
+    if (qmProduct) qmProduct.value = selectId ? String(selectId) : '';
+  }
+
+  // Picking a different category manually clears any pre-selected product
+  if (qmCategory) {
+    qmCategory.addEventListener('change', function () { fillProducts(''); });
+  }
+
+  /**
+   * Open the quote modal pre-filled for a product from the database.
+   * Usage: openQuoteFor(productId)
+   */
+  window.openQuoteFor = function (productId) {
+    const prod = (window.QM_PRODUCTS || []).find(p => String(p.id) === String(productId));
+    if (prod && qmCategory) {
+      const opt = qmCategory.querySelector('option[data-cat-id="' + prod.cat + '"]');
+      if (opt) qmCategory.value = opt.value;
+    }
+    fillProducts(prod ? prod.cat : '', prod ? prod.id : '');
+    if (typeof window.openModal === 'function') window.openModal('quote-modal');
+  };
+
   /* ── Submit ─────────────────────────────────────────────── */
 
   window.submitQuote = async function () {
@@ -182,13 +210,14 @@
     formData.append('email', payload.email);
     formData.append('phone', payload.phone);
     formData.append('product_type', payload.product_type);
+    formData.append('product_id', val('qm-product'));
     formData.append('quantity', payload.quantity);
     formData.append('budget', payload.budget);
     formData.append('deadline', payload.deadline);
     formData.append('details', payload.details);
 
     try {
-      const res = await fetch('/actions/quote-actions.php', {
+      const res = await fetch((window.BASE_URL || '') + '/actions/quote-actions.php', {
         method: 'POST',
         body: formData,
       });
@@ -269,6 +298,7 @@
       const el = document.getElementById(id);
       if (el) el.selectedIndex = 0;
     });
+    fillProducts('');
 
     document.querySelectorAll('input[name="qm-custom"]').forEach(cb => {
       cb.checked = false;

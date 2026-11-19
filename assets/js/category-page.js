@@ -77,9 +77,10 @@
             <img src="${esc(product.img)}" alt="${esc(product.name)}" loading="lazy">
           </div>
           <div class="product-card-body">
-            <div class="product-card-title">${esc(product.name)}</div>
-            <div class="product-card-price">${esc(product.price)}</div>
+            <div class="product-card-title">${esc(product.name)}</p>
+            <div class="product-card-price">${esc(product.price)}</p>
           </div>
+         
         </div>`;
     }
 
@@ -90,8 +91,8 @@
         card.addEventListener('click', () => {
           if (card.dataset.url) {
             window.location.href = card.dataset.url;
-          } else if (typeof window.openModal === 'function') {
-            window.openModal('quote-modal');
+          } else if (typeof window.openQuoteFor === 'function') {
+            window.openQuoteFor(card.dataset.productId);
           }
         });
       });

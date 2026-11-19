@@ -1726,6 +1726,17 @@ top-bar-auth {
   color: var(--white);
   border-color: var(--orange-light);
 }
+
+/* Signed-in pills are links: keep them readable over .top-bar-social a */
+.top-bar-auth .btn { display: inline-flex; align-items: center; gap: 6px; line-height: 1.4; }
+.top-bar-auth .btn-primary,
+.top-bar-auth .btn-primary:hover { color: var(--white); }
+
+/* Phones: header keeps logo + hamburger + cart icon; Request a Quote lives in the sidenav */
+@media (max-width: 440px) {
+  .navbar-right .btn-chat { display: none; }
+  .navbar-cart > span:not(.cart-count) { display: none; }
+}
 /* END ADDED: btn-sm */
  
 /* ============================================================

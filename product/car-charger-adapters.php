@@ -72,18 +72,19 @@ if ($pdo) {
                     'specs'       => $v['specs'] ?? '',
                     'price'       => ((float)$v['price'] > 0) ? $v['price_label'] : 'Ask for Quote',
                     'priceValue'  => (float)$v['price'],
-                    'img'         => $v['image'] ?: '/assets/images/1.png',
+                    'img'         => url($v['image'] ?: '/assets/images/placeholder.png'),
                     'badge'       => $v['badge'] ?? '',
                     'variantType' => $v['variant_type'] ?? '',
                 ];
             }
 
             $items_data[$product['cat_slug']][$product['slug']] = [
+                'id'           => (int)$product['id'],
                 'name'         => $product['name'],
                 'eyebrow'      => $product['subcat_name'],
                 'catName'      => $product['cat_name'],
                 'price'        => ck_price_label((float)$product['price_min']),
-                'heroImg'      => $product['image'] ?: '/assets/images/1.png',
+                'heroImg'      => url($product['image'] ?: '/assets/images/placeholder.png'),
                 'desc'         => $product['description'] ?? '',
                 'variantTypes' => array_values($variant_types),
                 'items'        => $items,
@@ -110,12 +111,12 @@ if ($pdo) {
                     'name' => $r['name'],
                     'slug' => $r['slug'],
                     'price'=> ck_price_label((float)$r['price_min']),
-                    'img'  => $r['image'] ?: '/assets/images/1.png',
-                    'url'  => ((int)$r['variant_count'] > 0)
+                    'img'  => url($r['image'] ?: '/assets/images/placeholder.png'),
+                    'url'  => url(((int)$r['variant_count'] > 0)
                         ? '/product/car-charger-adapters.php?' . http_build_query([
                               'cat' => $product['cat_slug'], 'subcat' => $r['subcat_slug'], 'item' => $r['slug'],
                           ])
-                        : '/category-page.php?cat=' . urlencode($product['cat_slug']),
+                        : '/category-page.php?cat=' . urlencode($product['cat_slug'])),
                 ];
             }
         }
@@ -126,7 +127,7 @@ if ($pdo) {
 
 // Unknown / inactive product → back to the catalog
 if (!$product) {
-    header('Location: /category-page.php');
+    header('Location: ' . BASE_URL . '/category-page.php');
     exit;
 }
 
@@ -150,32 +151,30 @@ include __DIR__ . '/../includes/navbar.php';
   <div class="items-breadcrumb-bar">
     <div class="container">
       <nav class="items-breadcrumb" aria-label="Breadcrumb">
-        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="<?= BASE_URL ?>/"><i class="fas fa-home"></i> Home</a>
         <span class="sep"><i class="fas fa-chevron-right"></i></span>
-        <a href="#" id="bc-category-link" class="bc-cat">Accessories &amp; Gadgets</a>
+        <a href="<?= BASE_URL ?>/category-page.php?cat=<?= urlencode($product['cat_slug']) ?>" id="bc-category-link" class="bc-cat"><?= e($product['cat_name']) ?></a>
         <span class="sep"><i class="fas fa-chevron-right"></i></span>
-        <a href="#" id="bc-subcat-link" class="bc-subcat">Car Accessories</a>
+        <a href="<?= BASE_URL ?>/category-page.php?cat=<?= urlencode($product['cat_slug']) ?>" id="bc-subcat-link" class="bc-subcat"><?= e($product['subcat_name']) ?></a>
         <span class="sep"><i class="fas fa-chevron-right"></i></span>
-        <span class="current" id="bc-item-name">Car Charger Adapters</span>
+        <span class="current" id="bc-item-name"><?= e($product['name']) ?></span>
       </nav>
     </div>
   </div>
 
   <!-- ============================================================
        ITEM HERO BANNER
-       JS populates all text & image content from ITEMS_DATA.
+       Rendered from the products table (JS re-applies the same ITEMS_DATA).
        ============================================================ -->
   <section class="item-hero" id="item-hero">
     <div class="container item-hero-inner">
 
       <div class="item-hero-text">
-        <span class="item-hero-eyebrow" id="item-eyebrow">Car Accessories</span>
-        <h1 class="item-hero-title" id="item-hero-title">Car Charger Adapters</h1>
-        <p class="item-hero-desc" id="item-hero-desc">
-          Custom-branded car charger adapters perfect for corporate giveaways, events, and daily use.
-        </p>
+        <span class="item-hero-eyebrow" id="item-eyebrow"><?= e($product['subcat_name']) ?></span>
+        <h1 class="item-hero-title" id="item-hero-title"><?= e($product['name']) ?></h1>
+        <p class="item-hero-desc" id="item-hero-desc"><?= e($product['description']) ?></p>
         <div class="item-hero-meta">
-          <span class="item-hero-price" id="item-hero-price">As low as ₱85.00</span>
+          <span class="item-hero-price" id="item-hero-price"><?= e(ck_price_label((float)$product['price_min'])) ?></span>
           <button class="btn btn-primary item-hero-cta" id="item-hero-cta">
             <i class="fas fa-paint-brush"></i> Request a Quote
           </button>
@@ -184,8 +183,8 @@ include __DIR__ . '/../includes/navbar.php';
 
       <div class="item-hero-img-wrap">
         <img class="item-hero-img" id="item-hero-img"
-             src="/assets/images/car-charger-adapters.png"
-             alt="Car Charger Adapters">
+             src="<?= e(url($product['image'] ?: '/assets/images/placeholder.png')) ?>"
+             alt="<?= e($product['name']) ?>">
       </div>
 
     </div>
@@ -210,7 +209,7 @@ include __DIR__ . '/../includes/navbar.php';
       <div class="items-sort-bar">
         <div class="items-sort-left">
           Showing <strong id="items-showing-count">all</strong> variants of
-          <strong id="items-showing-name">Car Charger Adapters</strong>
+          <strong id="items-showing-name"><?= e($product['name']) ?></strong>
         </div>
         <div class="items-sort-right">
           <label for="items-sort-select"

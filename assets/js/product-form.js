@@ -29,51 +29,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const clientErrorBox  = document.getElementById('client-form-error');
   const clientErrorList = document.getElementById('client-error-list');
 
-  // Category to SKU Prefix & Spec Defaults Mapping
-  const categoryHelpers = {
-    'car-accessories':      { prefix: 'ACC-CC', spec: '12V-24V Input • Smart Charging IC' },
-    'computer-accessories': { prefix: 'ACC-PC', spec: 'Plug & Play • High-Speed USB 3.0' },
-    'desk-accessories':     { prefix: 'ACC-DK', spec: 'Eco Material • Desktop Organizer' },
-    'mobile-accessories':   { prefix: 'ACC-MB', spec: 'Fast Charging • Compact Portable' },
-    'gadgets':              { prefix: 'ACC-GD', spec: 'Rechargeable Battery • Portable' },
-    'accessories-gadgets':  { prefix: 'ACC-GEN',spec: 'Custom Logo Branding Included' },
-    'apparel':              { prefix: 'APP-COR',spec: 'Cotton/Polyester Blend • Custom Embroidery' },
-    'bags-pouches':         { prefix: 'BAG-TOT',spec: 'Eco-Friendly Canvas • Reinforced Handles' },
-    'drinkware':            { prefix: 'DRK-TUM',spec: 'Double-Walled Insulated • BPA-Free' },
-    'giftset':              { prefix: 'GFT-SET',spec: 'Curated 3-Piece Executive Gift Set' },
-    'home-living':          { prefix: 'HOM-LIV',spec: 'Household Grade • Custom Box Packaging' },
-    'pen-paper':            { prefix: 'PEN-BAM',spec: 'Bamboo Barrel • Blue/Black Ink Cartridge' },
-    'pu-leather':           { prefix: 'LEA-CRD',spec: 'Premium PU Leather • Debossed Logo' },
-  };
+  // SKU prefix & spec suggestions come from the categories table
+  // (sku_prefix / default_specs, inherited from the parent category),
+  // printed by pages/product-form.php as data-prefix / data-spec.
+  function categoryHelper(option) {
+    if (!option) return null;
+    const prefix = option.getAttribute('data-prefix') || '';
+    const spec   = option.getAttribute('data-spec') || '';
+    return prefix || spec ? { prefix, spec } : null;
+  }
+
 
   // ============================================================
   // 1. Dependent Category Handler (Event 3: 'change')
   //    Suggests SKU prefix and spec details dynamically.
   // ============================================================
-  // Subcategories without their own helper fall back to the parent category's helper
-  function helperSlug(option) {
-    if (!option) return '';
-    const own = option.getAttribute('data-slug') || '';
-    return categoryHelpers[own] ? own : (option.getAttribute('data-parent-slug') || own);
-  }
-
   if (catSelect) {
     catSelect.addEventListener('change', function () {
       const selectedOption = this.options[this.selectedIndex];
-      const slug = helperSlug(selectedOption);
+      const helper = categoryHelper(selectedOption);
 
-      if (slug && categoryHelpers[slug]) {
-        const helper = categoryHelpers[slug];
+      if (helper) {
 
         // Suggest SKU if empty or default
-        if (skuInput && (!skuInput.value || skuInput.value.startsWith('PRD-'))) {
+        if (helper.prefix && skuInput && (!skuInput.value || skuInput.value.startsWith('PRD-'))) {
           const rand = Math.floor(100 + Math.random() * 900);
           skuInput.value = `${helper.prefix}-${rand}`;
           skuInput.classList.remove('is-invalid');
         }
 
         // Suggest specs if empty
-        if (specsInput && !specsInput.value.trim()) {
+        if (helper.spec && specsInput && !specsInput.value.trim()) {
           specsInput.value = helper.spec;
         }
       }
@@ -89,7 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (selectedPath) {
         livePreviewImg.style.opacity = '0';
         setTimeout(() => {
-          livePreviewImg.src = selectedPath;
+          livePreviewImg.src = selectedPath.charAt(0) === '/' && selectedPath.charAt(1) !== '/'
+            ? (window.BASE_URL || '') + selectedPath
+            : selectedPath;
           livePreviewImg.style.opacity = '1';
         }, 150);
       }
@@ -102,8 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (genSkuBtn && skuInput) {
     genSkuBtn.addEventListener('click', () => {
       const selectedOption = catSelect ? catSelect.options[catSelect.selectedIndex] : null;
-      const slug = helperSlug(selectedOption);
-      const prefix = (slug && categoryHelpers[slug]) ? categoryHelpers[slug].prefix : 'CK3A';
+      const helper = categoryHelper(selectedOption);
+      const prefix = (helper && helper.prefix) ? helper.prefix : 'CK3A';
       const rand = Math.floor(1000 + Math.random() * 9000);
 
       skuInput.value = `${prefix}-${rand}`;

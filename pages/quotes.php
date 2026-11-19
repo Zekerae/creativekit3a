@@ -133,7 +133,7 @@ include __DIR__ . '/../includes/navbar.php';
     <header class="quotes-header">
       <div>
         <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-          <a href="/pages/dashboard.php">Dashboard</a>
+          <a href="<?= BASE_URL ?>/pages/dashboard.php">Dashboard</a>
           <span>/</span>
           <span class="current">Quote Requests</span>
         </nav>
@@ -150,22 +150,22 @@ include __DIR__ . '/../includes/navbar.php';
 
     <!-- Status Filter Tab Pills (Event 3: 'click' or 'change') -->
     <div class="status-tabs-bar" role="tablist">
-      <a href="/pages/quotes.php" class="status-tab <?= empty($filter_status) ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/quotes.php" class="status-tab <?= empty($filter_status) ? 'active' : '' ?>">
         All Inquiries <span class="tab-count"><?= $status_counts['all'] ?></span>
       </a>
-      <a href="/pages/quotes.php?status=new" class="status-tab <?= ($filter_status === 'new') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/quotes.php?status=new" class="status-tab <?= ($filter_status === 'new') ? 'active' : '' ?>">
         <i class="fas fa-envelope-open-text" style="color:#2563EB;"></i> New <span class="tab-count"><?= $status_counts['new'] ?></span>
       </a>
-      <a href="/pages/quotes.php?status=reviewing" class="status-tab <?= ($filter_status === 'reviewing') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/quotes.php?status=reviewing" class="status-tab <?= ($filter_status === 'reviewing') ? 'active' : '' ?>">
         <i class="fas fa-search" style="color:#D97706;"></i> Reviewing <span class="tab-count"><?= $status_counts['reviewing'] ?></span>
       </a>
-      <a href="/pages/quotes.php?status=quoted" class="status-tab <?= ($filter_status === 'quoted') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/quotes.php?status=quoted" class="status-tab <?= ($filter_status === 'quoted') ? 'active' : '' ?>">
         <i class="fas fa-paper-plane" style="color:#4338CA;"></i> Quoted <span class="tab-count"><?= $status_counts['quoted'] ?></span>
       </a>
-      <a href="/pages/quotes.php?status=accepted" class="status-tab <?= ($filter_status === 'accepted') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/quotes.php?status=accepted" class="status-tab <?= ($filter_status === 'accepted') ? 'active' : '' ?>">
         <i class="fas fa-check-circle" style="color:#059669;"></i> Accepted <span class="tab-count"><?= $status_counts['accepted'] ?></span>
       </a>
-      <a href="/pages/quotes.php?status=declined" class="status-tab <?= ($filter_status === 'declined') ? 'active' : '' ?>">
+      <a href="<?= BASE_URL ?>/pages/quotes.php?status=declined" class="status-tab <?= ($filter_status === 'declined') ? 'active' : '' ?>">
         <i class="fas fa-times-circle" style="color:#DC2626;"></i> Declined <span class="tab-count"><?= $status_counts['declined'] ?></span>
       </a>
     </div>
@@ -271,7 +271,7 @@ include __DIR__ . '/../includes/navbar.php';
 
                   <!-- Status Dropdown (Event: 'change') -->
                   <td>
-                    <form action="/actions/quote-actions.php" method="POST" class="status-quick-form" style="margin:0;">
+                    <form action="<?= BASE_URL ?>/actions/quote-actions.php" method="POST" class="status-quick-form" style="margin:0;">
                       <input type="hidden" name="action" value="update_status">
                       <input type="hidden" name="id" value="<?= $q['id'] ?>">
                       <select name="status" class="status-select-badge badge-<?= htmlspecialchars($q['status']) ?>" onchange="this.form.submit()">
@@ -287,7 +287,7 @@ include __DIR__ . '/../includes/navbar.php';
                   <!-- Assigned Coordinator -->
                   <td>
                     <?php if ($is_admin): ?>
-                      <form action="/actions/quote-actions.php" method="POST" class="assign-form" style="margin:0;">
+                      <form action="<?= BASE_URL ?>/actions/quote-actions.php" method="POST" class="assign-form" style="margin:0;">
                         <input type="hidden" name="action" value="assign">
                         <input type="hidden" name="id" value="<?= $q['id'] ?>">
                         <select name="assigned_to" class="form-control form-control-sm" style="font-size:0.75rem; padding:4px 8px; width:auto;" onchange="this.form.submit()">
@@ -445,7 +445,7 @@ include __DIR__ . '/../includes/navbar.php';
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" id="btn-cancel-del-quote">Cancel</button>
-      <form action="/actions/quote-actions.php" method="POST" style="margin:0;">
+      <form action="<?= BASE_URL ?>/actions/quote-actions.php" method="POST" style="margin:0;">
         <input type="hidden" name="action" value="delete">
         <input type="hidden" name="id" id="modal-del-quote-id" value="">
         <button type="submit" class="btn btn-danger">

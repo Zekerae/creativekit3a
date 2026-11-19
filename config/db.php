@@ -10,6 +10,8 @@
  * Uses PHP PDO with prepared statements to prevent SQL injection.
  */
 
+require_once __DIR__ . '/app.php';   // BASE_URL + url() helper
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

@@ -494,3 +494,18 @@
   .items-grid  { grid-template-columns: 1fr 1fr; gap: 12px; }
   .related-grid{ grid-template-columns: 1fr 1fr; gap: 12px; }
 }
+/* Sort dropdown (same look as the category page) */
+.sort-select {
+  border: 1px solid var(--orange-pale);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--grey-dark);
+  background: var(--white);
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+}
+.sort-select:focus { border-color: var(--orange-primary); }

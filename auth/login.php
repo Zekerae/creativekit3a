@@ -9,13 +9,19 @@ require_once __DIR__ . '/../config/db.php';
 
 // Only handle POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /pages/login.php');
+    header('Location: ' . $fail_url);
     exit;
 }
 
 // Retrieve and sanitize inputs ($_POST)
 $email    = trim($_POST['email'] ?? '');
 $password = $_POST['password'] ?? '';
+
+// Sign In modal (top bar) → errors return to the same page and reopen the modal;
+// the full login page (pages/login.php) → errors return there.
+$from_modal = !empty($_POST['from_modal']);
+$return_to  = safe_return_to($_POST['return_to'] ?? '');
+$fail_url   = $from_modal ? $return_to : BASE_URL . '/pages/login.php';
 
 // Server-side validation
 $errors = [];
@@ -32,7 +38,7 @@ if (empty($password)) {
 if (!empty($errors)) {
     $_SESSION['login_errors'] = $errors;
     $_SESSION['login_email']  = $email;
-    header('Location: /pages/login.php');
+    header('Location: ' . $fail_url);
     exit;
 }
 
@@ -42,7 +48,7 @@ if (!$pdo) {
         'Could not connect to the database. Please ensure MySQL is running in XAMPP and creativekit3a_db is imported.'
     ];
     $_SESSION['login_email'] = $email;
-    header('Location: /pages/login.php');
+    header('Location: ' . $fail_url);
     exit;
 }
 
@@ -56,22 +62,23 @@ if (!$user) {
     // User not found
     $_SESSION['login_errors'] = ['No account found with that email address.'];
     $_SESSION['login_email']  = $email;
-    header('Location: /pages/login.php');
+    header('Location: ' . $fail_url);
     exit;
 } elseif (!$user['is_active']) {
     // Account deactivated
     $_SESSION['login_errors'] = ['This account has been deactivated. Please contact an administrator.'];
     $_SESSION['login_email']  = $email;
-    header('Location: /pages/login.php');
+    header('Location: ' . $fail_url);
     exit;
 } elseif (!password_verify($password, $user['password_hash'])) {
     // Wrong password
     $_SESSION['login_errors'] = ['Incorrect password. Please try again.'];
     $_SESSION['login_email']  = $email;
-    header('Location: /pages/login.php');
+    header('Location: ' . $fail_url);
     exit;
 } else {
-    // Successful login — set session variables
+    // Successful login — set session variables (new session id prevents fixation)
+    session_regenerate_id(true);
     $_SESSION['user_id']    = (int)$user['id'];
     $_SESSION['user_role']  = $user['role'];
     $_SESSION['user_name']  = $user['first_name'] . ' ' . $user['last_name'];
@@ -90,7 +97,13 @@ if (!$user) {
         ':ip'      => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
     ]);
 
-    set_flash('success', 'Welcome back, ' . htmlspecialchars($user['first_name']) . '! You are logged in as ' . ucfirst($user['role']) . '.');
-    header('Location: /pages/dashboard.php');
+    set_flash('success', 'Welcome back, ' . $user['first_name'] . '! You are logged in as ' . ucfirst($user['role']) . '.');
+
+    // Staff & admins go to the portal; customers return to the storefront
+    if (in_array($user['role'], ['admin', 'staff'], true)) {
+        header('Location: ' . BASE_URL . '/pages/dashboard.php');
+    } else {
+        header('Location: ' . ($from_modal ? $return_to : BASE_URL . '/'));
+    }
     exit;
 }

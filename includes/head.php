@@ -4,6 +4,8 @@
  * Dynamically loads global design tokens and per-page stylesheets.
  */
 
+require_once __DIR__ . '/../config/app.php';   // BASE_URL + url() helper
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -25,12 +27,16 @@ $extra_css = $extra_css ?? [];
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
 
-  <!-- Core Global Stylesheet (Minimal design tokens, nav, footer, alerts) -->
-  <link rel="stylesheet" href="/assets/css/global.css">
-  <link rel="stylesheet" href="/assets/css/quote-modal.css">
+  <!-- Shared base: admin utilities (alerts, badges, modals, tooltips) -->
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/global.css">
+  <!-- CreativeKit3A Main UI: top bar, header, mega menu, hero, cards, footer, auth modals -->
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/quote-modal.css">
 
   <!-- Dedicated Per-Page Stylesheet(s) -->
   <?php foreach ($extra_css as $css): ?>
-    <link rel="stylesheet" href="<?= htmlspecialchars($css) ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(url($css)) ?>">
   <?php endforeach; ?>
+  <!-- Base path for JS-built URLs (site may live in a subfolder, e.g. /creativekit3a) -->
+  <script>window.BASE_URL = <?= json_encode(BASE_URL) ?>;</script>
 </head>

@@ -1,4 +1,6 @@
 <?php
+// Staff return to the portal login; storefront customers return to the shop
+$was_staff = null;
 /**
  * auth/logout.php — Logout Handler
  * Destroys session, logs audit trail, and redirects.
@@ -37,10 +39,11 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
+$was_staff = in_array($_SESSION['user_role'] ?? '', ['admin', 'staff'], true);
 session_destroy();
 
 // Start a fresh session just to hold the goodbye message
 session_start();
 set_flash('info', 'You have been signed out successfully.');
-header('Location: /pages/login.php?msg=logged_out');
+header('Location: ' . BASE_URL . ($was_staff ? '/pages/login.php?msg=logged_out' : '/'));
 exit;

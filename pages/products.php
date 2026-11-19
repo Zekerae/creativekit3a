@@ -141,7 +141,7 @@ include __DIR__ . '/../includes/navbar.php';
     <header class="page-header">
       <div>
         <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-          <a href="/pages/dashboard.php">Dashboard</a>
+          <a href="<?= BASE_URL ?>/pages/dashboard.php">Dashboard</a>
           <span>/</span>
           <span class="current">Products</span>
         </nav>
@@ -150,7 +150,7 @@ include __DIR__ . '/../includes/navbar.php';
       </div>
 
       <div class="page-header-actions">
-        <a href="/pages/product-form.php" class="btn btn-primary">
+        <a href="<?= BASE_URL ?>/pages/product-form.php" class="btn btn-primary">
           <i class="fas fa-plus"></i> Add New Product
         </a>
       </div>
@@ -158,7 +158,7 @@ include __DIR__ . '/../includes/navbar.php';
 
     <!-- Filter & Real-Time Search Control Bar -->
     <section class="filter-card" aria-label="Filter products">
-      <form action="/pages/products.php" method="GET" id="filter-form" class="filter-form">
+      <form action="<?= BASE_URL ?>/pages/products.php" method="GET" id="filter-form" class="filter-form">
 
         <!-- Real-Time Search Input (input event in products.js) -->
         <div class="filter-col filter-search">
@@ -220,7 +220,7 @@ include __DIR__ . '/../includes/navbar.php';
             <button type="submit" class="btn btn-primary btn-sm" id="btn-apply-filters">
               <i class="fas fa-filter"></i> Filter
             </button>
-            <a href="/pages/products.php" class="btn btn-secondary btn-sm" data-tooltip="Reset all filters">
+            <a href="<?= BASE_URL ?>/pages/products.php" class="btn btn-secondary btn-sm" data-tooltip="Reset all filters">
               <i class="fas fa-undo"></i> Reset
             </a>
           </div>
@@ -273,7 +273,7 @@ include __DIR__ . '/../includes/navbar.php';
                   <!-- Product Image with Tooltip -->
                   <td class="col-img">
                     <div class="prod-thumb-wrap" data-tooltip="Preview: <?= htmlspecialchars($p['product_name']) ?>">
-                      <img src="<?= htmlspecialchars($p['image'] ?: '/assets/images/1.png') ?>" 
+                      <img src="<?= htmlspecialchars(url($p['image'] ?: '/assets/images/placeholder.png')) ?>" 
                            alt="<?= htmlspecialchars($p['product_name']) ?>" 
                            class="prod-thumb" 
                            loading="lazy">
@@ -334,7 +334,7 @@ include __DIR__ . '/../includes/navbar.php';
                   <td style="text-align:right;" class="col-actions">
                     <div class="action-buttons">
                       <!-- Edit Product -->
-                      <a href="/pages/product-form.php?id=<?= $p['id'] ?>" class="btn-action btn-action-edit" data-tooltip="Edit product details">
+                      <a href="<?= BASE_URL ?>/pages/product-form.php?id=<?= $p['id'] ?>" class="btn-action btn-action-edit" data-tooltip="Edit product details">
                         <i class="fas fa-edit"></i>
                       </a>
 
@@ -403,7 +403,7 @@ include __DIR__ . '/../includes/navbar.php';
       <button type="button" class="btn btn-secondary" id="btn-cancel-del">
         <i class="fas fa-times"></i> Cancel
       </button>
-      <form action="/actions/product-actions.php" method="POST" id="form-confirm-delete" style="margin:0;">
+      <form action="<?= BASE_URL ?>/actions/product-actions.php" method="POST" id="form-confirm-delete" style="margin:0;">
         <input type="hidden" name="action" value="delete">
         <input type="hidden" name="id" id="modal-del-prod-id" value="">
         <button type="submit" class="btn btn-danger" id="btn-confirm-delete">

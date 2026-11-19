@@ -10,13 +10,15 @@
  *   /category-page.php                      → Accessories & Gadgets (default)
  *   /category-page.php?cat=drinkware        → Drinkware
  *   /category-page.php?cat=pu-leather       → PU Leather
+ *   /category-page.php?q=tumbler            → header search (SQL LIKE)
  *
- * SQL used: SELECT, WHERE, ORDER BY, AS, INNER JOIN, LEFT JOIN
+ * SQL used: SELECT, WHERE, LIKE, ORDER BY, AS, INNER JOIN, LEFT JOIN
  */
 
 require_once __DIR__ . '/config/db.php';
 
 $active_slug   = trim($_GET['cat'] ?? '');
+$search        = trim($_GET['q'] ?? '');
 $category_data = [];   // slug => { name, icon, desc, count, subcats[], products[] }
 
 if ($pdo) {
@@ -80,8 +82,8 @@ if ($pdo) {
                 'id'     => (int)$p['id'],
                 'name'   => $p['name'],
                 'price'  => ((float)$p['price_min'] > 0) ? 'As low as ₱' . number_format((float)$p['price_min'], 2) : 'Ask for Quote',
-                'img'    => $p['image'] ?: '/assets/images/1.png',
-                'url'    => $url,
+                'img'    => url($p['image'] ?: '/assets/images/placeholder.png'),
+                'url'    => url($url),
                 'subcat' => $p['sub_slug'],
             ];
         }
@@ -89,6 +91,48 @@ if ($pdo) {
             $c['count'] = (string)count($c['products']);
         }
         unset($c);
+
+        // 4. Header search: prepared LIKE across product, description, subcategory
+        //    and category names. Rendered by the same grid as a pseudo-category
+        //    whose tabs are the main categories that have matches.
+        if ($search !== '') {
+            $like = '%' . $search . '%';
+            $stmt = $pdo->prepare(
+                "SELECT p.id, p.name, p.slug, p.price_min, p.image,
+                        sc.slug AS sub_slug, mc.slug AS parent_slug, mc.name AS parent_name,
+                        COUNT(v.id) AS variant_count
+                 FROM products AS p
+                 INNER JOIN categories AS sc ON p.category_id = sc.id
+                 INNER JOIN categories AS mc ON sc.parent_id  = mc.id
+                 LEFT JOIN product_variants AS v ON v.product_id = p.id
+                 WHERE p.status = 'active'
+                   AND (p.name LIKE :q1 OR p.description LIKE :q2 OR sc.name LIKE :q3 OR mc.name LIKE :q4)
+                 GROUP BY p.id, p.name, p.slug, p.price_min, p.image, sc.slug, mc.slug, mc.name, mc.sort_order
+                 ORDER BY mc.sort_order ASC, p.name ASC"
+            );
+            $stmt->execute([':q1' => $like, ':q2' => $like, ':q3' => $like, ':q4' => $like]);
+            $results = ['name' => 'Search: “' . $search . '”', 'icon' => 'fas fa-search',
+                        'desc' => '', 'count' => '0', 'subcats' => [], 'products' => []];
+            foreach ($stmt->fetchAll() as $p) {
+                if (!in_array($p['parent_slug'], array_column($results['subcats'], 'key'), true)) {
+                    $results['subcats'][] = ['key' => $p['parent_slug'], 'label' => $p['parent_name']];
+                }
+                $url = ((int)$p['variant_count'] > 0)
+                    ? product_url($p['parent_slug'], $p['sub_slug'], $p['slug'], (int)$p['variant_count'])
+                    : '';
+                $results['products'][] = [
+                    'id'     => (int)$p['id'],
+                    'name'   => $p['name'],
+                    'price'  => ((float)$p['price_min'] > 0) ? 'As low as ₱' . number_format((float)$p['price_min'], 2) : 'Ask for Quote',
+                    'img'    => url($p['image'] ?: '/assets/images/placeholder.png'),
+                    'url'    => url($url),
+                    'subcat' => $p['parent_slug'],
+                ];
+            }
+            $results['count'] = (string)count($results['products']);
+            $category_data['search'] = $results;
+            $active_slug = 'search';
+        }
     } catch (PDOException $e) {
         $category_data = [];
     }
@@ -102,7 +146,7 @@ $active_cat = $category_data[$active_slug] ?? null;
 $title      = ($active_cat ? $active_cat['name'] . ' | ' : 'Product Categories | ') . 'CreativeKit3A';
 $meta_desc  = 'Browse our complete collection of corporate giveaways — accessories, apparel, bags, drinkware, and more.';
 $extra_css  = ['/assets/css/category-page.css'];
-$active_nav = $active_slug;
+$active_nav = $search !== '' ? '' : $active_slug;
 
 include __DIR__ . '/includes/head.php';
 ?>
@@ -118,7 +162,7 @@ include __DIR__ . '/includes/navbar.php';
   <div class="cat-breadcrumb-bar">
     <div class="container">
       <nav class="cat-breadcrumb" aria-label="Breadcrumb">
-        <a href="/"><i class="fas fa-home"></i> Home</a>
+        <a href="<?= BASE_URL ?>/"><i class="fas fa-home"></i> Home</a>
         <span class="sep"><i class="fas fa-chevron-right"></i></span>
         <span class="current" id="hero-breadcrumb-current"><?= e($active_cat['name'] ?? 'Categories') ?></span>
       </nav>
@@ -130,31 +174,6 @@ include __DIR__ . '/includes/navbar.php';
   <span id="hero-desc"          style="display:none;"></span>
   <span id="hero-icon"          style="display:none;"></span>
   <span id="hero-product-count" style="display:none;"></span>
-
-  <?php if (!$pdo): ?>
-    <div class="container" style="padding:24px 0;">
-      <div class="alert alert-warning">
-        <i class="fas fa-database"></i> The catalog database is not connected. Import <code>database/creativekit3a.sql</code> and check <code>config/db.php</code>.
-      </div>
-    </div>
-  <?php endif; ?>
-
-  <!-- ============================================================
-       MAIN CATEGORY SWITCHER (from categories table)
-       ============================================================ -->
-  <?php if (!empty($category_data)): ?>
-  <div class="subcat-tabs-wrapper">
-    <div class="container">
-      <?php foreach ($category_data as $slug => $c): ?>
-        <a class="subcat-tab<?= $slug === $active_slug ? ' active' : '' ?>"
-           href="/category-page.php?cat=<?= urlencode($slug) ?>">
-          <i class="<?= e($c['icon']) ?>"></i> <?= e($c['name']) ?>
-          <span class="tab-count"><?= e($c['count']) ?></span>
-        </a>
-      <?php endforeach; ?>
-    </div>
-  </div>
-  <?php endif; ?>
 
   <!-- ============================================================
        SUBCATEGORY FILTER TABS (injected by JS)
