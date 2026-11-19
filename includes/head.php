@@ -1,26 +1,13 @@
 <?php
 /**
- * includes/head.php
- * ─────────────────────────────────────────────────────────────
- * Shared <head> partial. Include at the very top of every page.
- *
- * Variables to set BEFORE including this file:
- *   $title      (string) — browser tab title, e.g. "Accessories & Gadgets | CreativeKit3A"
- *   $meta_desc  (string) — meta description for SEO (optional)
- *   $extra_css  (array)  — additional stylesheet hrefs (optional)
- *                          e.g. ['/product/car-charger-adapters.css']
- *
- * Usage example:
- *   <?php
- *   $title     = 'My Page | CreativeKit3A';
- *   $meta_desc = 'Browse our products...';
- *   $extra_css = ['/product/car-charger-adapters.css'];
- *   include __DIR__ . '/includes/head.php';
- *   ?>
- * ─────────────────────────────────────────────────────────────
+ * includes/head.php — Shared <head> partial
+ * Dynamically loads global design tokens and per-page stylesheets.
  */
 
-// Defaults
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $title     = $title     ?? 'CreativeKit3A | Corporate Giveaways Philippines';
 $meta_desc = $meta_desc ?? 'Customized corporate giveaways, branded accessories, and promotional items in the Philippines. CreativeKit3A — your trusted partner.';
 $extra_css = $extra_css ?? [];
@@ -33,15 +20,16 @@ $extra_css = $extra_css ?? [];
   <meta name="description" content="<?= htmlspecialchars($meta_desc) ?>">
   <title><?= htmlspecialchars($title) ?></title>
 
-  <!-- Font Awesome -->
+  <!-- Google Fonts & Font Awesome 6 -->
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
 
-  <!-- Shared site stylesheets -->
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <!-- Core Global Stylesheet (Minimal design tokens, nav, footer, alerts) -->
+  <link rel="stylesheet" href="/assets/css/global.css">
   <link rel="stylesheet" href="/assets/css/quote-modal.css">
 
+  <!-- Dedicated Per-Page Stylesheet(s) -->
   <?php foreach ($extra_css as $css): ?>
     <link rel="stylesheet" href="<?= htmlspecialchars($css) ?>">
   <?php endforeach; ?>

@@ -173,11 +173,24 @@
     }
     if (backBtn) backBtn.disabled = true;
 
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('action', 'submit');
+    formData.append('is_ajax', '1');
+    formData.append('name', payload.name);
+    formData.append('company', payload.company);
+    formData.append('email', payload.email);
+    formData.append('phone', payload.phone);
+    formData.append('product_type', payload.product_type);
+    formData.append('quantity', payload.quantity);
+    formData.append('budget', payload.budget);
+    formData.append('deadline', payload.deadline);
+    formData.append('details', payload.details);
+
     try {
-      const res  = await fetch('/api/quote', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(payload),
+      const res = await fetch('/actions/quote-actions.php', {
+        method: 'POST',
+        body: formData,
       });
       const data = await res.json();
 
