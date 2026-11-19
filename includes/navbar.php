@@ -117,7 +117,8 @@ function nav_active(string $slug): string {
     <?php foreach ($mega_menu as $cat_slug => $cat): ?>
       <li class="mega-menu-item<?= nav_active($cat_slug) ?>">
         <a href="<?= BASE_URL ?>/category-page.php?cat=<?= urlencode($cat_slug) ?>"><?= htmlspecialchars(mb_strtoupper($cat['name'])) ?> <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
-        <div class="mega-dropdown">
+        <?php $col_count = count($cat['cols']); // ≤5 columns in one row, more → two balanced rows ?>
+        <div class="mega-dropdown" style="--mega-cols: <?= $col_count <= 5 ? max(1, $col_count) : (int)ceil($col_count / 2) ?>;">
           <?php foreach ($cat['cols'] as $col): ?>
             <div class="mega-dropdown-col">
               <h4><?= htmlspecialchars($col['name']) ?></h4>

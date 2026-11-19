@@ -499,21 +499,24 @@ top-bar-auth {
   transform: rotate(180deg);
 }
 
-/* Dropdown Panel */
+/* Dropdown Panel
+   Sized to its columns (no fixed min-width). --mega-cols is set per menu
+   by includes/navbar.php; global.js nudges the panel back inside the
+   viewport when it would overflow an edge. */
 .mega-dropdown {
   display: none;
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 700px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
   background: var(--white);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-  padding: 15px;
+  padding: 20px 24px;
   border-top: 3px solid var(--orange-primary);
   animation: dropFade 0.2s ease;
   z-index: 1100;
-  
 }
 
 @keyframes dropFade {
@@ -521,10 +524,14 @@ top-bar-auth {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.mega-menu-item:hover .mega-dropdown {
-  display: flex;
-  gap: 28px;
+.mega-menu-item:hover .mega-dropdown,
+.mega-menu-item:focus-within .mega-dropdown {
+  display: grid;
+  grid-template-columns: repeat(var(--mega-cols, 3), minmax(150px, 190px));
+  gap: 20px 28px;
 }
+
+.mega-dropdown-col { min-width: 0; }
 
 .mega-dropdown-col h4 {
   font-size: 0.8rem;
@@ -545,9 +552,9 @@ top-bar-auth {
   transition: var(--transition);
 }
 
-.mega-dropdown-col a:hover {
+.mega-dropdown-col a:hover,
+.mega-dropdown-col a:focus-visible {
   color: var(--orange-primary);
-  padding-left: 6px;
 }
 
 /* ============================================================
@@ -1731,6 +1738,12 @@ top-bar-auth {
 .top-bar-auth .btn { display: inline-flex; align-items: center; gap: 6px; line-height: 1.4; }
 .top-bar-auth .btn-primary,
 .top-bar-auth .btn-primary:hover { color: var(--white); }
+
+/* Tablets/small laptops: tighter category labels so all 8 fit the bar */
+@media (max-width: 1180px) and (min-width: 901px) {
+  .mega-menu-nav { padding: 0 12px; justify-content: space-between; }
+  .mega-menu-item > a { padding: 14px 8px; font-size: 0.76rem; }
+}
 
 /* Phones: header keeps logo + hamburger + cart icon; Request a Quote lives in the sidenav */
 @media (max-width: 440px) {

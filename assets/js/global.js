@@ -161,6 +161,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============================================================
+  // 6b. Mega menu: keep each dropdown inside the viewport.
+  //     Panels open left-aligned under their category; if one would run past
+  //     the right edge (Gift Set, Home Living, Pen & Paper, PU Leather…) it is
+  //     shifted left just enough, never past the left gutter.
+  // ============================================================
+  const EDGE = 16;
+  const placeDropdown = (item) => {
+    const panel = item.querySelector('.mega-dropdown');
+    if (!panel) return;
+    panel.style.left = '0px';
+    const r = panel.getBoundingClientRect();
+    if (!r.width) return;
+    const vw = document.documentElement.clientWidth;
+    let shift = 0;
+    if (r.right > vw - EDGE) shift = (vw - EDGE) - r.right;      // pull back from the right edge
+    if (r.left + shift < EDGE) shift = EDGE - r.left;             // but never past the left gutter
+    panel.style.left = shift + 'px';
+  };
+  // Measure on the next frame: :hover / :focus-within must be applied first
+  const schedulePlace = (item) => requestAnimationFrame(() => placeDropdown(item));
+  document.querySelectorAll('.mega-menu-item').forEach((item) => {
+    item.addEventListener('mouseenter', () => schedulePlace(item));
+    item.addEventListener('focusin', () => schedulePlace(item));
+  });
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.mega-menu-item:hover, .mega-menu-item:focus-within').forEach(placeDropdown);
+  });
+
+  // ============================================================
   // 7. Navbar search — clicking the magnifier submits the search form
   // ============================================================
   document.querySelectorAll('.navbar-search').forEach((form) => {
