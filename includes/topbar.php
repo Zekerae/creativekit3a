@@ -19,6 +19,7 @@
         </a>
       </li>
       <li class="top-bar-auth">
+        <a href="/admin/index.php" class="btn btn-outline btn-sm" style="text-decoration:none;"><i class="fas fa-chart-line"></i> Management</a>
         <button class="btn btn-outline btn-sm" onclick="openModal('login-modal')">Sign In</button>
         <button class="btn btn-primary btn-sm" onclick="openModal('register-modal')">Register</button>
       </li>
