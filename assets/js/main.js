@@ -513,7 +513,8 @@ const Search = (() => {
     const q = (query || '').trim();
     if (!q) return;
 
-    if (window.location.pathname.includes('category-page.html') || window.location.pathname.endsWith('/category-page')) {
+    // Check if currently on the category page (works for /category-page, /category-page.html, etc.)
+    if (window.location.pathname.includes('category-page')) {
       const input = document.getElementById('navbar-search-input') || document.getElementById('cat-search-input');
       if (input) {
         input.value = q;
@@ -575,14 +576,6 @@ const Search = (() => {
         });
       }
     });
-
-    // If user loaded a non-category page with ?s=..., forward to category-page.html?s=...
-    const urlParams = new URLSearchParams(window.location.search);
-    const initialQuery = urlParams.get('s');
-    if (initialQuery && !window.location.pathname.includes('category-page.html')) {
-      window.location.replace(`category-page.html?s=${encodeURIComponent(initialQuery)}`);
-      return;
-    }
 
     // Clicking magnifying glass icon submits search
     searchIcons.forEach((icon) => {
