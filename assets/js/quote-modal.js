@@ -71,22 +71,22 @@
     hideMsg('qm-err-' + fromStep);
 
     if (fromStep === 1) {
-      const name  = val('qm-name');
+      const name = val('qm-name');
       const email = val('qm-email');
       const phone = val('qm-phone');
 
-      if (!name)           return showErr('qm-err-1', 'Please enter your full name.');
-      if (!email)          return showErr('qm-err-1', 'Please enter your email address.');
+      if (!name) return showErr('qm-err-1', 'Please enter your full name.');
+      if (!email) return showErr('qm-err-1', 'Please enter your email address.');
       if (!isEmail(email)) return showErr('qm-err-1', 'Please enter a valid email address.');
-      if (!phone)          return showErr('qm-err-1', 'Please enter your mobile number.');
+      if (!phone) return showErr('qm-err-1', 'Please enter your mobile number.');
       if (!isPhone(phone)) return showErr('qm-err-1', 'Please enter a valid PH mobile number (e.g. +63 917 000 0000).');
     }
 
     if (fromStep === 2) {
-      const product  = val('qm-product-type');
+      const product = val('qm-product-type');
       const quantity = val('qm-quantity');
 
-      if (!product)  return showErr('qm-err-2', 'Please select a product category.');
+      if (!product) return showErr('qm-err-2', 'Please select a product category.');
       if (!quantity) return showErr('qm-err-2', 'Please select a quantity range.');
     }
 
@@ -111,7 +111,7 @@
       const dot = document.getElementById('qm-step-dot-' + i);
       if (!dot) continue;
       dot.classList.remove('active', 'done');
-      if (i < step)  dot.classList.add('done');
+      if (i < step) dot.classList.add('done');
       if (i === step) dot.classList.add('active');
     }
 
@@ -136,7 +136,7 @@
     hideMsg('qm-success');
 
     const submitBtn = document.getElementById('qm-submit-btn');
-    const backBtn   = document.getElementById('qm-back-btn-3');
+    const backBtn = document.getElementById('qm-back-btn-3');
 
     // Collect customization checkboxes
     const customization = [...document.querySelectorAll('input[name="qm-custom"]:checked')]
@@ -144,17 +144,17 @@
 
     // Build payload
     const payload = {
-      name:          val('qm-name'),
-      company:       val('qm-company'),
-      email:         val('qm-email'),
-      phone:         val('qm-phone'),
-      product_type:  val('qm-product-type'),
-      quantity:      val('qm-quantity'),
-      budget:        val('qm-budget'),
-      deadline:      val('qm-deadline'),
-      details:       val('qm-details'),
+      name: val('qm-name'),
+      company: val('qm-company'),
+      email: val('qm-email'),
+      phone: val('qm-phone'),
+      product_type: val('qm-product-type'),
+      quantity: val('qm-quantity'),
+      budget: val('qm-budget'),
+      deadline: val('qm-deadline'),
+      details: val('qm-details'),
       customization: customization,
-      source:        val('qm-source'),
+      source: val('qm-source'),
     };
 
     // Disable buttons + show spinner
@@ -168,15 +168,15 @@
       let data = null;
       const isPhp = window.location.pathname.endsWith('.php');
       const isInSubdir = window.location.pathname.includes('/product/');
-      const endpoint = isPhp 
+      const endpoint = isPhp
         ? (isInSubdir ? '../api-php/quote.php' : 'api-php/quote.php')
         : (isInSubdir ? '../api/quote' : 'api/quote');
 
       try {
         const res = await fetch(endpoint, {
-          method:  'POST',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify(payload),
+          body: JSON.stringify(payload),
         });
         const contentType = res.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
@@ -299,13 +299,13 @@
     const p1 = document.getElementById('qm-panel-1');
     if (p1) p1.hidden = false;
 
-    ['qm-name','qm-company','qm-email','qm-phone',
-     'qm-details','qm-deadline'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
+    ['qm-name', 'qm-company', 'qm-email', 'qm-phone',
+      'qm-details', 'qm-deadline'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
 
-    ['qm-product-type','qm-quantity','qm-budget','qm-source'].forEach(id => {
+    ['qm-product-type', 'qm-quantity', 'qm-budget', 'qm-source'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.selectedIndex = 0;
     });
@@ -314,7 +314,7 @@
       cb.checked = false;
     });
 
-    ['qm-err-1','qm-err-2','qm-err-3','qm-success'].forEach(hideMsg);
+    ['qm-err-1', 'qm-err-2', 'qm-err-3', 'qm-success'].forEach(hideMsg);
 
     const submitBtn = document.getElementById('qm-submit-btn');
     if (submitBtn) {
