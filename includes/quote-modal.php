@@ -95,7 +95,7 @@
     </div>
 
     <!-- ── STEP 2: Product Info ────────────────────────────── -->
-    <div class="lm-panel qm-panel" id="qm-panel-2" hidden>
+    <div class="lm-panel qm-panel" id="qm-panel-2" hidden style="display:none;">
 
       <div class="lm-field">
         <label for="qm-product-type"><i class="fas fa-tag"></i> Product Category <span class="qm-req">*</span></label>
@@ -181,7 +181,7 @@
     </div>
 
     <!-- ── STEP 3: Details & Submit ────────────────────────── -->
-    <div class="lm-panel qm-panel" id="qm-panel-3" hidden>
+    <div class="lm-panel qm-panel" id="qm-panel-3" hidden style="display:none;">
 
       <div class="lm-field">
         <label for="qm-details">
@@ -236,7 +236,7 @@
     </div>
 
     <!-- ── SUCCESS STATE ───────────────────────────────────── -->
-    <div class="qm-panel qm-success-panel" id="qm-panel-success" hidden>
+    <div class="qm-panel qm-success-panel" id="qm-panel-success" hidden style="display:none;">
       <div class="qm-success-icon">
         <i class="fas fa-circle-check"></i>
       </div>

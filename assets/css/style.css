@@ -33,6 +33,14 @@
   --transition:       all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --font-body:        'Inter', sans-serif;
   --font-display:     'Poppins', sans-serif;
+  --primary-color:    var(--orange-primary);
+  --primary-subtle:   #FFF3E8;
+  --text-dark:        var(--grey-dark);
+}
+
+/* Universal hidden rule: guarantees [hidden] elements are never displayed */
+[hidden] {
+  display: none !important;
 }
 
 /* ---- Reset & Base ---- */

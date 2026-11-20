@@ -14,13 +14,17 @@
     const el = document.getElementById(id);
     if (!el) return;
     el.textContent = '⚠️ ' + msg;
-    el.hidden = false;
+    el.removeAttribute('hidden');
+    el.style.display = 'block';
   }
 
   /** Hide an error/success message */
   function hideMsg(id) {
     const el = document.getElementById(id);
-    if (el) el.hidden = true;
+    if (el) {
+      el.setAttribute('hidden', '');
+      el.style.display = 'none';
+    }
   }
 
   /** Returns trimmed value of an input/select by id */
@@ -40,7 +44,7 @@
   }
 
 
-  /* ── Set min date to today + 3 days ────────────────────── */
+  /* ── Wire up listeners on load ─────────────────────────── */
   window.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.getElementById('qm-deadline');
     if (dateInput) {
@@ -58,6 +62,9 @@
         });
       }
     });
+
+    // Initialize modal state cleanly to step 1
+    resetQuoteModal();
   });
 
 
@@ -100,13 +107,35 @@
 
   /** Show the target step panel and update step dots */
   function goToStep(step) {
-    // Hide all panels
+    // 1. Manage Step panels
     for (let i = 1; i <= TOTAL_STEPS; i++) {
       const panel = document.getElementById('qm-panel-' + i);
-      if (panel) panel.hidden = (i !== step);
+      if (panel) {
+        if (i === step) {
+          panel.removeAttribute('hidden');
+          panel.style.display = 'flex';
+        } else {
+          panel.setAttribute('hidden', '');
+          panel.style.display = 'none';
+        }
+      }
     }
 
-    // Update step dots
+    // 2. Hide success panel explicitly
+    const successPanel = document.getElementById('qm-panel-success');
+    if (successPanel) {
+      successPanel.setAttribute('hidden', '');
+      successPanel.style.display = 'none';
+    }
+
+    // 3. Ensure step dots bar is visible
+    const stepsEl = document.querySelector('#quote-modal .qm-steps');
+    if (stepsEl) {
+      stepsEl.removeAttribute('hidden');
+      stepsEl.style.display = 'flex';
+    }
+
+    // 4. Update step dots
     for (let i = 1; i <= TOTAL_STEPS; i++) {
       const dot = document.getElementById('qm-step-dot-' + i);
       if (!dot) continue;
@@ -115,7 +144,7 @@
       if (i === step) dot.classList.add('active');
     }
 
-    // Update connector lines
+    // 5. Update connector lines
     const lines = document.querySelectorAll('#quote-modal .qm-step-line');
     lines.forEach((line, idx) => {
       line.classList.toggle('done', idx + 2 <= step);
@@ -182,7 +211,7 @@
         if (contentType.includes('application/json')) {
           data = await res.json();
         } else {
-          // Static host (e.g. GitHub Pages) returns 404 HTML fallback
+          // Static host (e.g. GitHub Pages) fallback
           data = {
             success: true,
             quote_ref: 'CK3A-' + Math.floor(100000 + Math.random() * 900000)
@@ -197,11 +226,11 @@
       }
 
       if (data && data.success) {
-        // Show success panel
+        // Set confirmation email
         const confirmEmail = document.getElementById('qm-confirm-email');
-        if (confirmEmail) confirmEmail.textContent = payload.email;
+        if (confirmEmail) confirmEmail.textContent = payload.email || 'your email';
 
-        // Display quote reference if available
+        // Display quote reference badge
         const quoteRef = data.quote_ref || ('CK3A-' + Math.floor(100000 + Math.random() * 900000));
         let refEl = document.getElementById('qm-confirm-ref');
         if (!refEl) {
@@ -209,25 +238,36 @@
           if (successMsg) {
             refEl = document.createElement('div');
             refEl.id = 'qm-confirm-ref';
-            refEl.style.cssText = 'background:var(--primary-subtle,#e8f0fe);color:var(--primary-color,#1a73e8);padding:10px 14px;border-radius:8px;font-weight:700;margin:14px 0;display:inline-block;letter-spacing:1px;font-size:0.95rem;';
+            refEl.className = 'qm-confirm-ref-badge';
             successMsg.insertAdjacentElement('afterend', refEl);
           }
         }
         if (refEl) {
-          refEl.innerHTML = `<i class="fas fa-receipt"></i> Reference Code: <span>${quoteRef}</span>`;
+          refEl.innerHTML = `<i class="fas fa-receipt"></i> Reference Code: <strong>${quoteRef}</strong>`;
         }
 
+        // Hide all form panels
         for (let i = 1; i <= TOTAL_STEPS; i++) {
           const p = document.getElementById('qm-panel-' + i);
-          if (p) p.hidden = true;
+          if (p) {
+            p.setAttribute('hidden', '');
+            p.style.display = 'none';
+          }
         }
 
-        const successPanel = document.getElementById('qm-panel-success');
-        if (successPanel) successPanel.hidden = false;
-
-        // Hide step dots
+        // Hide step indicators
         const stepsEl = document.querySelector('#quote-modal .qm-steps');
-        if (stepsEl) stepsEl.style.display = 'none';
+        if (stepsEl) {
+          stepsEl.setAttribute('hidden', '');
+          stepsEl.style.display = 'none';
+        }
+
+        // Show success panel
+        const successPanel = document.getElementById('qm-panel-success');
+        if (successPanel) {
+          successPanel.removeAttribute('hidden');
+          successPanel.style.display = 'flex';
+        }
 
       } else {
         showErr('qm-err-3', data?.message || 'Something went wrong. Please try again.');
@@ -278,10 +318,18 @@
   };
 
 
-  /* ── Reset modal state on close ─────────────────────────── */
-  const _originalClose = window.closeModal;
+  /* ── Reset modal state on open / close ───────────────────── */
+  const _origOpen = window.openModal;
+  window.openModal = function (id) {
+    if (id === 'quote-modal') {
+      resetQuoteModal();
+    }
+    if (typeof _origOpen === 'function') _origOpen(id);
+  };
+
+  const _origClose = window.closeModal;
   window.closeModal = function (id) {
-    if (typeof _originalClose === 'function') _originalClose(id);
+    if (typeof _origClose === 'function') _origClose(id);
     if (id === 'quote-modal') {
       resetQuoteModal();
     }
@@ -290,14 +338,17 @@
   function resetQuoteModal() {
     goToStep(1);
 
-    const stepsEl = document.querySelector('#quote-modal .qm-steps');
-    if (stepsEl) stepsEl.style.display = '';
-
     const successPanel = document.getElementById('qm-panel-success');
-    if (successPanel) successPanel.hidden = true;
+    if (successPanel) {
+      successPanel.setAttribute('hidden', '');
+      successPanel.style.display = 'none';
+    }
 
-    const p1 = document.getElementById('qm-panel-1');
-    if (p1) p1.hidden = false;
+    const stepsEl = document.querySelector('#quote-modal .qm-steps');
+    if (stepsEl) {
+      stepsEl.removeAttribute('hidden');
+      stepsEl.style.display = 'flex';
+    }
 
     ['qm-name', 'qm-company', 'qm-email', 'qm-phone',
       'qm-details', 'qm-deadline'].forEach(id => {

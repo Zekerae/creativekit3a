@@ -644,11 +644,11 @@
           <div class="item-card-specs">${item.specs}</div>
           <div class="item-card-price">${item.price}</div>
         </div>
-        <div class="item-card-footer" style="display:flex;gap:8px;align-items:center;">
-          <button class="customize-btn qm-trigger-btn" style="flex:1;cursor:pointer;border:none;background:var(--primary-color);color:#fff;padding:8px 12px;border-radius:6px;font-weight:700;font-size:0.8rem;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <div class="item-card-footer">
+          <button class="qm-trigger-btn" type="button" aria-label="Request quote for ${item.name}">
             <i class="fas fa-paper-plane" aria-hidden="true"></i> REQUEST QUOTE
           </button>
-          <button class="cart-add-btn" title="Add to Quote Cart" style="background:#f1f3f4;border:none;color:var(--text-dark);padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.85rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">
+          <button class="cart-add-btn" type="button" title="Add to Quote Cart" aria-label="Add to cart">
             <i class="fas fa-cart-plus" aria-hidden="true"></i>
           </button>
         </div>

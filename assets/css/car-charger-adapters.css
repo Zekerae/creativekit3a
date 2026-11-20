@@ -89,13 +89,30 @@
 }
 
 .item-hero-price {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--orange-primary);
 }
 
 .item-hero-cta {
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  color: #ffffff !important;
+  background: var(--gradient-hero);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.item-hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
 }
 
 /* Hero image */
@@ -125,7 +142,7 @@
   background: var(--white);
   border-bottom: 2px solid var(--orange-pale);
   position: sticky;
-  top: 0;
+  top: var(--navbar-h, 72px);
   z-index: 90;
   box-shadow: 0 2px 12px rgba(255,107,0,0.08);
 }
@@ -341,6 +358,56 @@
 
 .item-card-footer {
   padding: 0 14px 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.item-card-footer .qm-trigger-btn {
+  flex: 1;
+  background: var(--orange-primary, #FF6B00);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  padding: 9px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--font-display, sans-serif);
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(255, 107, 0, 0.22);
+}
+
+.item-card-footer .qm-trigger-btn:hover {
+  background: var(--orange-mid, #FF8C42);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.35);
+}
+
+.item-card-footer .cart-add-btn {
+  background: var(--white-off, #FFF8F3);
+  border: 1.5px solid var(--orange-pale, #FFE0B2);
+  color: var(--orange-primary, #FF6B00);
+  border-radius: var(--radius-sm, 6px);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.item-card-footer .cart-add-btn:hover {
+  background: var(--orange-primary, #FF6B00);
+  border-color: var(--orange-primary, #FF6B00);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .item-card-footer .customize-btn {
