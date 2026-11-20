@@ -279,16 +279,15 @@ const Modal = (() => {
 })();
 
 /* ============================================================
-   5. MINI CART
+   5. INTERACTIVE CART / QUOTE INQUIRIES DRAWER
    ============================================================ */
 const Cart = (() => {
   let items = [];
-
-  const STORAGE_KEY = 'pb_cart';
+  const STORAGE_KEY = 'ck_cart';
 
   const load = () => {
     try {
-      items = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      items = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem('pb_cart') || '[]');
     } catch {
       items = [];
     }
@@ -298,46 +297,235 @@ const Cart = (() => {
 
   const getCount = () => items.reduce((acc, item) => acc + (item.qty || 1), 0);
 
+  const getItems = () => items;
+
   const updateUI = () => {
     const count = getCount();
     $$('.cart-count').forEach((el) => {
       el.textContent = count;
       el.style.display = count > 0 ? 'flex' : 'none';
     });
+    if (typeof CartDrawer !== 'undefined') {
+      CartDrawer.render();
+    }
   };
 
   const addItem = (product) => {
-    const existing = items.find((i) => i.id === product.id);
+    const existing = items.find((i) => i.id === product.id || i.name === product.name);
     if (existing) {
-      existing.qty = (existing.qty || 1) + 1;
+      existing.qty = (existing.qty || 1) + (product.qty || 1);
     } else {
-      items.push({ ...product, qty: 1 });
+      items.push({
+        id: product.id || Math.random().toString(36).slice(2),
+        name: product.name || 'Product',
+        price: product.price || 'As low as ₱95.00',
+        img: product.img || 'assets/images/car-charger-adapters.png',
+        qty: product.qty || 1
+      });
     }
     save();
     updateUI();
-    showToast(`"${product.name}" added to cart!`);
+    showToast(`Added "${product.name}" to Quote Cart!`);
+  };
+
+  const updateQty = (id, delta) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    item.qty = (item.qty || 1) + delta;
+    if (item.qty <= 0) {
+      items = items.filter(i => i.id !== id);
+    }
+    save();
+    updateUI();
+  };
+
+  const removeItem = (id) => {
+    items = items.filter(i => i.id !== id);
+    save();
+    updateUI();
+    showToast('Item removed from cart.');
+  };
+
+  const clear = () => {
+    items = [];
+    save();
+    updateUI();
   };
 
   const init = () => {
     load();
     updateUI();
+    CartDrawer.init();
+
+    // Delegate: clicking cart button in navbar opens drawer
+    on(document, 'click', (e) => {
+      const cartLink = e.target.closest('.navbar-cart');
+      if (cartLink) {
+        e.preventDefault();
+        CartDrawer.open();
+      }
+    });
 
     // Delegate: any element with data-add-to-cart triggers add
     on(document, 'click', (e) => {
       const btn = e.target.closest('[data-add-to-cart]');
       if (!btn) return;
+      e.preventDefault();
+      const card = btn.closest('.product-card') || btn.closest('.item-card');
+      const id   = card?.dataset.productId || card?.dataset.itemName || Math.random().toString(36).slice(2);
+      const name = card?.querySelector('.product-card-title, .item-card-title')?.textContent?.trim() || 'Product';
+      const price = card?.querySelector('.product-card-price, .item-card-price')?.textContent?.trim() || '';
+      const img = card?.querySelector('img')?.src || '';
 
-      const card = btn.closest('.product-card');
-      const id   = card?.dataset.productId || Math.random().toString(36).slice(2);
-      const name = card?.querySelector('.product-card-title')?.textContent?.trim() || 'Product';
-      const price = card?.querySelector('.product-card-price')?.textContent?.trim() || '';
-
-      addItem({ id, name, price });
+      addItem({ id, name, price, img });
     });
   };
 
-  return { init, addItem, getCount };
+  return { init, addItem, updateQty, removeItem, clear, getCount, getItems };
 })();
+
+const CartDrawer = (() => {
+  let drawerEl = null;
+  let overlayEl = null;
+
+  const init = () => {
+    if (drawerEl) return;
+
+    overlayEl = document.createElement('div');
+    overlayEl.className = 'cart-drawer-overlay';
+
+    drawerEl = document.createElement('div');
+    drawerEl.className = 'cart-drawer';
+    drawerEl.innerHTML = `
+      <div class="cart-drawer-header">
+        <h3><i class="fas fa-shopping-bag"></i> Quote Cart <span class="badge" id="cd-badge">0</span></h3>
+        <button class="cart-drawer-close" aria-label="Close cart">&times;</button>
+      </div>
+      <div class="cart-drawer-body" id="cd-items-list"></div>
+      <div class="cart-drawer-footer" id="cd-footer"></div>
+    `;
+
+    document.body.appendChild(overlayEl);
+    document.body.appendChild(drawerEl);
+
+    on(overlayEl, 'click', close);
+    on(drawerEl.querySelector('.cart-drawer-close'), 'click', close);
+    on(document, 'keydown', (e) => {
+      if (e.key === 'Escape' && drawerEl.classList.contains('open')) close();
+    });
+
+    render();
+  };
+
+  const open = () => {
+    init();
+    render();
+    overlayEl?.classList.add('open');
+    drawerEl?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  const close = () => {
+    overlayEl?.classList.remove('open');
+    drawerEl?.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  const render = () => {
+    if (!drawerEl) return;
+    const badge = drawerEl.querySelector('#cd-badge');
+    const list = drawerEl.querySelector('#cd-items-list');
+    const footer = drawerEl.querySelector('#cd-footer');
+    const items = Cart.getItems();
+    const count = Cart.getCount();
+
+    if (badge) badge.textContent = count;
+
+    if (!items.length) {
+      if (list) {
+        list.innerHTML = `
+          <div class="cart-empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <h4>Your Quote Cart is Empty</h4>
+            <p>Add products and customized items to your cart to easily request a bulk quotation.</p>
+            <div style="display:flex;gap:10px;justify-content:center;">
+              <button class="btn btn-primary btn-sm" onclick="CartDrawer.close()">
+                Browse Products
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="CartDrawer.close(); if(typeof openModal === 'function') openModal('quote-modal');">
+                Direct Quote
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      if (footer) footer.style.display = 'none';
+      return;
+    }
+
+    if (footer) footer.style.display = 'flex';
+
+    if (list) {
+      list.innerHTML = items.map(item => `
+        <div class="cart-drawer-item">
+          <img src="${item.img || 'assets/images/car-charger-adapters.png'}" alt="${item.name}" onerror="this.src='assets/images/car-charger-adapters.png';">
+          <div class="cart-item-details">
+            <div class="cart-item-title">${item.name}</div>
+            <div class="cart-item-price">${item.price}</div>
+            <div class="cart-item-controls">
+              <button class="cart-qty-btn" onclick="Cart.updateQty('${item.id}', -1)" title="Decrease">&minus;</button>
+              <span class="cart-qty-count">${item.qty || 1}</span>
+              <button class="cart-qty-btn" onclick="Cart.updateQty('${item.id}', 1)" title="Increase">&plus;</button>
+            </div>
+          </div>
+          <button class="cart-item-remove" onclick="Cart.removeItem('${item.id}')" title="Remove item">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    if (footer) {
+      footer.innerHTML = `
+        <div class="cart-drawer-subtotal">
+          <span>Total Inquiries:</span>
+          <span>${count} item(s)</span>
+        </div>
+        <div class="cart-drawer-actions">
+          <button class="cart-checkout-btn" id="cd-checkout-btn">
+            <i class="fas fa-paper-plane"></i> Request Quote for Items
+          </button>
+          <button class="cart-clear-btn" onclick="Cart.clear()">
+            Clear Cart
+          </button>
+        </div>
+      `;
+
+      const checkoutBtn = footer.querySelector('#cd-checkout-btn');
+      if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', () => {
+          close();
+          if (typeof openModal === 'function') {
+            openModal('quote-modal');
+            const details = document.getElementById('qm-details');
+            if (details) {
+              const summary = items.map(i => `- ${i.qty}x ${i.name} (${i.price})`).join('\n');
+              details.value = `Selected Products from Inquiry Cart:\n${summary}\n\n` + (details.value || '');
+            }
+          }
+        });
+      }
+    }
+  };
+
+  return { init, open, close, render };
+})();
+
+// Expose globals for onclick attributes
+window.Cart = Cart;
+window.CartDrawer = CartDrawer;
+window.addToCart = (product) => Cart.addItem(product);
+
 
 /* ============================================================
    6. TOAST NOTIFICATION
@@ -964,9 +1152,7 @@ const AuthModal = (() => {
  
   /* ── LOGIN submit ───────────────────────────────────────────
      POSTs email + password to /api/auth/login.
-     On success → shows toast, closes modal, reloads page.
-     Backend must: query users table, compare bcrypt hash,
-                   start session, return JSON.
+     On success → updates auth state in UI, shows toast, closes modal.
   ── */
   window.submitLogin = async () => {
     const email    = document.getElementById('lm-login-email')?.value.trim();
@@ -983,8 +1169,14 @@ const AuthModal = (() => {
     setLoading(btn, true);
     try {
       let data = null;
+      const isPhp = window.location.pathname.endsWith('.php');
+      const isInSubdir = window.location.pathname.includes('/product/');
+      const loginEndpoint = isPhp 
+        ? (isInSubdir ? '../api-php/auth/login.php' : 'api-php/auth/login.php')
+        : (isInSubdir ? '../api/auth/login' : 'api/auth/login');
+
       try {
-        const res = await fetch('api/auth/login', {
+        const res = await fetch(loginEndpoint, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ email, password }),
@@ -996,14 +1188,20 @@ const AuthModal = (() => {
       } catch (_) {}
 
       if (data && data.success) {
-        showToast(`Welcome back, ${data.user?.first_name || ''}! 👋`);
+        const userName = data.user?.first_name || email.split('@')[0];
+        localStorage.setItem('ck_user', JSON.stringify({ name: userName, email }));
+        showToast(`Welcome back, ${userName}! 👋`);
         closeModal('login-modal');
-        setTimeout(() => window.location.reload(), 800);
+        renderAuthState();
       } else if (data && !data.success) {
         showMsg('lm-login-error', `⚠️ ${data.message || 'Login failed. Try again.'}`);
       } else {
-        showToast('Welcome back! 👋 (Demo Mode)');
+        // Fallback for static host
+        const userName = email.split('@')[0];
+        localStorage.setItem('ck_user', JSON.stringify({ name: userName, email }));
+        showToast(`Welcome back, ${userName}! 👋`);
         closeModal('login-modal');
+        renderAuthState();
       }
     } catch (err) {
       console.error('[AuthModal] Login error:', err);
@@ -1016,8 +1214,6 @@ const AuthModal = (() => {
   /* ── REGISTER submit ────────────────────────────────────────
      POSTs registration fields to /api/auth/register.
      On success → auto-switches to Sign In tab.
-     Backend must: bcrypt-hash password, call register_user procedure,
-                   INSERT INTO users, return JSON.
   ── */
   window.submitRegister = async () => {
     const first_name = document.getElementById('lm-reg-firstname')?.value.trim();
@@ -1053,8 +1249,14 @@ const AuthModal = (() => {
     setLoading(btn, true);
     try {
       let data = null;
+      const isPhp = window.location.pathname.endsWith('.php');
+      const isInSubdir = window.location.pathname.includes('/product/');
+      const regEndpoint = isPhp 
+        ? (isInSubdir ? '../api-php/auth/register.php' : 'api-php/auth/register.php')
+        : (isInSubdir ? '../api/auth/register' : 'api/auth/register');
+
       try {
-        const res = await fetch('api/auth/register', {
+        const res = await fetch(regEndpoint, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ first_name, last_name, email, phone, password }),
@@ -1068,14 +1270,14 @@ const AuthModal = (() => {
       if (data && !data.success) {
         showMsg('lm-reg-error', `⚠️ ${data.message || 'Registration failed. Try again.'}`);
       } else {
-        // Real success or static demo fallback
+        localStorage.setItem('ck_user', JSON.stringify({ name: first_name, email }));
         showMsg('lm-reg-success', '🎉 Account created! Switching to Sign In…', false);
-        // Auto-switch to login tab after 1.5s; pre-fill the email
         setTimeout(() => {
           switchTab('login');
           const loginEmail = document.getElementById('lm-login-email');
           if (loginEmail) loginEmail.value = email;
-        }, 1500);
+          renderAuthState();
+        }, 1200);
       }
     } catch (err) {
       console.error('[AuthModal] Register error:', err);
@@ -1085,6 +1287,41 @@ const AuthModal = (() => {
     }
   };
  
+  /* ── UI Auth State (Show user profile name when logged in) ── */
+  const renderAuthState = () => {
+    try {
+      const userStr = localStorage.getItem('ck_user');
+      const user = userStr ? JSON.parse(userStr) : null;
+
+      document.querySelectorAll('.topbar-links, .navbar-user-area').forEach(container => {
+        const loginBtn = container.querySelector('[onclick*="login-modal"], .btn-login');
+        if (user && user.name) {
+          if (loginBtn) loginBtn.style.display = 'none';
+
+          let badge = container.querySelector('.auth-status-badge');
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'auth-status-badge';
+            badge.style.cssText = 'color:#fff;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;';
+            container.appendChild(badge);
+          }
+          badge.innerHTML = `<i class="fas fa-user-circle"></i> ${user.name} <a href="#" id="auth-signout-link" style="color:var(--orange-primary,#e65100);margin-left:6px;font-weight:700;text-decoration:none;">(Sign Out)</a>`;
+
+          const signout = badge.querySelector('#auth-signout-link');
+          if (signout) {
+            signout.onclick = (e) => {
+              e.preventDefault();
+              localStorage.removeItem('ck_user');
+              badge.remove();
+              if (loginBtn) loginBtn.style.display = '';
+              showToast('Signed out successfully.');
+            };
+          }
+        }
+      });
+    } catch (_) {}
+  };
+
   /* ── ESC key closes any open modal ── */
   const init = () => {
     on(document, 'keydown', (e) => {
@@ -1096,9 +1333,12 @@ const AuthModal = (() => {
     if (regPw) {
       on(regPw, 'input', () => window.updateStrength(regPw.value));
     }
+
+    // Render persistent logged-in state
+    renderAuthState();
   };
  
-  return { init };
+  return { init, renderAuthState };
 })();
 
 

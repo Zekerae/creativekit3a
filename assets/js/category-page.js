@@ -289,7 +289,7 @@
       return `
         <div class="product-card" data-product-id="${product.id}" data-url="${itemsUrl}">
           <div class="product-card-img">
-            <img src="${product.img}" alt="${product.name}" loading="lazy">
+            <img src="${product.img}" alt="${product.name}" loading="lazy" onerror="this.src='assets/images/car-charger-adapters.png';">
           </div>
           <div class="product-card-body">
             ${categoryTag}

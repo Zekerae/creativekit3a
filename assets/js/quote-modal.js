@@ -1,17 +1,7 @@
 /* ============================================================
    quote-modal.js
    Logic for the "Request a Quote" multi-step modal.
-
-   Load AFTER main.js (which defines openModal / closeModal).
-   <script src="/quote-modal.js"></script>
-
-   API endpoint:
-     POST /api/quote
-     Body JSON: { name, company, email, phone, product_type,
-                  quantity, budget, deadline, details,
-                  customization[], source }
-     Expected response: { success: true }
-                     OR { success: false, message: 'Reason...' }
+   Compatible with static (Vercel / GitHub Pages) and PHP (XAMPP).
    ============================================================ */
 
 (function () {
@@ -44,7 +34,7 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
   }
 
-  /** Simple PH phone check (accepts +63... or 09...) */
+  /** Simple PH phone check */
   function isPhone(str) {
     return /^(\+63|0)[0-9]{9,10}$/.test(str.replace(/[\s\-]/g, ''));
   }
@@ -59,11 +49,13 @@
       dateInput.min = minDate.toISOString().split('T')[0];
     }
 
-    // Wire up the "Request a Quote" btn-chat button if it exists
-    // and doesn't already have an onclick set in HTML
-    document.querySelectorAll('.btn-chat').forEach(btn => {
+    // Wire up any "Request a Quote" button (.btn-chat, .btn-quote, etc.)
+    document.querySelectorAll('.btn-chat, .btn-quote, [data-open-quote]').forEach(btn => {
       if (!btn.getAttribute('onclick')) {
-        btn.addEventListener('click', () => openModal('quote-modal'));
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (typeof openModal === 'function') openModal('quote-modal');
+        });
       }
     });
   });
@@ -83,10 +75,10 @@
       const email = val('qm-email');
       const phone = val('qm-phone');
 
-      if (!name)          return showErr('qm-err-1', 'Please enter your full name.');
-      if (!email)         return showErr('qm-err-1', 'Please enter your email address.');
+      if (!name)           return showErr('qm-err-1', 'Please enter your full name.');
+      if (!email)          return showErr('qm-err-1', 'Please enter your email address.');
       if (!isEmail(email)) return showErr('qm-err-1', 'Please enter a valid email address.');
-      if (!phone)         return showErr('qm-err-1', 'Please enter your mobile number.');
+      if (!phone)          return showErr('qm-err-1', 'Please enter your mobile number.');
       if (!isPhone(phone)) return showErr('qm-err-1', 'Please enter a valid PH mobile number (e.g. +63 917 000 0000).');
     }
 
@@ -126,7 +118,6 @@
     // Update connector lines
     const lines = document.querySelectorAll('#quote-modal .qm-step-line');
     lines.forEach((line, idx) => {
-      // Line at index 0 connects step 1→2, index 1 connects step 2→3
       line.classList.toggle('done', idx + 2 <= step);
     });
 
@@ -175,8 +166,14 @@
 
     try {
       let data = null;
+      const isPhp = window.location.pathname.endsWith('.php');
+      const isInSubdir = window.location.pathname.includes('/product/');
+      const endpoint = isPhp 
+        ? (isInSubdir ? '../api-php/quote.php' : 'api-php/quote.php')
+        : (isInSubdir ? '../api/quote' : 'api/quote');
+
       try {
-        const res = await fetch('api/quote', {
+        const res = await fetch(endpoint, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify(payload),
@@ -185,18 +182,40 @@
         if (contentType.includes('application/json')) {
           data = await res.json();
         } else {
-          // Static host (e.g. GitHub Pages) returns 404 HTML
-          data = { success: true };
+          // Static host (e.g. GitHub Pages) returns 404 HTML fallback
+          data = {
+            success: true,
+            quote_ref: 'CK3A-' + Math.floor(100000 + Math.random() * 900000)
+          };
         }
       } catch (netErr) {
         // Fallback for static demo environments / offline
-        data = { success: true };
+        data = {
+          success: true,
+          quote_ref: 'CK3A-' + Math.floor(100000 + Math.random() * 900000)
+        };
       }
 
       if (data && data.success) {
         // Show success panel
         const confirmEmail = document.getElementById('qm-confirm-email');
         if (confirmEmail) confirmEmail.textContent = payload.email;
+
+        // Display quote reference if available
+        const quoteRef = data.quote_ref || ('CK3A-' + Math.floor(100000 + Math.random() * 900000));
+        let refEl = document.getElementById('qm-confirm-ref');
+        if (!refEl) {
+          const successMsg = document.querySelector('#qm-panel-success .qm-success-msg');
+          if (successMsg) {
+            refEl = document.createElement('div');
+            refEl.id = 'qm-confirm-ref';
+            refEl.style.cssText = 'background:var(--primary-subtle,#e8f0fe);color:var(--primary-color,#1a73e8);padding:10px 14px;border-radius:8px;font-weight:700;margin:14px 0;display:inline-block;letter-spacing:1px;font-size:0.95rem;';
+            successMsg.insertAdjacentElement('afterend', refEl);
+          }
+        }
+        if (refEl) {
+          refEl.innerHTML = `<i class="fas fa-receipt"></i> Reference Code: <span>${quoteRef}</span>`;
+        }
 
         for (let i = 1; i <= TOTAL_STEPS; i++) {
           const p = document.getElementById('qm-panel-' + i);
@@ -228,36 +247,58 @@
   };
 
 
+  /* ── Helper: Open quote modal with pre-filled product details ─── */
+  window.openQuoteForProduct = function (productTitle, categoryKey, customDetails) {
+    if (typeof openModal === 'function') {
+      openModal('quote-modal');
+    }
+
+    // Pre-fill details text
+    const details = document.getElementById('qm-details');
+    if (details) {
+      let text = `Inquiry regarding: ${productTitle || 'Product'}`;
+      if (customDetails) text += `\n${customDetails}`;
+      if (!details.value.includes(productTitle)) {
+        details.value = text + (details.value ? `\n\n${details.value}` : '');
+      }
+    }
+
+    // Auto-select category if provided
+    if (categoryKey) {
+      const select = document.getElementById('qm-product-type');
+      if (select) {
+        const option = Array.from(select.options).find(opt =>
+          opt.value === categoryKey ||
+          opt.value.includes(categoryKey) ||
+          categoryKey.includes(opt.value)
+        );
+        if (option) select.value = option.value;
+      }
+    }
+  };
+
+
   /* ── Reset modal state on close ─────────────────────────── */
-  /**
-   * Call this when the modal closes so the next open starts fresh.
-   * Hook into closeModal by patching it after main.js loads.
-   */
   const _originalClose = window.closeModal;
   window.closeModal = function (id) {
-    _originalClose(id);
+    if (typeof _originalClose === 'function') _originalClose(id);
     if (id === 'quote-modal') {
       resetQuoteModal();
     }
   };
 
   function resetQuoteModal() {
-    // Reset step
     goToStep(1);
 
-    // Show steps bar again (in case success panel hid it)
     const stepsEl = document.querySelector('#quote-modal .qm-steps');
     if (stepsEl) stepsEl.style.display = '';
 
-    // Hide success panel
     const successPanel = document.getElementById('qm-panel-success');
     if (successPanel) successPanel.hidden = true;
 
-    // Show panel 1
     const p1 = document.getElementById('qm-panel-1');
     if (p1) p1.hidden = false;
 
-    // Clear all inputs
     ['qm-name','qm-company','qm-email','qm-phone',
      'qm-details','qm-deadline'].forEach(id => {
       const el = document.getElementById(id);
@@ -273,10 +314,8 @@
       cb.checked = false;
     });
 
-    // Hide all messages
     ['qm-err-1','qm-err-2','qm-err-3','qm-success'].forEach(hideMsg);
 
-    // Reset submit button
     const submitBtn = document.getElementById('qm-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = false;

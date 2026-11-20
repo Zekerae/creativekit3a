@@ -1,7 +1,8 @@
 -- ============================================================
---  PINOYBALLERS-STYLE WEBSITE — Database Schema
+--  CREATIVEKIT 3A — Comprehensive Database Schema
 --  Engine : InnoDB | Charset: utf8mb4 | Collation: utf8mb4_unicode_ci
---  Run this file in MySQL / MariaDB as your DB admin user
+--  Supports: Full Product Catalog, Variants, 3-Step Quote System,
+--            Authentication, Orders, Cart, CMS Settings
 -- ============================================================
 
 -- Create and select the database
@@ -76,8 +77,61 @@ CREATE TABLE IF NOT EXISTS products (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
+--  TABLE: product_variants
+--  Stores individual variant items under a product line
+-- ============================================================
+CREATE TABLE IF NOT EXISTS product_variants (
+  id              INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  product_id      INT UNSIGNED    NOT NULL              COMMENT 'Parent product',
+  variant_type    VARCHAR(100)    DEFAULT NULL          COMMENT 'Filter tab key (e.g. single, dual, eco)',
+  name            VARCHAR(255)    NOT NULL              COMMENT 'Variant display name',
+  slug            VARCHAR(270)    NOT NULL UNIQUE       COMMENT 'Slug for deep linking',
+  specs           VARCHAR(500)    DEFAULT NULL          COMMENT 'Short spec line shown on card',
+  thumbnail_url   VARCHAR(512)    DEFAULT NULL,
+  base_price      DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
+  sale_price      DECIMAL(10,2)   DEFAULT NULL,
+  badge_label     VARCHAR(80)     DEFAULT NULL          COMMENT 'e.g. Best Seller, New, Premium',
+  is_active       TINYINT(1)      NOT NULL DEFAULT 1,
+  sort_order      SMALLINT        NOT NULL DEFAULT 0,
+  created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                  ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  INDEX idx_pv_product     (product_id),
+  INDEX idx_pv_slug        (slug),
+  INDEX idx_pv_active      (is_active),
+  INDEX idx_pv_type        (variant_type),
+  INDEX idx_pv_sort        (sort_order),
+
+  CONSTRAINT fk_pv_product
+    FOREIGN KEY (product_id) REFERENCES products (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+--  TABLE: product_variant_types
+--  Filter tab definitions per product
+-- ============================================================
+CREATE TABLE IF NOT EXISTS product_variant_types (
+  id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  product_id  INT UNSIGNED  NOT NULL,
+  type_key    VARCHAR(100)  NOT NULL  COMMENT 'Matches product_variants.variant_type',
+  type_label  VARCHAR(150)  NOT NULL  COMMENT 'Display label on the tab',
+  sort_order  SMALLINT      NOT NULL DEFAULT 0,
+  created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_pvt_product_key (product_id, type_key),
+  INDEX idx_pvt_product (product_id),
+
+  CONSTRAINT fk_pvt_product
+    FOREIGN KEY (product_id) REFERENCES products (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
 --  TABLE: product_images
---  Multiple images per product
 -- ============================================================
 CREATE TABLE IF NOT EXISTS product_images (
   id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -98,14 +152,13 @@ CREATE TABLE IF NOT EXISTS product_images (
 
 -- ============================================================
 --  TABLE: product_pricing_tiers
---  Volume-based price breaks (e.g. 100 pcs → ₱45.00)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS product_pricing_tiers (
   id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   product_id  INT UNSIGNED  NOT NULL,
-  size_label  VARCHAR(50)   DEFAULT NULL   COMMENT 'e.g. 1/2 inch, 1 inch',
-  min_qty     INT UNSIGNED  NOT NULL       COMMENT 'Minimum pieces for this price',
-  max_qty     INT UNSIGNED  DEFAULT NULL   COMMENT 'NULL = no upper limit',
+  size_label  VARCHAR(50)   DEFAULT NULL,
+  min_qty     INT UNSIGNED  NOT NULL,
+  max_qty     INT UNSIGNED  DEFAULT NULL,
   unit_price  DECIMAL(10,2) NOT NULL,
   created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -130,7 +183,7 @@ CREATE TABLE IF NOT EXISTS product_tags (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  TABLE: product_tag_map  (many-to-many)
+--  TABLE: product_tag_map
 -- ============================================================
 CREATE TABLE IF NOT EXISTS product_tag_map (
   product_id  INT UNSIGNED  NOT NULL,
@@ -148,7 +201,38 @@ CREATE TABLE IF NOT EXISTS product_tag_map (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  TABLE: clients  (logos on the "Our Clients" carousel)
+--  TABLE: quote_requests
+--  Captures multi-step quotation requests from clients
+-- ============================================================
+CREATE TABLE IF NOT EXISTS quote_requests (
+  id                      INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  quote_ref               VARCHAR(40)   NOT NULL UNIQUE,
+  full_name               VARCHAR(200)  NOT NULL,
+  company_name            VARCHAR(200)  DEFAULT NULL,
+  email                   VARCHAR(255)  NOT NULL,
+  phone                   VARCHAR(50)   NOT NULL,
+  product_type            VARCHAR(100)  NOT NULL,
+  quantity_range          VARCHAR(50)   NOT NULL,
+  target_budget           VARCHAR(50)   DEFAULT NULL,
+  target_deadline         DATE          DEFAULT NULL,
+  project_details         TEXT          DEFAULT NULL,
+  customization_options   JSON          DEFAULT NULL,
+  source_url              VARCHAR(512)  DEFAULT NULL,
+  status                  ENUM('new', 'contacted', 'quoted', 'in_production', 'completed', 'cancelled') NOT NULL DEFAULT 'new',
+  created_at              DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at              DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                        ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  UNIQUE INDEX idx_qr_ref     (quote_ref),
+  INDEX idx_qr_email   (email),
+  INDEX idx_qr_status  (status),
+  INDEX idx_qr_product (product_type),
+  INDEX idx_qr_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+--  TABLE: clients (Partner & client logos)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS clients (
   id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -164,18 +248,18 @@ CREATE TABLE IF NOT EXISTS clients (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  TABLE: hero_banners  (carousel slides)
+--  TABLE: hero_banners
 -- ============================================================
 CREATE TABLE IF NOT EXISTS hero_banners (
   id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   title           VARCHAR(200)  DEFAULT NULL,
   subtitle        VARCHAR(200)  DEFAULT NULL,
   body_text       TEXT          DEFAULT NULL,
-  eyebrow         VARCHAR(100)  DEFAULT NULL  COMMENT 'Small badge above headline',
+  eyebrow         VARCHAR(100)  DEFAULT NULL,
   image_url       VARCHAR(512)  DEFAULT NULL,
   cta_label       VARCHAR(80)   DEFAULT NULL,
   cta_url         VARCHAR(512)  DEFAULT NULL,
-  bg_class        VARCHAR(80)   DEFAULT NULL  COMMENT 'CSS class for slide background',
+  bg_class        VARCHAR(80)   DEFAULT NULL,
   sort_order      SMALLINT      NOT NULL DEFAULT 0,
   is_active       TINYINT(1)    NOT NULL DEFAULT 1,
   created_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -195,7 +279,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_name       VARCHAR(100)  NOT NULL,
   email           VARCHAR(255)  NOT NULL UNIQUE,
   phone           VARCHAR(30)   DEFAULT NULL,
-  password_hash   VARCHAR(255)  NOT NULL           COMMENT 'bcrypt hash',
+  password_hash   VARCHAR(255)  NOT NULL,
   role            ENUM('customer','admin','staff')  NOT NULL DEFAULT 'customer',
   is_verified     TINYINT(1)    NOT NULL DEFAULT 0,
   is_active       TINYINT(1)    NOT NULL DEFAULT 1,
@@ -211,12 +295,12 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  TABLE: addresses  (shipping / billing)
+--  TABLE: addresses
 -- ============================================================
 CREATE TABLE IF NOT EXISTS addresses (
   id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   user_id     INT UNSIGNED  NOT NULL,
-  label       VARCHAR(50)   DEFAULT 'Home'     COMMENT 'e.g. Home, Office',
+  label       VARCHAR(50)   DEFAULT 'Office',
   full_name   VARCHAR(200)  NOT NULL,
   phone       VARCHAR(30)   DEFAULT NULL,
   line1       VARCHAR(255)  NOT NULL,
@@ -241,7 +325,7 @@ CREATE TABLE IF NOT EXISTS addresses (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS orders (
   id                  INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-  user_id             INT UNSIGNED    DEFAULT NULL  COMMENT 'NULL = guest',
+  user_id             INT UNSIGNED    DEFAULT NULL,
   order_number        VARCHAR(40)     NOT NULL UNIQUE,
   status              ENUM(
                         'pending',
@@ -261,7 +345,6 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_method      VARCHAR(60)     DEFAULT NULL,
   payment_status      ENUM('unpaid','paid','refunded') NOT NULL DEFAULT 'unpaid',
   notes               TEXT            DEFAULT NULL,
-  -- snapshot of shipping address at time of order
   ship_full_name      VARCHAR(200)    DEFAULT NULL,
   ship_phone          VARCHAR(30)     DEFAULT NULL,
   ship_line1          VARCHAR(255)    DEFAULT NULL,
@@ -278,7 +361,6 @@ CREATE TABLE IF NOT EXISTS orders (
   UNIQUE INDEX idx_order_number (order_number),
   INDEX idx_user          (user_id),
   INDEX idx_status        (status),
-  INDEX idx_payment_stat  (payment_status),
   INDEX idx_created       (created_at),
 
   CONSTRAINT fk_order_user
@@ -293,16 +375,14 @@ CREATE TABLE IF NOT EXISTS order_items (
   id                INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   order_id          INT UNSIGNED  NOT NULL,
   product_id        INT UNSIGNED  DEFAULT NULL,
-  product_name      VARCHAR(255)  NOT NULL   COMMENT 'Snapshot at time of order',
+  product_name      VARCHAR(255)  NOT NULL,
   product_sku       VARCHAR(100)  DEFAULT NULL,
   quantity          INT UNSIGNED  NOT NULL DEFAULT 1,
   unit_price        DECIMAL(10,2) NOT NULL,
   line_total        DECIMAL(12,2) NOT NULL,
-  -- Custom product options
   custom_text       VARCHAR(255)  DEFAULT NULL,
   custom_color      VARCHAR(80)   DEFAULT NULL,
   custom_size       VARCHAR(80)   DEFAULT NULL,
-  custom_font       VARCHAR(80)   DEFAULT NULL,
   custom_notes      TEXT          DEFAULT NULL,
   artwork_url       VARCHAR(512)  DEFAULT NULL,
 
@@ -328,8 +408,8 @@ CREATE TABLE IF NOT EXISTS coupons (
   description     VARCHAR(255)    DEFAULT NULL,
   discount_type   ENUM('percent','fixed') NOT NULL DEFAULT 'percent',
   discount_value  DECIMAL(10,2)   NOT NULL,
-  min_order_total DECIMAL(10,2)   DEFAULT NULL  COMMENT 'Minimum cart value to apply',
-  max_uses        INT UNSIGNED    DEFAULT NULL  COMMENT 'NULL = unlimited',
+  min_order_total DECIMAL(10,2)   DEFAULT NULL,
+  max_uses        INT UNSIGNED    DEFAULT NULL,
   used_count      INT UNSIGNED    NOT NULL DEFAULT 0,
   expires_at      DATETIME        DEFAULT NULL,
   is_active       TINYINT(1)      NOT NULL DEFAULT 1,
@@ -337,28 +417,26 @@ CREATE TABLE IF NOT EXISTS coupons (
 
   PRIMARY KEY (id),
   UNIQUE INDEX idx_code   (code),
-  INDEX idx_active        (is_active),
-  INDEX idx_expires       (expires_at)
+  INDEX idx_active        (is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
 --  TABLE: email_subscribers
---  Captures signups from the 5% OFF popup
 -- ============================================================
 CREATE TABLE IF NOT EXISTS email_subscribers (
-  id            INT UNSIGNED  NOT NULL AUTO_INCREMENT,
-  first_name    VARCHAR(100)  DEFAULT NULL,
-  email         VARCHAR(255)  NOT NULL UNIQUE,
-  coupon_sent   TINYINT(1)    NOT NULL DEFAULT 0,
-  subscribed_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  unsubscribed_at DATETIME    DEFAULT NULL,
+  id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  first_name      VARCHAR(100)  DEFAULT NULL,
+  email           VARCHAR(255)  NOT NULL UNIQUE,
+  coupon_sent     TINYINT(1)    NOT NULL DEFAULT 0,
+  subscribed_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  unsubscribed_at DATETIME      DEFAULT NULL,
 
   PRIMARY KEY (id),
-  UNIQUE INDEX idx_email (email)
+  UNIQUE INDEX idx_sub_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  TABLE: contact_messages  (from the Contact Us form)
+--  TABLE: contact_messages
 -- ============================================================
 CREATE TABLE IF NOT EXISTS contact_messages (
   id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -377,7 +455,7 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  TABLE: site_settings  (key-value store for CMS options)
+--  TABLE: site_settings
 -- ============================================================
 CREATE TABLE IF NOT EXISTS site_settings (
   setting_key   VARCHAR(100) NOT NULL,
@@ -391,14 +469,14 @@ CREATE TABLE IF NOT EXISTS site_settings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  TABLE: sessions  (server-side user sessions)
+--  TABLE: sessions
 -- ============================================================
 CREATE TABLE IF NOT EXISTS sessions (
   session_id    VARCHAR(128)  NOT NULL,
   user_id       INT UNSIGNED  DEFAULT NULL,
   ip_address    VARCHAR(45)   DEFAULT NULL,
   user_agent    VARCHAR(512)  DEFAULT NULL,
-  payload       LONGTEXT      DEFAULT NULL  COMMENT 'Serialized session data',
+  payload       LONGTEXT      DEFAULT NULL,
   last_activity DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
                               ON UPDATE CURRENT_TIMESTAMP,
 
@@ -408,281 +486,13 @@ CREATE TABLE IF NOT EXISTS sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
---  SEED DATA
+--  TABLE: password_reset_tokens
 -- ============================================================
-
--- ---- Categories ----
-INSERT INTO categories (name, slug, description, sort_order) VALUES
-  ('Wristbands',           'wristbands',            'All types of custom wristbands',     1),
-  ('Lapel Pins',           'lapel-pins',             'Custom lapel pins and cuff links',   2),
-  ('Lanyards',             'lanyards',               'Polyester, tubular, woven & more',   3),
-  ('Bags',                 'bags',                   'Tote bags, drawstring, sports bags', 4),
-  ('Drinkware',            'drinkware',              'Mugs, tumblers, flasks & coolers',   5),
-  ('Clothing & Apparel',   'clothing-and-apparel',   'Jackets, polo, hats, jerseys',       6),
-  ('Office Supplies',      'office-supplies',        'Notebooks, pens, notepads, clocks',  7),
-  ('Tech Products',        'tech-products',          'Flash drives, power banks, mousepads',8),
-  ('Household Items',      'household-items',        'Umbrellas, magnets, coasters & more',9),
-  ('Corporate Giveaways',  'corporate-giveaways',    'Bulk promotional items',             10);
-
--- Sub-categories for Wristbands
-INSERT INTO categories (parent_id, name, slug, sort_order) VALUES
-  (1, 'Silicone Wristbands', 'silicone-wristbands', 1),
-  (1, 'Tyvek Wristbands',   'tyvek-wristbands',     2),
-  (1, 'Fabric Wristbands',  'fabric-wristbands',    3),
-  (1, 'Plastic Wristbands', 'plastic-wristbands',   4);
-
--- ---- Product Tags ----
-INSERT INTO product_tags (name, slug) VALUES
-  ('Silicone Wristbands', 'silicone-wristbands'),
-  ('Election Wristbands', 'election-wristbands'),
-  ('Lanyards',            'lanyards'),
-  ('Lapel Pins',          'lapel-pins'),
-  ('Drinkware',           'drinkware'),
-  ('Corporate Gifts',     'corporate-gifts'),
-  ('Tote Bags',           'tote-bags'),
-  ('Rush Orders',         'rush-orders');
-
--- ---- Products ----
-INSERT INTO products
-  (category_id, name, slug, sku, short_desc, base_price, is_customizable, is_featured, is_active, sort_order)
-VALUES
-  (11, 'Debossed Wristbands',             'debossed-wristbands',               'WB-DEB-001',  'Classic debossed silicone wristbands',                8.00,  1, 1, 1, 1),
-  (11, 'Imprinted Wristbands',            'imprinted-wristbands',              'WB-IMP-001',  'Full-color imprinted silicone wristbands',            8.00,  1, 1, 1, 2),
-  (11, 'Deboss-fill Wristbands',          'deboss-fill-wristbands',            'WB-DBF-001',  'Debossed with color-filled text',                    11.00, 1, 1, 1, 3),
-  (11, 'Embossed Wristbands',             'embossed-wristbands',               'WB-EMB-001',  'Raised text/logo silicone bands',                    11.00, 1, 0, 1, 4),
-  (11, 'Dual Layer Wristbands',           'dual-layer-wristbands',             'WB-DUL-001',  'Two-layer contrasting silicone',                     13.00, 1, 0, 1, 5),
-  (13, 'Fabric Wristbands',              'fabric-wristbands',                 'WB-FAB-001',  'Woven cloth event wristbands',                       23.40, 1, 0, 1, 6),
-  (12, 'Tyvek Wristbands',              'tyvek-wristbands',                  'WB-TVK-001',  'Disposable Tyvek event wristbands',                   2.40, 1, 0, 1, 7),
-  (14, 'Plastic Wristbands',            'plastic-wristbands',                'WB-PLS-001',  'Snap-on plastic wristbands',                          5.45, 1, 0, 1, 8),
-  (11, 'Election Wristbands',            'election-wristbands',               'WB-ELX-001',  'Campaign and election silicone bands',                11.00, 1, 1, 1, 9),
-  (2,  'Soft Enamel Lapel Pins',         'soft-enamel-lapel-pins',            'LP-SFT-001',  'Colorful soft enamel lapel pins',                    39.90, 1, 1, 1, 1),
-  (2,  'Hard Enamel Lapel Pins',         'hard-enamel-lapel-pins',            'LP-HRD-001',  'Premium hard enamel lapel pins',                     53.90, 1, 0, 1, 2),
-  (2,  'Printed Lapel Pins',             'printed-lapel-pins',                'LP-PRT-001',  'Full-color epoxy-coated printed pins',               39.90, 1, 0, 1, 3),
-  (3,  'Tubular Lanyards',               'tubular-lanyards',                  'LN-TUB-001',  'Classic tubular lanyards with hardware',             32.90, 1, 1, 1, 1),
-  (3,  'Polyester Lanyards',             'polyester-lanyards',                'LN-PLY-001',  'Budget-friendly flat polyester lanyards',            28.00, 1, 1, 1, 2),
-  (3,  'Woven Lanyards',                 'woven-lanyards',                    'LN-WVN-001',  'Premium woven logo lanyards',                        39.90, 1, 0, 1, 3),
-  (3,  'Full Color Dye-Sublimation Lanyards', 'full-color-dye-sublimation-lanyards', 'LN-DSL-001', 'Vivid full-color sublimation lanyards',        20.00, 1, 0, 1, 4),
-  (4,  'Tote Bags',                      'tote-bags',                         'BG-TOT-001',  'Eco-friendly custom canvas tote bags',               37.00, 1, 1, 1, 1),
-  (4,  'Custom Drawstring Bag',          'custom-drawstring-bag',             'BG-DRW-001',  'Lightweight drawstring sports bags',                 48.25, 1, 0, 1, 2),
-  (5,  'Neoprene Can Coolers',           'neoprene-can-coolers',              'DW-CAN-001',  'Insulated neoprene can sleeves',                      0.00, 1, 0, 1, 1),
-  (5,  'Campfire Mug 15 Oz',            'campfire-mug-15oz',                 'DW-MUG-001',  'Enamel-coated campfire-style mug',                  105.00, 1, 0, 1, 2);
-
--- ---- Pricing Tiers for Debossed Wristbands (product id=1) ----
-INSERT INTO product_pricing_tiers (product_id, size_label, min_qty, max_qty, unit_price) VALUES
-  (1, '1/2 inch', 100,   199,   45.00),
-  (1, '1/2 inch', 200,   299,   25.00),
-  (1, '1/2 inch', 300,   499,   20.00),
-  (1, '1/2 inch', 500,   999,   15.00),
-  (1, '1/2 inch', 1000,  1999,  10.00),
-  (1, '1/2 inch', 2000,  2999,   9.00),
-  (1, '1/2 inch', 3000,  4999,   9.00),
-  (1, '1/2 inch', 5000,  9999,   8.50),
-  (1, '1/2 inch', 10000, 19999,  8.50),
-  (1, '1/2 inch', 20000, NULL,   8.00),
-  (1, '1 inch',   100,   199,   85.00),
-  (1, '1 inch',   200,   299,   51.00),
-  (1, '1 inch',   300,   499,   46.00),
-  (1, '1 inch',   500,   999,   40.00),
-  (1, '1 inch',   1000,  1999,  27.00),
-  (1, '1 inch',   2000,  2999,  24.00),
-  (1, '1 inch',   3000,  4999,  21.00),
-  (1, '1 inch',   5000,  9999,  20.00),
-  (1, '1 inch',   10000, 19999, 19.00),
-  (1, '1 inch',   20000, NULL,  18.00);
-
--- ---- Hero Banners ----
-INSERT INTO hero_banners (title, subtitle, body_text, eyebrow, cta_label, cta_url, bg_class, sort_order) VALUES
-  ('Silicone Wristbands', 'In 10 Days', 'We specialize in rush orders as we understand the importance of getting them on time.', 'Get Your', 'View Pricing', '/wristband-prices', 'item-10-days', 1),
-  ('Custom Lapel Pins',   NULL,         'Stylish and durable custom lapel pins for events, recognition, and giveaways.',          'Showcase Your Brand with', 'Customize Now', '/lapel-pins', 'item-lapel-pins', 2),
-  ('Custom Logo Tote Bags', NULL,       'Eco-friendly tote bags customized with your logo for events and promotions.',            'Stand Out with', 'Customize Now', '/tote-bags', 'item-tote-bags', 3),
-  ('Support School Spirit', NULL,       'Boost school pride with custom merch like wristbands and tote bags.',                   'Unite Your Team:', 'Customize Now', '/wristbands', 'item-wristbands', 4),
-  ('Personalized Can Coolers', NULL,    'Custom can coolers to keep drinks chilled and promote your brand.',                     'Keep It Cool with', 'Customize Now', '/can-coolers', 'item-can-coolers', 5),
-  ('Custom Lanyards', 'for Your Company', 'Perfect for staff IDs, conferences, and corporate events.',                           NULL, 'Customize Now', '/lanyards', 'item-custom-lanyards', 6);
-
--- ---- Clients ----
-INSERT INTO clients (name, logo_url, sort_order) VALUES
-  ('I Am Ninoy',           '/images/clients/iamninoy.png',                1),
-  ('Ateneo',               '/images/clients/ateneo.png',                  2),
-  ('Duterte Campaign',     '/images/clients/duterte.png',                 3),
-  ('PHC',                  '/images/clients/phc.png',                     4),
-  ('VURS',                 '/images/clients/vurs.png',                    5),
-  ('LEGO',                 '/images/clients/lego.png',                    6),
-  ('Xavier School',        '/images/clients/xavier-school.png',           7),
-  ('Asian Development Bank','/images/clients/asian-development-bank.png', 8),
-  ('International School Manila','/images/clients/ismanila.png',          9);
-
--- ---- Coupons ----
-INSERT INTO coupons (code, description, discount_type, discount_value, is_active) VALUES
-  ('PBALL5OFF', '5% off entire order — popup promotion', 'percent', 5.00, 1),
-  ('WELCOME10', '10% off first order',                   'percent', 10.00, 1),
-  ('RUSH100',   '₱100 off rush orders',                  'fixed',   100.00, 1);
-
--- ---- Site Settings ----
-INSERT INTO site_settings (setting_key, setting_value, setting_group) VALUES
-  ('site_name',          'Pinoyballers',                           'general'),
-  ('site_tagline',       'Customized Silicone Wristbands & Baller IDs Philippines', 'general'),
-  ('contact_email',      'sales@pinoyballers.com',                 'contact'),
-  ('contact_phone_1',    '+63 927-877-5212',                       'contact'),
-  ('contact_phone_2',    '+632 8929-9845',                         'contact'),
-  ('address_line1',      'Suite 2B, 17 Bayanihan St',              'contact'),
-  ('address_city',       'Quezon City',                            'contact'),
-  ('address_postal',     '1104',                                   'contact'),
-  ('address_country',    'Philippines',                            'contact'),
-  ('facebook_url',       'https://www.facebook.com/PinoyBallerBands', 'social'),
-  ('twitter_url',        'https://twitter.com/PinoyBallersCom',    'social'),
-  ('pinterest_url',      'https://www.pinterest.com/pinoyballers', 'social'),
-  ('instagram_url',      'https://www.instagram.com/pinoyballerscom/', 'social'),
-  ('linkedin_url',       'https://www.linkedin.com/company/pinoy-ballers', 'social'),
-  ('google_maps_embed',  'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3860.173504972463!2d121.03253497474016!3d14.64609038584566!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7d608abae61%3A0x38d416cc154f4a00!2sPinoy%20Ballers!5e0!3m2!1sen!2sph!4v1690426232973!5m2!1sen!2sph', 'contact'),
-  ('currency_symbol',    '₱',                                      'shop'),
-  ('vat_rate_pct',       '12',                                     'shop'),
-  ('popup_delay_sec',    '9',                                      'marketing'),
-  ('popup_cookie_hours', '24',                                     'marketing');
-
--- ============================================================
---  USEFUL VIEWS
--- ============================================================
-
--- View: products with their category name and tag list
-CREATE OR REPLACE VIEW v_products AS
-SELECT
-  p.id,
-  p.name,
-  p.slug,
-  p.sku,
-  p.base_price,
-  p.sale_price,
-  p.thumbnail_url,
-  p.is_featured,
-  p.is_active,
-  c.name        AS category_name,
-  c.slug        AS category_slug,
-  GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') AS tags
-FROM products p
-LEFT JOIN categories c      ON c.id = p.category_id
-LEFT JOIN product_tag_map m ON m.product_id = p.id
-LEFT JOIN product_tags t    ON t.id = m.tag_id
-WHERE p.is_active = 1
-GROUP BY p.id;
-
--- View: order summary per user
-CREATE OR REPLACE VIEW v_user_orders AS
-SELECT
-  o.id            AS order_id,
-  o.order_number,
-  o.status,
-  o.total_amount,
-  o.payment_status,
-  o.created_at,
-  u.email,
-  CONCAT(u.first_name,' ', u.last_name) AS customer_name
-FROM orders o
-LEFT JOIN users u ON u.id = o.user_id;
-
--- ============================================================
---  STORED PROCEDURES
--- ============================================================
-
-DELIMITER $$
-
--- Get the correct unit price for a product given a quantity and size
-CREATE PROCEDURE get_tier_price (
-  IN  p_product_id INT UNSIGNED,
-  IN  p_size_label VARCHAR(50),
-  IN  p_quantity   INT UNSIGNED,
-  OUT p_unit_price DECIMAL(10,2)
-)
-BEGIN
-  SELECT unit_price INTO p_unit_price
-  FROM product_pricing_tiers
-  WHERE product_id  = p_product_id
-    AND (size_label = p_size_label OR size_label IS NULL)
-    AND min_qty    <= p_quantity
-    AND (max_qty   >= p_quantity OR max_qty IS NULL)
-  ORDER BY min_qty DESC
-  LIMIT 1;
-
-  IF p_unit_price IS NULL THEN
-    SELECT base_price INTO p_unit_price
-    FROM products WHERE id = p_product_id;
-  END IF;
-END$$
-
--- Validate and apply a coupon code; returns discount amount
-CREATE PROCEDURE apply_coupon (
-  IN  p_code          VARCHAR(50),
-  IN  p_order_total   DECIMAL(12,2),
-  OUT p_discount      DECIMAL(12,2),
-  OUT p_message       VARCHAR(200)
-)
-BEGIN
-  DECLARE v_type   VARCHAR(20);
-  DECLARE v_value  DECIMAL(10,2);
-  DECLARE v_min    DECIMAL(10,2);
-  DECLARE v_max    INT UNSIGNED;
-  DECLARE v_used   INT UNSIGNED;
-  DECLARE v_exp    DATETIME;
-  DECLARE v_active TINYINT;
-
-  SET p_discount = 0.00;
-
-  SELECT discount_type, discount_value, min_order_total,
-         max_uses, used_count, expires_at, is_active
-  INTO   v_type, v_value, v_min, v_max, v_used, v_exp, v_active
-  FROM   coupons
-  WHERE  code = p_code
-  LIMIT  1;
-
-  IF v_type IS NULL THEN
-    SET p_message = 'Coupon code not found.';
-  ELSEIF v_active = 0 THEN
-    SET p_message = 'Coupon is no longer active.';
-  ELSEIF v_exp IS NOT NULL AND NOW() > v_exp THEN
-    SET p_message = 'Coupon has expired.';
-  ELSEIF v_max IS NOT NULL AND v_used >= v_max THEN
-    SET p_message = 'Coupon usage limit reached.';
-  ELSEIF v_min IS NOT NULL AND p_order_total < v_min THEN
-    SET p_message = CONCAT('Minimum order of ₱', v_min, ' required.');
-  ELSE
-    IF v_type = 'percent' THEN
-      SET p_discount = ROUND(p_order_total * v_value / 100, 2);
-    ELSE
-      SET p_discount = LEAST(v_value, p_order_total);
-    END IF;
-    SET p_message = 'Coupon applied successfully.';
-    UPDATE coupons SET used_count = used_count + 1 WHERE code = p_code;
-  END IF;
-END$$
-
-DELIMITER ;
-
--- ============================================================
---  INDEXES for performance
--- ============================================================
--- Full-text search on products
-ALTER TABLE products
-  ADD FULLTEXT INDEX ft_product_search (name, short_desc, description);
-
--- ============================================================
---  END OF SCHEMA
--- ============================================================
-
--- ============================================================
--- ADDED: AUTH SYSTEM ADDITIONS
--- Supporting the Login & Sign Up modal forms.
--- The `users` table already exists above — these additions
--- extend it with password-reset tokens and login audit logs.
--- ============================================================
-
--- ── TABLE: password_reset_tokens ────────────────────────────
--- Stores short-lived tokens emailed to users for password reset.
--- Backend: INSERT here when user clicks "Forgot Password".
---          DELETE here after token is consumed or expired.
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   user_id     INT UNSIGNED  NOT NULL,
-  token       VARCHAR(128)  NOT NULL UNIQUE  COMMENT 'Secure random token (SHA-256 hex)',
-  expires_at  DATETIME      NOT NULL         COMMENT 'Typically NOW() + 1 HOUR',
+  token       VARCHAR(128)  NOT NULL UNIQUE,
+  expires_at  DATETIME      NOT NULL,
   used        TINYINT(1)    NOT NULL DEFAULT 0,
   created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -696,37 +506,285 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ── TABLE: login_audit_log ───────────────────────────────────
--- Logs every login attempt (success or failure) for security.
--- Backend: INSERT here on every POST /api/auth/login attempt.
+-- ============================================================
+--  TABLE: login_audit_log
+-- ============================================================
 CREATE TABLE IF NOT EXISTS login_audit_log (
   id           INT UNSIGNED  NOT NULL AUTO_INCREMENT,
-  user_id      INT UNSIGNED  DEFAULT NULL   COMMENT 'NULL if email not found',
-  email_tried  VARCHAR(255)  NOT NULL       COMMENT 'Email entered at login',
+  user_id      INT UNSIGNED  DEFAULT NULL,
+  email_tried  VARCHAR(255)  NOT NULL,
   ip_address   VARCHAR(45)   DEFAULT NULL,
   user_agent   VARCHAR(512)  DEFAULT NULL,
   success      TINYINT(1)    NOT NULL DEFAULT 0,
-  fail_reason  VARCHAR(100)  DEFAULT NULL   COMMENT 'e.g. wrong_password, not_found, inactive',
+  fail_reason  VARCHAR(100)  DEFAULT NULL,
   created_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (id),
-  INDEX idx_user      (user_id),
-  INDEX idx_email     (email_tried),
-  INDEX idx_ip        (ip_address),
-  INDEX idx_success   (success),
-  INDEX idx_created   (created_at)
+  INDEX idx_audit_user    (user_id),
+  INDEX idx_audit_email   (email_tried),
+  INDEX idx_audit_success (success),
+  INDEX idx_audit_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
 -- ============================================================
--- ADDED: STORED PROCEDURES for Auth Modal
+--  SEED DATA: CREATIVEKIT 3A
+-- ============================================================
+
+-- ---- Core Categories (Main Level) ----
+INSERT INTO categories (id, parent_id, name, slug, description, sort_order) VALUES
+  (1, NULL, 'Accessories & Gadgets', 'accessories-gadgets', 'Car accessories, computer essentials, desk items, and tech gadgets', 1),
+  (2, NULL, 'Apparel',               'apparel',             'Corporate jackets, varsity jackets, hoodies, caps, and shirts',         2),
+  (3, NULL, 'Bags & Pouches',        'bags-pouches',        'Backpacks, eco shopping totes, laptop sleeves, and duffels',            3),
+  (4, NULL, 'Drinkware',             'drinkware',           'Bamboo tumblers, stainless flasks, ceramic mugs, and sports bottles',   4),
+  (5, NULL, 'Gift Set',              'giftset',             'Executive gift boxes, onboarding kits, and sustainable care packages',   5),
+  (6, NULL, 'Home Living',           'home-living',         'Cutlery sets, personal care, outdoor chairs, and lifestyle goods',      6),
+  (7, NULL, 'Pen & Paper',           'pen-paper',           'Eco bamboo pens, premium metal pens, notebooks, and desk calendars',    7),
+  (8, NULL, 'PU Leather',            'pu-leather',          'PU leather wallets, card cases, desk mats, organizers, and keychains',  8)
+ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description);
+
+-- ---- Sub-Categories ----
+INSERT INTO categories (id, parent_id, name, slug, sort_order) VALUES
+  -- Subcats for Accessories & Gadgets (1)
+  (101, 1, 'Car Accessories',       'car',       1),
+  (102, 1, 'Computer Accessories',  'computer',  2),
+  (103, 1, 'Desk Accessories',      'desk',      3),
+  (104, 1, 'Mobile Accessories',    'mobile',    4),
+  (105, 1, 'Gadgets',               'gadgets',   5),
+
+  -- Subcats for Apparel (2)
+  (201, 2, 'Caps',                  'caps',      1),
+  (202, 2, 'Jackets',               'jackets',   2),
+  (203, 2, 'Shirts',                'shirts',    3),
+
+  -- Subcats for Bags & Pouches (3)
+  (301, 3, 'Backpacks',             'backpacks', 1),
+  (302, 3, 'Eco Bags',              'ecobags',   2),
+  (303, 3, 'Laptop Bags',           'laptop',    3),
+  (304, 3, 'Tote Bags',             'tote',      4),
+  (305, 3, 'Travel Bags',           'travel',    5),
+  (306, 3, 'Lunch Bags',            'lunch',     6),
+  (307, 3, 'Organizer Pouches',     'organizer', 7),
+
+  -- Subcats for Drinkware (4)
+  (401, 4, 'Tumblers & Flasks',     'tumbler',   1),
+  (402, 4, 'Mugs & Cups',           'mugs',      2),
+  (403, 4, 'Water Bottles',         'bottles',   3),
+  (404, 4, 'Eco-Friendly',          'eco',       4),
+
+  -- Subcats for Gift Set (5)
+  (501, 5, 'Corporate',             'corporate', 1),
+  (502, 5, 'Lifestyle',             'lifestyle', 2),
+  (503, 5, 'Health & Wellness',     'wellness',  3),
+
+  -- Subcats for Home Living (6)
+  (601, 6, 'Kitchen & Dining',      'kitchen',   1),
+  (602, 6, 'Personal Care',         'personal',  2),
+  (603, 6, 'Outdoor & Lifestyle',   'outdoor',   3),
+
+  -- Subcats for Pen & Paper (7)
+  (701, 7, 'Pens',                  'pen',       1),
+  (702, 7, 'Paper & Notebooks',     'paper',     2),
+
+  -- Subcats for PU Leather (8)
+  (801, 8, 'Wallets & Cases',       'wallets',   1),
+  (802, 8, 'Organizers & Bags',     'organizers',2),
+  (803, 8, 'Keychains & Tags',      'keychains', 3)
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- ---- Product Tags ----
+INSERT INTO product_tags (name, slug) VALUES
+  ('Best Seller',          'best-seller'),
+  ('New Arrival',          'new-arrival'),
+  ('Eco-Friendly',         'eco-friendly'),
+  ('Executive Corporate',  'executive-corporate'),
+  ('Fast Delivery',        'fast-delivery'),
+  ('Laser Engraving',      'laser-engraving'),
+  ('Silk Screen Imprint',  'silk-screen-imprint')
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- ---- Core Products ----
+INSERT INTO products
+  (id, category_id, name, slug, sku, short_desc, thumbnail_url, base_price, is_customizable, is_featured, is_active, sort_order)
+VALUES
+  -- Accessories & Gadgets
+  (1,  101, 'Car Charger Adapters',          'car-charger-adapter',         'ACC-CAR-001', 'Custom-branded single, dual, and fast car charger adapters', 'assets/images/car-charger-adapters.png', 85.00,  1, 1, 1, 1),
+  (2,  101, 'Car Organizers & Holders',      'car-organizers',              'ACC-CAR-002', 'Seat-back and console organizers for brand visibility on the go', 'assets/images/car-organizer.png', 120.00, 1, 1, 1, 2),
+  (3,  101, 'Dash Cams',                     'car-dashcams',                'ACC-CAR-003', 'HD dash cameras with customizable logo placement', 'assets/images/dash-cam.png', 450.00, 1, 1, 1, 3),
+  (4,  102, 'Audio Accessories',             'computer-audio',              'ACC-AUD-001', 'Noise-canceling earphones and portable speaker gifts', 'assets/images/audio-accessories.png', 95.00,  1, 0, 1, 4),
+  (5,  102, 'Mouse & Mouse Pads',            'computer-mouse',              'ACC-MSE-001', 'Non-slip speed mouse pads and ergonomic wireless mice', 'assets/images/mouse-pad.png', 75.00,  1, 0, 1, 5),
+  (6,  104, 'Mobile Power Banks',            'mobile-powerbanks',           'ACC-PBK-001', 'High-capacity power banks with LED battery display', 'assets/images/mobile-powerbank.png', 350.00, 1, 1, 1, 6),
+
+  -- Apparel
+  (7,  202, 'Corporate Jackets',             'jackets-corporate',           'APP-JKT-001', 'Tailored corporate windbreakers and executive weather-resistant jackets', 'assets/images/corporate-jacket.png', 720.00, 1, 1, 1, 7),
+  (8,  202, 'Bomber Jackets',                'jacket-bomber',               'APP-JKT-002', 'Modern streetwear and company bomber jackets with custom embroidery', 'assets/images/bomber-jacket.png', 650.00, 1, 0, 1, 8),
+  (9,  201, 'Baseball Cap',                  'cap-baseball',                'APP-CAP-001', 'Structured 6-panel twill baseball caps with adjustable strap', 'assets/images/baseball-cap.png', 180.00, 1, 0, 1, 9),
+  (10, 203, 'Collared Shirt',                'shirt-collared',              'APP-SHT-001', 'Breathable pique cotton polo shirts for company uniforms', 'assets/images/collared-shirt.png', 280.00, 1, 0, 1, 10),
+
+  -- Bags & Pouches
+  (11, 303, 'Laptop Backpacks',              'laptop-backpack',             'BAG-LPT-001', 'Padded compartments for 15.6 inch laptops with USB charging pass-through', 'assets/images/laptop-backpack.png', 520.00, 1, 1, 1, 11),
+  (12, 304, 'Classic Zip Totes',             'tote-bag-classic-zip',        'BAG-TOT-001', 'Heavy-duty eco canvas tote bags with reinforced zipper closure', 'assets/images/tote-bag.png', 120.00, 1, 1, 1, 12),
+  (13, 302, 'Foldable Shopping Totes',       'ecobags-shopping-tote',       'BAG-ECO-001', 'Compact reusable fold-away bags for sustainable corporate gifting', 'assets/images/eco-bag.png', 95.00,  1, 0, 1, 13),
+
+  -- Drinkware
+  (14, 401, 'Bamboo Tumblers',               'tumbler-bamboo',              'DRK-TMB-001', 'Eco-friendly natural bamboo exterior with double-wall stainless steel interior', 'assets/images/bamboo-tumbler.png', 220.00, 1, 1, 1, 14),
+  (15, 401, 'Stainless Steel Tumblers',      'tumbler-stainless',           'DRK-TMB-002', 'Vacuum insulated travel tumblers keeping drinks cold 24hrs / hot 12hrs', 'assets/images/stainless-tumbler.png', 310.00, 1, 1, 1, 15),
+  (16, 402, 'Ceramic Mugs',                  'mugs-ceramic',                'DRK-MUG-001', 'Glossy ceramic mugs with full-color wrap dye-sublimation imprint', 'assets/images/ceramic-mug.png', 95.00,  1, 0, 1, 16),
+
+  -- Gift Sets
+  (17, 501, 'Employee Onboarding Sets',      'gift-set-employee-onboarding','GFT-SET-001', 'Welcome box complete with notebook, tumbler, pen, and USB flash drive', 'assets/images/onboarding-set.png', 890.00, 1, 1, 1, 17),
+  (18, 501, 'Desk Essentials Gift Sets',      'gift-set-desk-essentials',    'GFT-SET-002', 'Executive wooden desk set with wireless charger and pen stand', 'assets/images/desk-gift-set.png', 650.00, 1, 0, 1, 18),
+
+  -- Pen & Paper
+  (19, 701, 'Bamboo Pens',                   'pen-bamboo',                  'PEN-BAM-001', 'Laser-engraved natural bamboo ballpoint pens with black German ink', 'assets/images/bamboo-pen.png', 35.00,  1, 1, 1, 19),
+  (20, 702, 'Custom Notebooks & Journals',   'paper-notebooks-journals',    'PPR-NBK-001', 'Hardbound PU and craft paper journals with ribbon bookmark and elastic band', 'assets/images/custom-notebook.png', 95.00, 1, 1, 1, 20),
+
+  -- PU Leather
+  (21, 801, 'Wallets',                       'pu-leather-wallets',          'LEA-WLT-001', 'Slim bifold PU leather wallets with debossed corporate logo', 'assets/images/leather-wallet.png', 195.00, 1, 0, 1, 21),
+  (22, 803, 'Keychains',                     'pu-leather-keychains',        'LEA-KEY-001', 'Stitched leather key fobs with polished metallic hardware', 'assets/images/leather-keychain.png', 65.00,  1, 0, 1, 22)
+ON DUPLICATE KEY UPDATE name = VALUES(name), base_price = VALUES(base_price);
+
+-- ---- Sample Variants for Core Showcase Items ----
+-- Variants for Car Charger Adapters (Product ID 1)
+INSERT INTO product_variant_types (product_id, type_key, type_label, sort_order) VALUES
+  (1, 'single',   'Single Port',  1),
+  (1, 'dual',     'Dual Port',    2),
+  (1, 'fast',     'Fast Charge',  3)
+ON DUPLICATE KEY UPDATE type_label = VALUES(type_label);
+
+INSERT INTO product_variants (product_id, variant_type, name, slug, specs, thumbnail_url, base_price, badge_label, sort_order) VALUES
+  (1, 'single', 'Single USB-A Car Charger',   'car-charger-single-usba', '5V / 2.1A • USB-A • Compact Body',       'assets/images/1.png',               85.00,  NULL,          1),
+  (1, 'single', 'Single USB-C Car Charger',   'car-charger-single-usbc', '5V / 3A • USB-C • Compact Body',         'assets/images/usb-c-adapter.png',   95.00,  'New',         2),
+  (1, 'dual',   'Dual Port USB-A Charger',    'car-charger-dual-usba',   '2x USB-A • 3.1A Total • Logo Printing',  'assets/images/dual-usb-adapter.png',110.00, 'Best Seller', 3),
+  (1, 'fast',   '20W USB-C PD Fast Charger',  'car-charger-pd20',        'USB-C PD • 20W • Fast Charge Chip',      'assets/images/car-charger-adapters.png', 165.00, 'Premium', 4)
+ON DUPLICATE KEY UPDATE name = VALUES(name), specs = VALUES(specs);
+
+-- Variants for Bamboo Tumblers (Product ID 14)
+INSERT INTO product_variant_types (product_id, type_key, type_label, sort_order) VALUES
+  (14, 'standard', 'Standard 450ml', 1),
+  (14, 'tea',      'With Tea Infuser', 2),
+  (14, 'handle',   'With Steel Handle', 3)
+ON DUPLICATE KEY UPDATE type_label = VALUES(type_label);
+
+INSERT INTO product_variants (product_id, variant_type, name, slug, specs, thumbnail_url, base_price, badge_label, sort_order) VALUES
+  (14, 'standard', 'Bamboo Tumbler 450ml',        'bamboo-tumbler-450ml', '450ml • 304 Stainless Steel • Laser Engraved', 'assets/images/bamboo-tumbler.png', 220.00, 'Best Seller', 1),
+  (14, 'tea',      'Bamboo Tumbler + Tea Strainer', 'bamboo-tumbler-strainer', '500ml • Removable Infuser Basket', 'assets/images/bamboo-tumbler.png', 250.00, 'New', 2),
+  (14, 'handle',   'Bamboo Flask with Lid Handle', 'bamboo-tumbler-handle', '530ml • Ergonomic Carry Loop Lid', 'assets/images/bamboo-tumbler.png', 280.00, 'Premium', 3)
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- ---- Hero Banners ----
+INSERT INTO hero_banners (title, subtitle, body_text, eyebrow, image_url, cta_label, cta_url, bg_class, sort_order) VALUES
+  ('Bamboo Tumbler', 'Eco-Friendly Drinkware', 'Keep your beverages hot or cold while showcasing your eco-conscious brand with custom laser-engraved bamboo tumblers.', 'Sustainable Sips:', 'assets/images/bamboo-tumbler.png', 'Explore Drinkware', 'category-page.html?cat=drinkware', 'item-bamboo-tumbler', 1),
+  ('Custom Corporate Jackets', 'Premium Outerwear', 'Elevate your team image with weather-resistant corporate windbreakers and varsity jackets tailored with embroidery.', 'Wear Your Brand with Pride', 'assets/images/corporate-jacket.png', 'View Apparel', 'category-page.html?cat=apparel', 'item-corporate-jackets', 2),
+  ('Custom Logo Bags & Pouches', 'Versatile Carryalls', 'From padded laptop backpacks to foldable canvas totes, promote your business on the move with custom-printed bags.', 'Carry Your Brand Everywhere', 'assets/images/tote-bag.png', 'Browse Bags', 'category-page.html?cat=bags-pouches', 'item-tote-bags', 3)
+ON DUPLICATE KEY UPDATE title = VALUES(title), body_text = VALUES(body_text);
+
+-- ---- Coupons ----
+INSERT INTO coupons (code, description, discount_type, discount_value, is_active) VALUES
+  ('CK3A5OFF',   '5% off your first quotation inquiry', 'percent', 5.00, 1),
+  ('WELCOME10',  '10% off for verified bulk corporate orders', 'percent', 10.00, 1),
+  ('BULK500',    '₱500 off orders over ₱10,000', 'fixed', 500.00, 1)
+ON DUPLICATE KEY UPDATE description = VALUES(description);
+
+-- ---- Site Settings ----
+INSERT INTO site_settings (setting_key, setting_value, setting_group) VALUES
+  ('site_name',          'CreativeKit 3A',                                              'general'),
+  ('site_tagline',       'Custom Corporate Giveaways & Promotional Merchandise Philippines', 'general'),
+  ('contact_email',      'inquiry@creativekit3a.ph',                                    'contact'),
+  ('contact_phone_1',    '+63 917 123 4567',                                            'contact'),
+  ('contact_phone_2',    '+632 8888 1234',                                              'contact'),
+  ('address_line1',      'Unit 3A, Creative Corporate Center',                          'contact'),
+  ('address_city',       'Quezon City, Metro Manila',                                   'contact'),
+  ('address_postal',     '1100',                                                        'contact'),
+  ('address_country',    'Philippines',                                                 'contact'),
+  ('currency_symbol',    '₱',                                                           'shop'),
+  ('vat_rate_pct',       '12',                                                          'shop'),
+  ('popup_delay_sec',    '9',                                                           'marketing'),
+  ('popup_cookie_hours', '24',                                                          'marketing')
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
+
+
+-- ============================================================
+--  VIEWS
+-- ============================================================
+
+-- View: products with category and subcategory info
+CREATE OR REPLACE VIEW v_products AS
+SELECT
+  p.id,
+  p.name,
+  p.slug,
+  p.sku,
+  p.base_price,
+  p.sale_price,
+  p.thumbnail_url,
+  p.is_featured,
+  p.is_active,
+  c.name AS subcategory_name,
+  c.slug AS subcategory_slug,
+  parent.name AS main_category_name,
+  parent.slug AS main_category_slug
+FROM products p
+LEFT JOIN categories c ON c.id = p.category_id
+LEFT JOIN categories parent ON parent.id = c.parent_id
+WHERE p.is_active = 1;
+
+-- View: quotation request summary
+CREATE OR REPLACE VIEW v_quote_summary AS
+SELECT
+  qr.id,
+  qr.quote_ref,
+  qr.full_name,
+  qr.company_name,
+  qr.email,
+  qr.phone,
+  qr.product_type,
+  qr.quantity_range,
+  qr.status,
+  qr.created_at
+FROM quote_requests qr;
+
+
+-- ============================================================
+--  STORED PROCEDURES
 -- ============================================================
 
 DELIMITER $$
 
+-- ── PROCEDURE: submit_quote_request ─────────────────────────
+CREATE PROCEDURE submit_quote_request (
+  IN  p_full_name             VARCHAR(200),
+  IN  p_company_name          VARCHAR(200),
+  IN  p_email                 VARCHAR(255),
+  IN  p_phone                 VARCHAR(50),
+  IN  p_product_type          VARCHAR(100),
+  IN  p_quantity_range        VARCHAR(50),
+  IN  p_target_budget         VARCHAR(50),
+  IN  p_target_deadline       DATE,
+  IN  p_project_details       TEXT,
+  IN  p_customization_options JSON,
+  IN  p_source_url            VARCHAR(512),
+  OUT p_quote_ref             VARCHAR(40),
+  OUT p_request_id            INT UNSIGNED
+)
+BEGIN
+  -- Generate reference format CK3A-XXXXXX
+  SET p_quote_ref = CONCAT('CK3A-', FLOOR(100000 + (RAND() * 900000)));
+
+  INSERT INTO quote_requests (
+    quote_ref, full_name, company_name, email, phone,
+    product_type, quantity_range, target_budget, target_deadline,
+    project_details, customization_options, source_url, status
+  ) VALUES (
+    p_quote_ref, p_full_name, p_company_name, p_email, p_phone,
+    p_product_type, p_quantity_range, p_target_budget, p_target_deadline,
+    p_project_details, p_customization_options, p_source_url, 'new'
+  );
+
+  SET p_request_id = LAST_INSERT_ID();
+END$$
+
 -- ── PROCEDURE: register_user ─────────────────────────────────
--- Called by backend on POST /api/auth/register.
--- Backend passes the bcrypt hash — never the raw password.
--- Returns: 'ok' if created, 'duplicate_email' if taken.
 CREATE PROCEDURE register_user (
   IN  p_first_name    VARCHAR(100),
   IN  p_last_name     VARCHAR(100),
@@ -737,7 +795,6 @@ CREATE PROCEDURE register_user (
   OUT p_new_user_id   INT UNSIGNED
 )
 BEGIN
-  -- Check for duplicate email
   IF EXISTS (SELECT 1 FROM users WHERE email = p_email) THEN
     SET p_result      = 'duplicate_email';
     SET p_new_user_id = NULL;
@@ -751,18 +808,15 @@ BEGIN
 END$$
 
 -- ── PROCEDURE: login_user ────────────────────────────────────
--- Called by backend on POST /api/auth/login.
--- Returns the stored bcrypt hash so the backend can compare it.
--- Also updates last_login_at on success and logs the attempt.
 CREATE PROCEDURE login_user (
-  IN  p_email        VARCHAR(255),
-  IN  p_ip_address   VARCHAR(45),
-  IN  p_user_agent   VARCHAR(512),
-  OUT p_user_id      INT UNSIGNED,
+  IN  p_email         VARCHAR(255),
+  IN  p_ip_address    VARCHAR(45),
+  IN  p_user_agent    VARCHAR(512),
+  OUT p_user_id       INT UNSIGNED,
   OUT p_password_hash VARCHAR(255),
-  OUT p_first_name   VARCHAR(100),
-  OUT p_role         VARCHAR(20),
-  OUT p_result       VARCHAR(50)
+  OUT p_first_name    VARCHAR(100),
+  OUT p_role          VARCHAR(20),
+  OUT p_result        VARCHAR(50)
 )
 BEGIN
   DECLARE v_is_active TINYINT;
@@ -774,25 +828,19 @@ BEGIN
   LIMIT  1;
 
   IF p_user_id IS NULL THEN
-    -- Email not found
     SET p_result = 'not_found';
-    -- Log failed attempt
     INSERT INTO login_audit_log (email_tried, ip_address, user_agent, success, fail_reason)
     VALUES (p_email, p_ip_address, p_user_agent, 0, 'not_found');
   ELSEIF v_is_active = 0 THEN
-    -- Account disabled
     SET p_result = 'inactive';
     INSERT INTO login_audit_log (user_id, email_tried, ip_address, user_agent, success, fail_reason)
     VALUES (p_user_id, p_email, p_ip_address, p_user_agent, 0, 'inactive');
   ELSE
-    -- Return hash so backend can verify with bcrypt
-    -- Backend must call this procedure, verify hash, then log success/fail
     SET p_result = 'found';
   END IF;
 END$$
 
 -- ── PROCEDURE: record_login_success ─────────────────────────
--- Call this after backend confirms bcrypt hash matches.
 CREATE PROCEDURE record_login_success (
   IN p_user_id    INT UNSIGNED,
   IN p_email      VARCHAR(255),
@@ -800,24 +848,18 @@ CREATE PROCEDURE record_login_success (
   IN p_user_agent VARCHAR(512)
 )
 BEGIN
-  -- Update last login timestamp
   UPDATE users SET last_login_at = NOW() WHERE id = p_user_id;
 
-  -- Audit log
   INSERT INTO login_audit_log (user_id, email_tried, ip_address, user_agent, success)
   VALUES (p_user_id, p_email, p_ip_address, p_user_agent, 1);
 END$$
 
 -- ── PROCEDURE: cleanup_expired_tokens ───────────────────────
--- Schedule this with a cron job (e.g. every hour) to prune
--- expired password reset tokens and old sessions.
 CREATE PROCEDURE cleanup_expired_tokens ()
 BEGIN
-  -- Remove expired/used password reset tokens
   DELETE FROM password_reset_tokens
   WHERE  expires_at < NOW() OR used = 1;
 
-  -- Remove sessions idle for more than 7 days
   DELETE FROM sessions
   WHERE  last_activity < DATE_SUB(NOW(), INTERVAL 7 DAY);
 END$$
@@ -825,5 +867,5 @@ END$$
 DELIMITER ;
 
 -- ============================================================
--- END ADDED: AUTH SYSTEM ADDITIONS
+--  END OF CREATIVEKIT 3A SCHEMA
 -- ============================================================
