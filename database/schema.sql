@@ -709,6 +709,12 @@ CREATE TABLE IF NOT EXISTS site_settings (
 --  9. SEED DATA
 -- ============================================================
 
+-- ---- Default Users & Administrators ----
+INSERT INTO users (id, first_name, last_name, email, phone, password_hash, role, is_active) VALUES
+  (1, 'Admin', 'Director', 'admin@creativekit3a.com', '+63 917 714 2774', '$2y$10$w6z/pA8vXq3JgA3yPqHZeOq9O.7eB9uM6pW1k5jX3ZzOQ3j6Uq8Wa', 'admin', 1),
+  (2, 'Maria', 'Santos',   'maria.customer@gmail.com', '+63 918 123 4567', '$2y$10$w6z/pA8vXq3JgA3yPqHZeOq9O.7eB9uM6pW1k5jX3ZzOQ3j6Uq8Wa', 'customer', 1)
+ON DUPLICATE KEY UPDATE role = VALUES(role), is_active = VALUES(is_active);
+
 -- ---- Core Categories ----
 INSERT INTO categories (id, parent_id, name, slug, description, sort_order) VALUES
   (1, NULL, 'Accessories & Gadgets', 'accessories-gadgets', 'Car accessories, computer essentials, desk items, and tech gadgets', 1),

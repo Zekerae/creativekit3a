@@ -1187,21 +1187,54 @@ const AuthModal = (() => {
         }
       } catch (_) {}
 
+      // Check server response or client fallback for static host
+      const normalizedEmail = email.toLowerCase();
+      const isAdminEmail = (normalizedEmail === 'admin@creativekit3a.com' || normalizedEmail === 'admin@ck3a.com');
+
       if (data && data.success) {
-        const userName = data.user?.first_name || email.split('@')[0];
-        localStorage.setItem('ck_user', JSON.stringify({ name: userName, email }));
+        const user = data.user || {};
+        const userRole = user.role || (isAdminEmail ? 'admin' : 'customer');
+        const userName = user.first_name || (userRole === 'admin' ? 'Admin' : email.split('@')[0]);
+        localStorage.setItem('ck_user', JSON.stringify({
+          name: userName,
+          email: email,
+          role: userRole
+        }));
         showToast(`Welcome back, ${userName}! 👋`);
         closeModal('login-modal');
         renderAuthState();
+        if (userRole === 'admin') {
+          showToast('Administrator privileges granted. Management portal unlocked! 🛡️');
+        }
       } else if (data && !data.success) {
         showMsg('lm-login-error', `⚠️ ${data.message || 'Login failed. Try again.'}`);
       } else {
-        // Fallback for static host
-        const userName = email.split('@')[0];
-        localStorage.setItem('ck_user', JSON.stringify({ name: userName, email }));
-        showToast(`Welcome back, ${userName}! 👋`);
-        closeModal('login-modal');
-        renderAuthState();
+        // Fallback for static demo environments / offline
+        if (isAdminEmail) {
+          if (password === 'Admin@2026!') {
+            localStorage.setItem('ck_user', JSON.stringify({
+              name: 'Admin',
+              email: email,
+              role: 'admin'
+            }));
+            showToast('Welcome back, Admin! 👋');
+            closeModal('login-modal');
+            renderAuthState();
+            showToast('Administrator privileges granted. Management portal unlocked! 🛡️');
+          } else {
+            showMsg('lm-login-error', '⚠️ Invalid password for administrator account.');
+          }
+        } else {
+          const userName = email.split('@')[0];
+          localStorage.setItem('ck_user', JSON.stringify({
+            name: userName,
+            email: email,
+            role: 'customer'
+          }));
+          showToast(`Welcome back, ${userName}! 👋`);
+          closeModal('login-modal');
+          renderAuthState();
+        }
       }
     } catch (err) {
       console.error('[AuthModal] Login error:', err);
@@ -1270,7 +1303,7 @@ const AuthModal = (() => {
       if (data && !data.success) {
         showMsg('lm-reg-error', `⚠️ ${data.message || 'Registration failed. Try again.'}`);
       } else {
-        localStorage.setItem('ck_user', JSON.stringify({ name: first_name, email }));
+        localStorage.setItem('ck_user', JSON.stringify({ name: first_name, email, role: 'customer' }));
         showMsg('lm-reg-success', '🎉 Account created! Switching to Sign In…', false);
         setTimeout(() => {
           switchTab('login');
@@ -1287,36 +1320,57 @@ const AuthModal = (() => {
     }
   };
  
-  /* ── UI Auth State (Show user profile name when logged in) ── */
+  /* ── UI Auth State (Show user profile name & manage admin access) ── */
   const renderAuthState = () => {
     try {
       const userStr = localStorage.getItem('ck_user');
       const user = userStr ? JSON.parse(userStr) : null;
+      const isAdmin = user && (user.role === 'admin' || user.email === 'admin@creativekit3a.com' || user.email === 'admin@ck3a.com');
 
-      document.querySelectorAll('.topbar-links, .navbar-user-area').forEach(container => {
-        const loginBtn = container.querySelector('[onclick*="login-modal"], .btn-login');
+      // 1. Manage Top Bar Admin Link across all pages (Only visible for admin)
+      document.querySelectorAll('#top-bar-admin-link, .top-bar-admin-btn').forEach(btn => {
+        btn.style.display = isAdmin ? 'inline-flex' : 'none';
+      });
+
+      // 2. Manage Auth buttons & user badges in .top-bar-auth, .topbar-links, .navbar-user-area
+      document.querySelectorAll('.top-bar-auth, .topbar-links, .navbar-user-area').forEach(container => {
+        const signinBtn = container.querySelector('[onclick*="login-modal"], .top-bar-login, .btn-outline');
+        const registerBtn = container.querySelector('[onclick*="register-modal"], .top-bar-signup, .btn-primary');
+        let badge = container.querySelector('.auth-status-badge');
+
         if (user && user.name) {
-          if (loginBtn) loginBtn.style.display = 'none';
+          if (signinBtn) signinBtn.style.display = 'none';
+          if (registerBtn) registerBtn.style.display = 'none';
 
-          let badge = container.querySelector('.auth-status-badge');
           if (!badge) {
             badge = document.createElement('span');
             badge.className = 'auth-status-badge';
-            badge.style.cssText = 'color:#fff;font-size:0.8rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;';
+            badge.style.cssText = 'color:#fff;font-size:0.78rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;';
             container.appendChild(badge);
           }
-          badge.innerHTML = `<i class="fas fa-user-circle"></i> ${user.name} <a href="#" id="auth-signout-link" style="color:var(--orange-primary,#e65100);margin-left:6px;font-weight:700;text-decoration:none;">(Sign Out)</a>`;
 
-          const signout = badge.querySelector('#auth-signout-link');
+          const icon = isAdmin ? 'fa-user-shield' : 'fa-user-circle';
+          const roleLabel = isAdmin ? 'Admin' : 'User';
+
+          badge.innerHTML = `<i class="fas ${icon}" style="color:${isAdmin ? 'var(--orange-light,#FFB347)' : '#ffffff'};"></i> ${roleLabel}: <strong>${user.name}</strong> <a href="#" class="auth-signout-link" style="color:var(--orange-light,#FFB347);margin-left:6px;font-weight:700;text-decoration:none;">(Sign Out)</a>`;
+
+          const signout = badge.querySelector('.auth-signout-link');
           if (signout) {
             signout.onclick = (e) => {
               e.preventDefault();
               localStorage.removeItem('ck_user');
               badge.remove();
-              if (loginBtn) loginBtn.style.display = '';
+              if (signinBtn) signinBtn.style.display = '';
+              if (registerBtn) registerBtn.style.display = '';
+              renderAuthState();
               showToast('Signed out successfully.');
             };
           }
+        } else {
+          // Logged out / Public guest
+          if (signinBtn) signinBtn.style.display = '';
+          if (registerBtn) registerBtn.style.display = '';
+          if (badge) badge.remove();
         }
       });
     } catch (_) {}

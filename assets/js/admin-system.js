@@ -586,11 +586,84 @@
       document.body.removeChild(link);
 
       logAudit('System', 'Report Export', 'Exported executive inventory CSV report.');
+    },
+
+    handleGateLogin: function (e) {
+      if (e) e.preventDefault();
+      const email = document.getElementById('gate-admin-email')?.value.trim();
+      const pass  = document.getElementById('gate-admin-password')?.value;
+      const errEl = document.getElementById('gate-error-msg');
+
+      if (!email || !pass) {
+        if (errEl) { errEl.textContent = 'Please enter both email and password.'; errEl.style.display = 'block'; }
+        return;
+      }
+
+      const normEmail = email.toLowerCase();
+      const isAdmin = (normEmail === 'admin@creativekit3a.com' || normEmail === 'admin@ck3a.com') && pass === 'Admin@2026!';
+
+      if (isAdmin) {
+        localStorage.setItem('ck_user', JSON.stringify({
+          name: 'Admin',
+          email: email,
+          role: 'admin'
+        }));
+        if (errEl) errEl.style.display = 'none';
+        checkAdminAuth();
+        showToast('Admin access verified. Welcome to CreativeKit 3A Management Portal!');
+      } else {
+        if (errEl) {
+          errEl.textContent = 'Invalid administrator credentials. Access denied.';
+          errEl.style.display = 'block';
+        }
+      }
+    },
+
+    logout: function () {
+      localStorage.removeItem('ck_user');
+      checkAdminAuth();
+      showToast('Signed out of Management Portal.');
+      setTimeout(() => {
+        const isPhp = window.location.pathname.endsWith('.php');
+        window.location.href = isPhp ? '../index.php' : '../index.html';
+      }, 500);
     }
   };
 
+  function checkAdminAuth() {
+    const userStr = localStorage.getItem('ck_user');
+    let user = null;
+    try {
+      user = userStr ? JSON.parse(userStr) : null;
+    } catch (_) {}
+
+    const isAdmin = user && (user.role === 'admin' || user.email === 'admin@creativekit3a.com' || user.email === 'admin@ck3a.com');
+    const authGate = document.getElementById('admin-auth-gate');
+    const userDisplay = document.getElementById('admin-user-display');
+
+    if (!isAdmin) {
+      if (authGate) authGate.style.display = 'flex';
+      return false;
+    }
+
+    if (authGate) authGate.style.display = 'none';
+
+    if (userDisplay) {
+      userDisplay.innerHTML = `
+        <div style="display:inline-flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;color:#0f172a;background:rgba(255,107,0,0.1);border:1px solid rgba(255,107,0,0.3);padding:4px 12px;border-radius:20px;">
+          <i class="fas fa-user-shield" style="color:#ff6b00;"></i>
+          <span>${user.name || 'Admin'}</span>
+          <button onclick="AdminApp.logout()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-weight:700;font-size:0.75rem;margin-left:4px;" title="Sign out of Admin">(Sign Out)</button>
+        </div>`;
+    }
+    return true;
+  }
+
   /* ── 8. BOOTSTRAP ── */
   document.addEventListener('DOMContentLoaded', () => {
+    // 0. Check admin authentication
+    checkAdminAuth();
+
     // Live Clock
     const clockEl = document.getElementById('admin-clock-time');
     if (clockEl) {
