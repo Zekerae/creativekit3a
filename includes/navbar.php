@@ -46,7 +46,7 @@ function nav_active(string $slug): string {
     <div class="navbar-search" role="search">
       <input type="search" placeholder="What are you looking for?"
              aria-label="Search products" id="navbar-search-input">
-      <i class="fas fa-search search-icon" aria-hidden="true"></i>
+      <i class="fas fa-search search-icon" role="button" tabindex="0" title="Search" aria-label="Search"></i>
     </div>
 
     <!-- Right side links -->

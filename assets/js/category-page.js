@@ -281,7 +281,9 @@
     function buildCard(product) {
       const itemSlug  = product.url.replace(/^\/product\//, '').replace(/\/$/, '');
       const targetCat = product.catSlug || slugKey;
-      const itemsUrl  = `car-charger-adapters.html?cat=${targetCat}&subcat=${product.subcat}&item=${itemSlug}`;
+      const isPhp     = window.location.pathname.endsWith('.php');
+      const targetPage = isPhp ? 'product/car-charger-adapters.php' : 'car-charger-adapters.html';
+      const itemsUrl  = `${targetPage}?cat=${targetCat}&subcat=${product.subcat}&item=${itemSlug}`;
       const categoryTag = product.catName ? `<div style="font-size:0.75rem;color:var(--primary-color);font-weight:700;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">${product.catName}</div>` : '';
 
       return `

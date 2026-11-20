@@ -314,13 +314,16 @@
     const bcSubcatLink = document.getElementById('bc-subcat-link');
     const bcItemName  = document.getElementById('bc-item-name');
 
+    const isPhp = window.location.pathname.endsWith('.php');
+    const catTarget = isPhp ? '../category-page.php' : 'category-page.html';
+
     if (bcCatLink) {
       // Pretty-print the category name from the slug
       const catLabel = params.cat
         .replace(/-/g, ' ')
         .replace(/\b\w/g, c => c.toUpperCase());
       bcCatLink.textContent = catLabel;
-      bcCatLink.href = 'category-page.html?cat=' + encodeURIComponent(params.cat);
+      bcCatLink.href = catTarget + '?cat=' + encodeURIComponent(params.cat);
     }
 
     if (bcSubcatLink) {
@@ -330,7 +333,7 @@
         .replace(/\b\w/g, c => c.toUpperCase());
       bcSubcatLink.textContent = subcatLabel;
       // Back to category page filtered to this subcat
-      bcSubcatLink.href = 'category-page.html?cat=' + encodeURIComponent(params.cat);
+      bcSubcatLink.href = catTarget + '?cat=' + encodeURIComponent(params.cat);
     }
 
     if (bcItemName && itemData) {

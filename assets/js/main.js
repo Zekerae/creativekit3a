@@ -511,9 +511,13 @@ const Search = (() => {
 
   const doSearch = (query) => {
     const q = (query || '').trim();
-    if (!q) return;
+    if (!q) {
+      const input = document.getElementById('navbar-search-input') || document.querySelector('.navbar-search input');
+      if (input) input.focus();
+      return;
+    }
 
-    // Check if currently on the category page (works for /category-page, /category-page.html, etc.)
+    // Check if currently on the category page (works for /category-page, /category-page.html, /category-page.php)
     if (window.location.pathname.includes('category-page')) {
       const input = document.getElementById('navbar-search-input') || document.getElementById('cat-search-input');
       if (input) {
@@ -521,7 +525,10 @@ const Search = (() => {
         input.dispatchEvent(new Event('input', { bubbles: true }));
       }
     } else {
-      window.location.href = `category-page.html?s=${encodeURIComponent(q)}`;
+      // If browsing PHP stack (e.g. index.php), stay on PHP; otherwise use static HTML
+      const isPhp = window.location.pathname.endsWith('.php');
+      const targetPage = isPhp ? 'category-page.php' : 'category-page.html';
+      window.location.href = `${targetPage}?s=${encodeURIComponent(q)}`;
     }
   };
 
@@ -577,13 +584,21 @@ const Search = (() => {
       }
     });
 
-    // Clicking magnifying glass icon submits search
-    searchIcons.forEach((icon) => {
-      icon.style.cursor = 'pointer';
-      on(icon, 'click', () => {
-        const input = icon.closest('.navbar-search')?.querySelector('input');
+    // Clicking or pressing Enter/Space on magnifying glass icon submits search
+    on(document, 'click', (e) => {
+      const icon = e.target.closest('.search-icon');
+      if (!icon) return;
+      e.preventDefault();
+      const input = icon.closest('.navbar-search')?.querySelector('input') || document.getElementById('navbar-search-input');
+      if (input) doSearch(input.value);
+    });
+
+    on(document, 'keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList?.contains('search-icon')) {
+        e.preventDefault();
+        const input = e.target.closest('.navbar-search')?.querySelector('input') || document.getElementById('navbar-search-input');
         if (input) doSearch(input.value);
-      });
+      }
     });
   };
 
