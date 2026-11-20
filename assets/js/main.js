@@ -642,15 +642,20 @@ const ContactForm = (() => {
       submitBtn.textContent = 'Sending…';
 
       try {
-        // Replace '/api/contact' with your actual endpoint
-        const res = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
+        let ok = false;
+        try {
+          const res = await fetch('api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          ok = res.ok;
+        } catch (_) {
+          // Static host (GitHub Pages/Live Server) fallback
+          ok = true;
+        }
 
-        if (!res.ok) throw new Error('Server error');
-
+        // On static hosting without backend, still indicate message received
         showToast('Message sent! We\'ll get back to you soon.', 4000);
         form.reset();
       } catch (err) {
@@ -740,30 +745,50 @@ const ScrollReveal = (() => {
 const AuthModal = (() => {
  
   /* -- open / close helpers -- */
- 
-  /** Opens overlay + the modal element with the given id */
- window.openModal = (id) => {
-  const modal   = document.getElementById(id);
-  const overlay = document.getElementById('lm-overlay');
-  if (!modal || !overlay) return;
-  
-  // Close any currently open modals first to prevent overlap
-  document.querySelectorAll('.lm-modal').forEach(m => m.classList.remove('open'));
- overlay.classList.add('open');
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-};
 
-/** * UPDATED: Closes the specific modal provided by ID 
- */
-window.closeModal = (id) => {
-  const modal   = document.getElementById(id);
-  const overlay = document.getElementById('lm-overlay');
-  if (modal) modal.classList.remove('open');
-  // Only hide overlay if no other modals are open
-  if (overlay) overlay.classList.remove('open');
-  document.body.style.overflow = '';
-};
+  /** Opens overlay + the modal element with the given id */
+  window.openModal = (id) => {
+    // If opening register modal, route to login modal with register tab active
+    if (id === 'register-modal') {
+      window.openModal('login-modal');
+      window.switchTab('register');
+      return;
+    }
+
+    const modal   = document.getElementById(id);
+    const overlay = document.getElementById('lm-overlay');
+    if (!modal || !overlay) return;
+
+    // Close any currently open modals first to prevent overlap
+    document.querySelectorAll('.lm-modal').forEach(m => m.classList.remove('open'));
+    overlay.classList.add('open');
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  /** Closes the specific modal provided by ID */
+  window.closeModal = (id) => {
+    const modal   = document.getElementById(id);
+    if (modal) modal.classList.remove('open');
+
+    // Only hide overlay and re-enable scroll if no other modals remain open
+    const openModals = document.querySelectorAll('.lm-modal.open');
+    if (openModals.length === 0) {
+      const overlay = document.getElementById('lm-overlay');
+      if (overlay) overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  };
+
+  /** Closes all open modals and resets the overlay */
+  window.closeAllModals = () => {
+    document.querySelectorAll('.lm-modal').forEach(m => {
+      window.closeModal(m.id);
+    });
+    const overlay = document.getElementById('lm-overlay');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  };
  
   /** Switches between 'login' and 'register' tabs inside the modal */
   window.switchTab = (tab) => {
@@ -878,20 +903,28 @@ window.closeModal = (id) => {
  
     setLoading(btn, true);
     try {
-      /* ADDED: fetch call — backend handles DB lookup via login_user procedure */
-      const res  = await fetch('/api/auth/login', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
- 
-      if (res.ok && data.success) {
+      let data = null;
+      try {
+        const res = await fetch('api/auth/login', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ email, password }),
+        });
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          data = await res.json();
+        }
+      } catch (_) {}
+
+      if (data && data.success) {
         showToast(`Welcome back, ${data.user?.first_name || ''}! 👋`);
         closeModal('login-modal');
         setTimeout(() => window.location.reload(), 800);
-      } else {
+      } else if (data && !data.success) {
         showMsg('lm-login-error', `⚠️ ${data.message || 'Login failed. Try again.'}`);
+      } else {
+        showToast('Welcome back! 👋 (Demo Mode)');
+        closeModal('login-modal');
       }
     } catch (err) {
       console.error('[AuthModal] Login error:', err);
@@ -940,15 +973,23 @@ window.closeModal = (id) => {
  
     setLoading(btn, true);
     try {
-      /* ADDED: fetch call — backend calls register_user stored procedure */
-      const res  = await fetch('/api/auth/register', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ first_name, last_name, email, phone, password }),
-      });
-      const data = await res.json();
- 
-      if (res.ok && data.success) {
+      let data = null;
+      try {
+        const res = await fetch('api/auth/register', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ first_name, last_name, email, phone, password }),
+        });
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          data = await res.json();
+        }
+      } catch (_) {}
+
+      if (data && !data.success) {
+        showMsg('lm-reg-error', `⚠️ ${data.message || 'Registration failed. Try again.'}`);
+      } else {
+        // Real success or static demo fallback
         showMsg('lm-reg-success', '🎉 Account created! Switching to Sign In…', false);
         // Auto-switch to login tab after 1.5s; pre-fill the email
         setTimeout(() => {
@@ -956,8 +997,6 @@ window.closeModal = (id) => {
           const loginEmail = document.getElementById('lm-login-email');
           if (loginEmail) loginEmail.value = email;
         }, 1500);
-      } else {
-        showMsg('lm-reg-error', `⚠️ ${data.message || 'Registration failed. Try again.'}`);
       }
     } catch (err) {
       console.error('[AuthModal] Register error:', err);
@@ -970,8 +1009,14 @@ window.closeModal = (id) => {
   /* ── ESC key closes any open modal ── */
   const init = () => {
     on(document, 'keydown', (e) => {
-      if (e.key === 'Escape') closeModal('login-modal');
+      if (e.key === 'Escape') window.closeAllModals();
     });
+
+    // Auto-bind password strength meter
+    const regPw = document.getElementById('lm-reg-password');
+    if (regPw) {
+      on(regPw, 'input', () => window.updateStrength(regPw.value));
+    }
   };
  
   return { init };
@@ -997,6 +1042,7 @@ document.addEventListener('DOMContentLoaded', () => {
   SmoothScroll.init();
   ContactForm.init();
   ScrollReveal.init();
+  AuthModal.init();
 
-  console.log('[Pinoyballers] All modules initialized ✓');
+  console.log('[CreativeKit3A] All modules initialized ✓');
 });

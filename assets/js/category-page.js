@@ -22,17 +22,17 @@
           { key: 'gadgets',  label: 'Gadgets' },
         ],
         products: [
-          { id:1,  name:'Car Charger Adapters',         price:'As low as ₱85.00',  img:'/assets/images/car-charger-adapters.png',                                                                            url:'/product/car-charger-adapter',          subcat:'car'      },
-          { id:2,  name:'Car Organizers & Holders',     price:'As low as ₱120.00', img:'/assets/images/car-organizer.png',                                                                       url:'/product/car-organizers',               subcat:'car'      },
-          { id:3,  name:'Dash Cams',                    price:'As low as ₱450.00', img:'/assets/images/dash-cam.png',                                         url:'/product/car-dashcams',                 subcat:'car'      },
-          { id:4,  name:'Audio Accessories',            price:'As low as ₱95.00',  img:'/assets/images/audio-accessories.png',                                                            url:'/product/computer-audio',               subcat:'computer' },
-          { id:5,  name:'Mouse & Mouse Pads',           price:'As low as ₱75.00',  img:'/assets/images/mouse-pad.png',                                          url:'/product/computer-mouse',               subcat:'computer' },
-          { id:7,  name:'Desk Organizers & Pen Holders',price:'As low as ₱95.00',  img:'/assets/images/desk-organizer.png',                                                                   url:'/product/desk-organizers',              subcat:'desk'     },
-          { id:8,  name:'Clocks & Timepieces',          price:'As low as ₱220.00', img:'/assets/images/wooven-clock.png',                                    url:'/product/desk-clocks',                  subcat:'desk'     },
-          { id:9,  name:'Mobile Power Banks',           price:'As low as ₱350.00', img:'/assets/images/mobile-powerbank.png',                                                                            url:'/product/mobile-powerbanks',            subcat:'mobile'   },
-          { id:10, name:'Mobile Stands',                price:'As low as ₱65.00',  img:'/assets/images/mobile-stand.png',                                                                       url:'/product/mobile-stands',                subcat:'mobile'   },
-          { id:11, name:'Portable Fans',                price:'As low as ₱180.00', img:'/assets/images/portable-fan.png',                                         url:'/product/gadgets-portable-fans',        subcat:'gadgets'  },
-          { id:12, name:'Power Banks',                  price:'As low as ₱380.00', img:'/assets/images/power-banks.png',                                                            url:'/product/gadgets-powerbanks',           subcat:'gadgets'  },
+          { id:1,  name:'Car Charger Adapters',         price:'As low as ₱85.00',  img:'assets/images/car-charger-adapters.png',                                                                            url:'/product/car-charger-adapter',          subcat:'car'      },
+          { id:2,  name:'Car Organizers & Holders',     price:'As low as ₱120.00', img:'assets/images/car-organizer.png',                                                                       url:'/product/car-organizers',               subcat:'car'      },
+          { id:3,  name:'Dash Cams',                    price:'As low as ₱450.00', img:'assets/images/dash-cam.png',                                         url:'/product/car-dashcams',                 subcat:'car'      },
+          { id:4,  name:'Audio Accessories',            price:'As low as ₱95.00',  img:'assets/images/audio-accessories.png',                                                            url:'/product/computer-audio',               subcat:'computer' },
+          { id:5,  name:'Mouse & Mouse Pads',           price:'As low as ₱75.00',  img:'assets/images/mouse-pad.png',                                          url:'/product/computer-mouse',               subcat:'computer' },
+          { id:7,  name:'Desk Organizers & Pen Holders',price:'As low as ₱95.00',  img:'assets/images/desk-organizer.png',                                                                   url:'/product/desk-organizers',              subcat:'desk'     },
+          { id:8,  name:'Clocks & Timepieces',          price:'As low as ₱220.00', img:'assets/images/wooven-clock.png',                                    url:'/product/desk-clocks',                  subcat:'desk'     },
+          { id:9,  name:'Mobile Power Banks',           price:'As low as ₱350.00', img:'assets/images/mobile-powerbank.png',                                                                            url:'/product/mobile-powerbanks',            subcat:'mobile'   },
+          { id:10, name:'Mobile Stands',                price:'As low as ₱65.00',  img:'assets/images/mobile-stand.png',                                                                       url:'/product/mobile-stands',                subcat:'mobile'   },
+          { id:11, name:'Portable Fans',                price:'As low as ₱180.00', img:'assets/images/portable-fan.png',                                         url:'/product/gadgets-portable-fans',        subcat:'gadgets'  },
+          { id:12, name:'Power Banks',                  price:'As low as ₱380.00', img:'assets/images/power-banks.png',                                                            url:'/product/gadgets-powerbanks',           subcat:'gadgets'  },
         ]
       },
 
@@ -209,17 +209,23 @@
 
     /* ============================================================
        DETECT WHICH CATEGORY WE'RE ON
-       Reads the URL: /product-category/drinkware → 'drinkware'
-       Also handles /product-category-pu-leather/ → 'pu-leather'
+       Reads URL query param (?cat=drinkware) or path (/product-category/drinkware)
        ============================================================ */
     function getCategorySlug() {
+      // 1. Check query parameter first (?cat=drinkware)
+      const params = new URLSearchParams(window.location.search);
+      const catParam = params.get('cat');
+      if (catParam && CATEGORY_DATA[catParam]) return catParam;
+
+      // 2. Try /product-category/SLUG pattern in pathname
       const path = window.location.pathname;
-      // Try /product-category/SLUG pattern first
       const m = path.match(/\/product-category\/([^/]+)/);
-      if (m) return m[1];
-      // Special case for PU leather URL
+      if (m && CATEGORY_DATA[m[1]]) return m[1];
+
+      // 3. Special case for PU leather URL
       if (path.includes('pu-leather')) return 'pu-leather';
-      // Fallback: show accessories
+
+      // 4. Fallback: show accessories
       return 'accessories-gadgets';
     }
 
@@ -228,11 +234,17 @@
        ============================================================ */
     function renderHero(cat) {
       document.title = cat.name + ' | CreativeKit3A';
-      document.getElementById('hero-title').textContent         = cat.name;
-      document.getElementById('hero-breadcrumb-current').textContent = cat.name;
-      document.getElementById('hero-desc').textContent          = cat.desc;
-      document.getElementById('hero-product-count').textContent = cat.count;
-      document.getElementById('hero-icon').innerHTML            = '<i class="' + cat.icon + '"></i>';
+      const titleEl = document.getElementById('hero-title');
+      const breadcrumbEl = document.getElementById('hero-breadcrumb-current');
+      const descEl = document.getElementById('hero-desc');
+      const countEl = document.getElementById('hero-product-count');
+      const iconEl = document.getElementById('hero-icon');
+
+      if (titleEl) titleEl.textContent = cat.name;
+      if (breadcrumbEl) breadcrumbEl.textContent = cat.name;
+      if (descEl) descEl.textContent = cat.desc;
+      if (countEl) countEl.textContent = cat.count;
+      if (iconEl) iconEl.innerHTML = '<i class="' + cat.icon + '"></i>';
     }
 
     /* ============================================================
@@ -240,6 +252,7 @@
        ============================================================ */
     function renderTabs(cat, activeSubcat) {
       const container = document.getElementById('subcat-tabs-container');
+      if (!container) return;
       container.innerHTML = '';
 
       // "All" tab
@@ -266,13 +279,8 @@
        BUILD A PRODUCT CARD (matches the style in index.html)
        ============================================================ */
     function buildCard(product) {
-      // ADDED: Build the items-page URL from the product's existing fields.
-      // Strips the leading /product/ from product.url to get the item slug,
-      // then constructs: items-page.html?cat=SLUG&subcat=SUBCAT&item=ITEM_SLUG
-      // This replaces the old direct product.url so clicking a sub-category
-      // card opens items-page.html showing the individual variants.
       const itemSlug  = product.url.replace(/^\/product\//, '').replace(/\/$/, '');
-      const itemsUrl  = `items-page.html?cat=${slugKey}&subcat=${product.subcat}&item=${itemSlug}`;
+      const itemsUrl  = `car-charger-adapters.html?cat=${slugKey}&subcat=${product.subcat}&item=${itemSlug}`;
 
       return `
         <div class="product-card" data-product-id="${product.id}" data-url="${itemsUrl}">
@@ -280,10 +288,12 @@
             <img src="${product.img}" alt="${product.name}" loading="lazy">
           </div>
           <div class="product-card-body">
-            <div class="product-card-title">${product.name}</p>
-            <div class="product-card-price">${product.price}</p>
+            <div class="product-card-title">${product.name}</div>
+            <div class="product-card-price">${product.price}</div>
           </div>
-         
+          <div class="product-card-footer">
+            <span class="customize-btn"><i class="fas fa-chevron-right" aria-hidden="true"></i> CUSTOMIZE</span>
+          </div>
         </div>`;
     }
 

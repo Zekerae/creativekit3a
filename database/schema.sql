@@ -5,11 +5,11 @@
 -- ============================================================
 
 -- Create and select the database
-CREATE DATABASE IF NOT EXISTS pinoyballers_db
+CREATE DATABASE IF NOT EXISTS creativekit3a
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE pinoyballers_db;
+USE creativekit3a;
 
 -- ============================================================
 --  TABLE: categories
@@ -452,7 +452,7 @@ VALUES
   (11, 'Embossed Wristbands',             'embossed-wristbands',               'WB-EMB-001',  'Raised text/logo silicone bands',                    11.00, 1, 0, 1, 4),
   (11, 'Dual Layer Wristbands',           'dual-layer-wristbands',             'WB-DUL-001',  'Two-layer contrasting silicone',                     13.00, 1, 0, 1, 5),
   (13, 'Fabric Wristbands',              'fabric-wristbands',                 'WB-FAB-001',  'Woven cloth event wristbands',                       23.40, 1, 0, 1, 6),
-  (14, 'Tyvek Wristbands',              'tyvek-wristbands',                  'WB-TVK-001',  'Disposable Tyvek event wristbands',                   2.40, 1, 0, 1, 7),
+  (12, 'Tyvek Wristbands',              'tyvek-wristbands',                  'WB-TVK-001',  'Disposable Tyvek event wristbands',                   2.40, 1, 0, 1, 7),
   (14, 'Plastic Wristbands',            'plastic-wristbands',                'WB-PLS-001',  'Snap-on plastic wristbands',                          5.45, 1, 0, 1, 8),
   (11, 'Election Wristbands',            'election-wristbands',               'WB-ELX-001',  'Campaign and election silicone bands',                11.00, 1, 1, 1, 9),
   (2,  'Soft Enamel Lapel Pins',         'soft-enamel-lapel-pins',            'LP-SFT-001',  'Colorful soft enamel lapel pins',                    39.90, 1, 1, 1, 1),

@@ -61,7 +61,7 @@ include __DIR__ . '/../includes/navbar.php';
         </p>
         <div class="item-hero-meta">
           <span class="item-hero-price" id="item-hero-price">As low as ₱85.00</span>
-          <button class="btn btn-primary item-hero-cta" id="item-hero-cta">
+          <button class="btn btn-primary item-hero-cta" id="item-hero-cta" onclick="openModal('quote-modal')" aria-label="Request a Quote">
             <i class="fas fa-paint-brush"></i> Request a Quote
           </button>
         </div>

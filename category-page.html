@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse our complete collection of corporate giveaways — accessories, apparel, bags, drinkware, and more. CreativeKit3A.">
+  <title>Product Categories | CreativeKit3A</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+
+  <!-- Shared & Page Stylesheets -->
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/quote-modal.css">
+  <link rel="stylesheet" href="assets/css/category-page.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <div class="top-bar">
+    <div class="container">
+      <ul class="top-bar-social">
+        <li>
+          <a href="https://www.facebook.com/profile.php?id=100063787431490"
+             target="_blank" rel="noopener" aria-label="Facebook">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+        </li>
+        <li class="top-bar-auth">
+          <button class="btn btn-outline btn-sm" onclick="openModal('login-modal')">Sign In</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('register-modal')">Register</button>
+        </li>
+      </ul>
+
+      <div class="top-bar-contact">
+        <a href="mailto:salesandmarketing@creativekit3a.com">
+          <i class="fas fa-envelope icon"></i> salesandmarketing@creativekit3a.com
+        </a>
+        <a href="tel:+639177142774">
+          <i class="fas fa-mobile-alt icon"></i> +63 917 714 2774
+        </a>
+        <a href="tel:+639339927410">
+          <i class="fas fa-phone icon"></i> +63 933 992 7410
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MAIN NAVBAR
+       ============================================================ -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="sidenav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <!-- Logo -->
+      <a href="index.html" class="navbar-logo" aria-label="CreativeKit3A home">
+        <img src="assets/images/logo.png" alt="CreativeKit3A Logo" class="logo-img">
+        <span class="logo-text">CreativeKit3A</span>
+      </a>
+
+      <!-- Search -->
+      <div class="navbar-search" role="search">
+        <input type="search" placeholder="What are you looking for?"
+               aria-label="Search products" id="navbar-search-input">
+        <i class="fas fa-search search-icon" aria-hidden="true"></i>
+      </div>
+
+      <!-- Right side links -->
+      <div class="navbar-right">
+        <nav class="navbar-links" aria-label="Secondary navigation">
+          <a href="index.html#corporate-heading">About</a>
+          <a href="category-page.html?cat=accessories-gadgets">Category</a>
+          <a href="index.html#contact-heading">Contact Us</a>
+        </nav>
+        <button class="btn-chat" onclick="openModal('quote-modal')" aria-label="Request a Quote">Request a Quote</button>
+        <a href="category-page.html?cat=accessories-gadgets" class="navbar-cart" aria-label="Shopping cart">
+          <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+          <span>Cart</span>
+          <span class="cart-count" aria-live="polite">0</span>
+        </a>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       MEGA MENU BAR
+       ============================================================ -->
+  <div class="mega-menu-bar" role="navigation" aria-label="Category navigation">
+    <ul class="mega-menu-nav">
+
+      <!-- ACCESSORIES & GADGETS -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=accessories-gadgets">ACCESSORIES &amp; GADGETS <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <h4>Car Accessories</h4>
+            <a href="car-charger-adapters.html?cat=accessories-gadgets&amp;subcat=car&amp;item=car-charger-adapter">Car Charger Adapters</a>
+            <a href="car-charger-adapters.html?cat=accessories-gadgets&amp;subcat=car&amp;item=car-organizers">Car Organizers &amp; Holders</a>
+            <a href="category-page.html?cat=accessories-gadgets">Car Tools &amp; Emergency Gear</a>
+            <a href="car-charger-adapters.html?cat=accessories-gadgets&amp;subcat=car&amp;item=car-dashcams">Dash Cams</a>
+            <a href="category-page.html?cat=accessories-gadgets">Dashboard Tools</a>
+            <a href="category-page.html?cat=accessories-gadgets">Flash Lights</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Computer Accessories</h4>
+            <a href="car-charger-adapters.html?cat=accessories-gadgets&amp;subcat=computer&amp;item=computer-audio">Audio Accessories</a>
+            <a href="category-page.html?cat=accessories-gadgets">Laptop &amp; Keyboard Accessories</a>
+            <a href="category-page.html?cat=accessories-gadgets">Mouse &amp; Mouse Pads</a>
+            <a href="category-page.html?cat=accessories-gadgets">USB Hub &amp; Connectors</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Desk Accessories</h4>
+            <a href="category-page.html?cat=accessories-gadgets">Clocks &amp; Timepieces</a>
+            <a href="category-page.html?cat=accessories-gadgets">Desk Organizers &amp; Pen Holders</a>
+            <a href="category-page.html?cat=accessories-gadgets">Memo Holders &amp; Memo Cubes</a>
+            <a href="category-page.html?cat=accessories-gadgets">Mobile &amp; Gadget Stands</a>
+            <a href="category-page.html?cat=accessories-gadgets">Portable Fans &amp; Lights</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Mobile Accessories</h4>
+            <a href="category-page.html?cat=accessories-gadgets">Adapters</a>
+            <a href="category-page.html?cat=accessories-gadgets">Cables &amp; Connectors</a>
+            <a href="car-charger-adapters.html?cat=accessories-gadgets&amp;subcat=mobile&amp;item=mobile-powerbanks">Mobile Power Banks</a>
+            <a href="category-page.html?cat=accessories-gadgets">Mobile Stands</a>
+            <a href="category-page.html?cat=accessories-gadgets">Speakers</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Gadgets</h4>
+            <a href="category-page.html?cat=accessories-gadgets">Audio &amp; Music Accessories</a>
+            <a href="category-page.html?cat=accessories-gadgets">Charging Devices</a>
+            <a href="category-page.html?cat=accessories-gadgets">Portable Fans</a>
+            <a href="category-page.html?cat=accessories-gadgets">Portable Lights</a>
+            <a href="category-page.html?cat=accessories-gadgets">Power Banks</a>
+            <a href="category-page.html?cat=accessories-gadgets">Tools</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- APPAREL -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=apparel">APPAREL <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <h4>Caps</h4>
+            <a href="category-page.html?cat=apparel">Baseball Cap</a>
+            <a href="category-page.html?cat=apparel">Bucket Hat</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Jackets</h4>
+            <a href="category-page.html?cat=apparel">Bomber Jackets</a>
+            <a href="category-page.html?cat=apparel">Corporate Jackets</a>
+            <a href="category-page.html?cat=apparel">Hoodies</a>
+            <a href="category-page.html?cat=apparel">Sports &amp; Windbreaker Jackets</a>
+            <a href="category-page.html?cat=apparel">Varsity Jackets</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Shirts</h4>
+            <a href="category-page.html?cat=apparel">Collared Shirt</a>
+            <a href="category-page.html?cat=apparel">Dri Fit Shirt</a>
+            <a href="category-page.html?cat=apparel">Golf Shirt</a>
+            <a href="category-page.html?cat=apparel">Honeycomb Shirt</a>
+            <a href="category-page.html?cat=apparel">Round Neck Shirt</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- BAGS & POUCHES -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=bags-pouches">BAGS &amp; POUCHES <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <h4>Backpacks</h4>
+            <a href="category-page.html?cat=bags-pouches">Computer Backpacks</a>
+            <a href="category-page.html?cat=bags-pouches">Sports Backpacks</a>
+            <a href="category-page.html?cat=bags-pouches">Travel Backpacks</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Eco Bags</h4>
+            <a href="category-page.html?cat=bags-pouches">Foldable Shopping Totes</a>
+            <a href="category-page.html?cat=bags-pouches">Non Woven Shopping Bags</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Laptop Bags</h4>
+            <a href="category-page.html?cat=bags-pouches">Laptop Backpacks</a>
+            <a href="category-page.html?cat=bags-pouches">Laptop Shoulder Bags</a>
+            <a href="category-page.html?cat=bags-pouches">Laptop Hand Carry Bags</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Tote Bags</h4>
+            <a href="category-page.html?cat=bags-pouches">Classic Zip Totes</a>
+            <a href="category-page.html?cat=bags-pouches">Foldable Totes</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Travel Bags</h4>
+            <a href="category-page.html?cat=bags-pouches">Back Pack Travel Bags</a>
+            <a href="category-page.html?cat=bags-pouches">Duffel Travel Bags</a>
+            <a href="category-page.html?cat=bags-pouches">Tote Travel Bag</a>
+            <a href="category-page.html?cat=bags-pouches">Weekender Travel Bag</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- DRINKWARE -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=drinkware">DRINKWARE <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <h4>Tumbler &amp; Flasks</h4>
+            <a href="car-charger-adapters.html?cat=drinkware&amp;subcat=tumbler&amp;item=tumbler-bamboo">Bamboo Tumblers</a>
+            <a href="category-page.html?cat=drinkware">Insulated &amp; Double-Walled</a>
+            <a href="category-page.html?cat=drinkware">Tumblers</a>
+            <a href="category-page.html?cat=drinkware">Stainless Steel Tumblers</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Mugs &amp; Cups</h4>
+            <a href="category-page.html?cat=drinkware">Ceramic Mugs</a>
+            <a href="category-page.html?cat=drinkware">Coffee Mugs</a>
+            <a href="category-page.html?cat=drinkware">Stainless Steel Mugs</a>
+            <a href="category-page.html?cat=drinkware">Travel Mugs with Lids</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Water Bottles</h4>
+            <a href="category-page.html?cat=drinkware">BPA-Free Bottles</a>
+            <a href="category-page.html?cat=drinkware">Sports Bottles</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- GIFT SET -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=giftset">GIFT SET <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <a href="category-page.html?cat=giftset">Active Outdoors Gift Sets</a>
+            <a href="category-page.html?cat=giftset">Desk Essentials Gift Sets</a>
+            <a href="category-page.html?cat=giftset">Employee Onboarding Sets</a>
+            <a href="category-page.html?cat=giftset">Gadget Gift Sets</a>
+            <a href="category-page.html?cat=giftset">Health &amp; Wellness Gift Sets</a>
+            <a href="category-page.html?cat=giftset">Sustainable Gift Sets</a>
+            <a href="category-page.html?cat=giftset">Work From Home Gift Sets</a>
+            <a href="category-page.html?cat=giftset">Travel Executive Gift Sets</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- HOME LIVING -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=home-living">HOME LIVING <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <a href="category-page.html?cat=home-living">Cleaning Essentials</a>
+            <a href="category-page.html?cat=home-living">Cutlery Sets</a>
+            <a href="category-page.html?cat=home-living">Hand Towels</a>
+            <a href="category-page.html?cat=home-living">Outdoor Chairs</a>
+            <a href="category-page.html?cat=home-living">Personal Care</a>
+            <a href="category-page.html?cat=home-living">Pillows</a>
+            <a href="category-page.html?cat=home-living">Portable Fans</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- PEN & PAPER -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=pen-paper">PEN &amp; PAPER <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <h4>Pen</h4>
+            <a href="car-charger-adapters.html?cat=pen-paper&amp;subcat=pen&amp;item=pen-metal">Bamboo Pens</a>
+            <a href="car-charger-adapters.html?cat=pen-paper&amp;subcat=pen&amp;item=pen-metal">Metal Pens</a>
+            <a href="category-page.html?cat=pen-paper">Plastic Pens</a>
+            <a href="category-page.html?cat=pen-paper">Pen Gift Sets</a>
+          </div>
+          <div class="mega-dropdown-col">
+            <h4>Paper</h4>
+            <a href="category-page.html?cat=pen-paper">Boxed Notes</a>
+            <a href="category-page.html?cat=pen-paper">Custom Desk Calendars</a>
+            <a href="category-page.html?cat=pen-paper">Custom Notebooks &amp; Journals</a>
+            <a href="category-page.html?cat=pen-paper">Memo Solutions</a>
+            <a href="category-page.html?cat=pen-paper">Stationery Sets</a>
+            <a href="category-page.html?cat=pen-paper">Padfolios</a>
+          </div>
+        </div>
+      </li>
+
+      <!-- PU LEATHER -->
+      <li class="mega-menu-item">
+        <a href="category-page.html?cat=pu-leather">PU LEATHER <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-col">
+            <a href="category-page.html?cat=pu-leather">Card Cases</a>
+            <a href="category-page.html?cat=pu-leather">Desk Mats</a>
+            <a href="category-page.html?cat=pu-leather">Leather Pouches</a>
+            <a href="category-page.html?cat=pu-leather">Keychains</a>
+            <a href="category-page.html?cat=pu-leather">Luggage Tags</a>
+            <a href="category-page.html?cat=pu-leather">Organizers</a>
+            <a href="category-page.html?cat=pu-leather">Wallets</a>
+          </div>
+        </div>
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- ============================================================
+       MOBILE SIDENAV
+       ============================================================ -->
+  <div class="sidenav-overlay" aria-hidden="true"></div>
+
+  <aside class="sidenav" id="sidenav" role="complementary" aria-label="Mobile navigation">
+    <div class="sidenav-header">
+      <span class="logo-text">CreativeKit3A</span>
+      <button class="sidenav-close" aria-label="Close menu">&times;</button>
+    </div>
+    <div class="sidenav-body">
+      <p class="sidenav-section-title">Categories</p>
+      <a href="category-page.html?cat=accessories-gadgets">ACCESSORIES &amp; GADGETS</a>
+      <a href="category-page.html?cat=apparel">APPAREL</a>
+      <a href="category-page.html?cat=bags-pouches">BAGS &amp; POUCHES</a>
+      <a href="category-page.html?cat=drinkware">DRINKWARE</a>
+      <a href="category-page.html?cat=giftset">GIFT SET</a>
+      <a href="category-page.html?cat=home-living">HOME LIVING</a>
+      <a href="category-page.html?cat=pen-paper">PEN &amp; PAPER</a>
+      <a href="category-page.html?cat=pu-leather">PU LEATHER</a>
+      <p class="sidenav-section-title">Help</p>
+      <a href="index.html#corporate-heading">About</a>
+      <a href="category-page.html?cat=accessories-gadgets">All Categories</a>
+      <a href="index.html#contact-heading">Contact Us</a>
+      <p class="sidenav-section-title">Contact</p>
+      <a href="tel:+639177142774"><i class="fas fa-mobile-alt"></i> +63 917 714 2774</a>
+      <a href="tel:+639339927410"><i class="fas fa-phone"></i> +63 933 992 7410</a>
+      <a href="mailto:salesandmarketing@creativekit3a.com"><i class="fas fa-envelope"></i> salesandmarketing@creativekit3a.com</a>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       BREADCRUMB BAR
+       JS (renderHero) writes the active category name into #hero-breadcrumb-current
+       ============================================================ -->
+  <div class="cat-breadcrumb-bar">
+    <div class="container">
+      <nav class="cat-breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <span class="sep"><i class="fas fa-chevron-right"></i></span>
+        <span class="current" id="hero-breadcrumb-current">Categories</span>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CATEGORY HERO BANNER
+       ============================================================ -->
+  <section class="cat-hero" aria-labelledby="hero-title">
+    <div class="container cat-hero-inner">
+      <div class="cat-hero-left">
+        <div class="cat-hero-icon-box" id="hero-icon" aria-hidden="true">
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <div>
+          <h1 class="cat-hero-title">
+            <span id="hero-title">Accessories &amp; Gadgets</span>
+            <span class="cat-hero-count" id="hero-product-count">25+</span>
+          </h1>
+          <p class="cat-hero-desc" id="hero-desc">
+            Browse our full range of custom accessories, gadgets, tech items, and desk essentials.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SUBCATEGORY FILTER TABS (injected by JS)
+       ============================================================ -->
+  <div class="subcat-tabs-wrapper" id="subcat-tabs-wrapper">
+    <div class="container" id="subcat-tabs-container">
+      <!-- Tabs injected by JS -->
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PRODUCT LISTING
+       ============================================================ -->
+  <section class="cat-listing-section">
+    <div class="container">
+
+      <!-- Sort bar -->
+      <div class="sort-bar">
+        <div class="sort-bar-left">
+          Showing <strong id="showing-count">all</strong> products
+          <span id="showing-in"> in <strong id="showing-subcat">all categories</strong></span>
+        </div>
+        <div class="sort-bar-right">
+          <label for="sort-select" style="font-size:0.8rem;color:var(--grey-mid);font-weight:600;">Sort by:</label>
+          <select class="sort-select" id="sort-select" aria-label="Sort products">
+            <option value="default">Default</option>
+            <option value="name-asc">Name A–Z</option>
+            <option value="name-desc">Name Z–A</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Product grid (JS renders cards here) -->
+      <div class="cat-product-grid" id="cat-product-grid">
+        <!-- Products rendered by JS based on active tab -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SITE FOOTER
+       ============================================================ -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-main">
+      <div class="container">
+        <div class="footer-grid">
+
+          <!-- Brand -->
+          <div class="footer-brand">
+            <a href="index.html" aria-label="CreativeKit3A home">
+              <span class="logo-text">CreativeKit3A</span>
+            </a>
+            <p class="tagline">
+              VAT registered company<br>
+              2779B R. FERNANDEZ ST. CORNER BENITA ST. GAGALANGIN, TONDO, MANILA, Philippines, 1013
+            </p>
+            <div class="footer-social" aria-label="Social media links">
+              <a href="https://www.facebook.com/profile.php?id=100063787431490"
+                 target="_blank" rel="noopener" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Contact Info -->
+          <div class="footer-col">
+            <h5>Contact Information</h5>
+            <div class="footer-contact-item">
+              <i class="fas fa-envelope icon" aria-hidden="true"></i>
+              <a href="mailto:salesandmarketing@creativekit3a.com">salesandmarketing@creativekit3a.com</a>
+            </div>
+            <div class="footer-contact-item">
+              <i class="fas fa-mobile-alt icon" aria-hidden="true"></i>
+              <a href="tel:+639177142774">+63 917 714 2774</a>
+            </div>
+            <div class="footer-contact-item">
+              <i class="fas fa-phone icon" aria-hidden="true"></i>
+              <a href="tel:+639339927410">+63 933 992 7410</a>
+            </div>
+          </div>
+
+          <!-- Customer Help -->
+          <div class="footer-col">
+            <h5>Customer Help</h5>
+            <ul>
+              <li><a href="index.html#corporate-heading">About</a></li>
+              <li><a href="category-page.html?cat=accessories-gadgets">All Categories</a></li>
+              <li><a href="index.html#contact-heading">Contact Us</a></li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; Copyright 2026. CreativeKit3A.shop All Rights Reserved.</p>
+        <div class="footer-payments" aria-label="Accepted payment methods">
+          <img src="https://pinoyballers.com/wp-content/uploads/2024/04/mastercard.png" alt="Mastercard">
+          <img src="https://pinoyballers.com/wp-content/uploads/2024/04/visa.png" alt="Visa">
+          <img src="https://pinoyballers.com/wp-content/uploads/2024/04/paypal-new.png" alt="PayPal">
+          <img src="https://pinoyballers.com/wp-content/uploads/2024/04/BPI.png" alt="BPI">
+          <img src="https://pinoyballers.com/wp-content/uploads/2024/04/paymongo_gcash.png" alt="GCash">
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       MODALS & TOAST
+       ============================================================ -->
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Overlay -->
+  <div class="lm-overlay" id="lm-overlay" onclick="closeAllModals()" aria-hidden="true"></div>
+
+  <!-- Auth Modal -->
+  <div class="lm-modal" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="lm-card">
+      <button class="lm-close" onclick="closeModal('login-modal')" aria-label="Close">&times;</button>
+
+      <div class="lm-header">
+        <span class="lm-brand">CreativeKit3A</span>
+        <p class="lm-tagline" id="login-title">Access your account or register</p>
+      </div>
+
+      <div class="lm-tabs" role="tablist">
+        <button class="lm-tab active" id="tab-login" role="tab" aria-selected="true"
+                onclick="switchTab('login')">Sign In</button>
+        <button class="lm-tab" id="tab-register" role="tab" aria-selected="false"
+                onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- Sign In Panel -->
+      <div class="lm-panel" id="panel-login" role="tabpanel">
+        <div class="lm-field">
+          <label for="lm-login-email"><i class="fas fa-envelope"></i> Email Address</label>
+          <input type="email" id="lm-login-email" placeholder="you@email.com"
+                 autocomplete="email" required>
+        </div>
+        <div class="lm-field">
+          <label for="lm-login-password"><i class="fas fa-lock"></i> Password</label>
+          <div class="lm-pw-wrap">
+            <input type="password" id="lm-login-password" placeholder="••••••••"
+                   autocomplete="current-password" required>
+            <button type="button" class="lm-pw-toggle"
+                    onclick="togglePw('lm-login-password', this)" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="lm-extras">
+          <label class="lm-remember"><input type="checkbox" id="lm-remember"> Remember me</label>
+          <a href="#forgot-password" class="lm-forgot">Forgot password?</a>
+        </div>
+        <div class="lm-msg lm-msg--error" id="lm-login-error" hidden></div>
+        <button class="btn btn-primary lm-submit" id="lm-login-btn" onclick="submitLogin()">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+        <p class="lm-switch">
+          Don't have an account?
+          <a href="#" onclick="switchTab('register'); return false;">Register here</a>
+        </p>
+      </div>
+
+      <!-- Register Panel -->
+      <div class="lm-panel" id="panel-register" role="tabpanel" hidden>
+        <div class="lm-field-row">
+          <div class="lm-field">
+            <label for="lm-reg-firstname"><i class="fas fa-user"></i> First Name</label>
+            <input type="text" id="lm-reg-firstname" placeholder="Juan"
+                   autocomplete="given-name" required>
+          </div>
+          <div class="lm-field">
+            <label for="lm-reg-lastname"><i class="fas fa-user"></i> Last Name</label>
+            <input type="text" id="lm-reg-lastname" placeholder="Dela Cruz"
+                   autocomplete="family-name" required>
+          </div>
+        </div>
+        <div class="lm-field">
+          <label for="lm-reg-email"><i class="fas fa-envelope"></i> Email Address</label>
+          <input type="email" id="lm-reg-email" placeholder="you@email.com"
+                 autocomplete="email" required>
+        </div>
+        <div class="lm-field">
+          <label for="lm-reg-phone">
+            <i class="fas fa-mobile-alt"></i> Mobile
+            <span class="lm-optional">(optional)</span>
+          </label>
+          <input type="tel" id="lm-reg-phone" placeholder="+63 917 000 0000" autocomplete="tel">
+        </div>
+        <div class="lm-field">
+          <label for="lm-reg-password"><i class="fas fa-lock"></i> Password</label>
+          <div class="lm-pw-wrap">
+            <input type="password" id="lm-reg-password" placeholder="At least 8 characters"
+                   autocomplete="new-password" required oninput="updateStrength(this.value)">
+            <button type="button" class="lm-pw-toggle"
+                    onclick="togglePw('lm-reg-password', this)" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <div class="lm-strength-bar"><div class="lm-strength-fill" id="lm-strength-fill"></div></div>
+          <span class="lm-strength-label" id="lm-strength-label"></span>
+        </div>
+        <div class="lm-field">
+          <label for="lm-reg-confirm"><i class="fas fa-lock"></i> Confirm Password</label>
+          <div class="lm-pw-wrap">
+            <input type="password" id="lm-reg-confirm" placeholder="Repeat your password"
+                   autocomplete="new-password" required>
+            <button type="button" class="lm-pw-toggle"
+                    onclick="togglePw('lm-reg-confirm', this)" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="lm-terms">
+          <label>
+            <input type="checkbox" id="lm-reg-terms" required>
+            I agree to the Terms &amp; Conditions
+          </label>
+        </div>
+        <div class="lm-msg lm-msg--error" id="lm-reg-error" hidden></div>
+        <div class="lm-msg lm-msg--success" id="lm-reg-success" hidden></div>
+        <button class="btn btn-primary lm-submit" id="lm-reg-btn" onclick="submitRegister()">
+          <i class="fas fa-user-plus"></i> Create Account
+        </button>
+        <p class="lm-switch">
+          Already have an account?
+          <a href="#" onclick="switchTab('login'); return false;">Sign in here</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request a Quote Modal -->
+  <div class="lm-modal qm-modal" id="quote-modal" role="dialog" aria-modal="true" aria-labelledby="quote-modal-title">
+    <div class="lm-card qm-card">
+
+      <!-- Close button -->
+      <button class="lm-close" onclick="closeModal('quote-modal')" aria-label="Close">&times;</button>
+
+      <!-- Header -->
+      <div class="lm-header qm-header">
+        <span class="lm-brand">CreativeKit3A</span>
+        <p id="quote-modal-title" class="qm-title">Request a Quote</p>
+        <p class="lm-tagline">Tell us what you need — we'll get back within 24 hours.</p>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="qm-steps" aria-label="Form progress">
+        <div class="qm-step active" id="qm-step-dot-1">
+          <div class="qm-step-dot">1</div>
+          <span>Your Info</span>
+        </div>
+        <div class="qm-step-line"></div>
+        <div class="qm-step" id="qm-step-dot-2">
+          <div class="qm-step-dot">2</div>
+          <span>Product</span>
+        </div>
+        <div class="qm-step-line"></div>
+        <div class="qm-step" id="qm-step-dot-3">
+          <div class="qm-step-dot">3</div>
+          <span>Details</span>
+        </div>
+      </div>
+
+      <!-- STEP 1: Contact Details -->
+      <div class="qm-panel" id="qm-panel-1">
+        <div class="lm-field-row">
+          <div class="lm-field">
+            <label for="qm-name"><i class="fas fa-user"></i> Full Name <span class="qm-req">*</span></label>
+            <input type="text" id="qm-name" placeholder="Juan Dela Cruz" autocomplete="name" required>
+          </div>
+          <div class="lm-field">
+            <label for="qm-company"><i class="fas fa-building"></i> Company / Org <span class="lm-optional">(optional)</span></label>
+            <input type="text" id="qm-company" placeholder="Acme Corp" autocomplete="organization">
+          </div>
+        </div>
+
+        <div class="lm-field-row">
+          <div class="lm-field">
+            <label for="qm-email"><i class="fas fa-envelope"></i> Email Address <span class="qm-req">*</span></label>
+            <input type="email" id="qm-email" placeholder="you@company.com" autocomplete="email" required>
+          </div>
+          <div class="lm-field">
+            <label for="qm-phone"><i class="fas fa-mobile-alt"></i> Mobile Number <span class="qm-req">*</span></label>
+            <input type="tel" id="qm-phone" placeholder="+63 917 000 0000" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <div class="lm-msg lm-msg--error" id="qm-err-1" hidden></div>
+
+        <button class="btn btn-primary lm-submit qm-next-btn" onclick="qmNextStep(1)">
+          Next: Product Info <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- STEP 2: Product Info -->
+      <div class="qm-panel" id="qm-panel-2" hidden>
+        <div class="lm-field">
+          <label for="qm-product-type"><i class="fas fa-tag"></i> Product Category <span class="qm-req">*</span></label>
+          <select id="qm-product-type" class="qm-select" required>
+            <option value="" disabled selected>— Select a category —</option>
+            <option value="accessories-gadgets">Accessories &amp; Gadgets</option>
+            <option value="apparel">Apparel (Caps, Jackets, Shirts)</option>
+            <option value="bags-pouches">Bags &amp; Pouches</option>
+            <option value="drinkware">Drinkware (Tumblers, Mugs, Bottles)</option>
+            <option value="gift-set">Gift Sets</option>
+            <option value="home-living">Home Living</option>
+            <option value="pen-paper">Pen &amp; Paper</option>
+            <option value="pu-leather">PU Leather</option>
+            <option value="custom">Other / Custom Item</option>
+          </select>
+        </div>
+
+        <div class="lm-field-row">
+          <div class="lm-field">
+            <label for="qm-quantity"><i class="fas fa-boxes"></i> Estimated Quantity <span class="qm-req">*</span></label>
+            <select id="qm-quantity" class="qm-select" required>
+              <option value="" disabled selected>— Select quantity —</option>
+              <option value="50-99">50 – 99 pcs (MOQ)</option>
+              <option value="100-299">100 – 299 pcs</option>
+              <option value="300-499">300 – 499 pcs</option>
+              <option value="500-999">500 – 999 pcs</option>
+              <option value="1000+">1,000+ pcs (Bulk / Best Price)</option>
+            </select>
+          </div>
+          <div class="lm-field">
+            <label for="qm-budget"><i class="fas fa-coins"></i> Target Budget/pc <span class="lm-optional">(optional)</span></label>
+            <select id="qm-budget" class="qm-select">
+              <option value="" selected>— Any budget —</option>
+              <option value="under-100">Under ₱100 / pc</option>
+              <option value="100-250">₱100 – ₱250 / pc</option>
+              <option value="250-500">₱250 – ₱500 / pc</option>
+              <option value="500-1000">₱500 – ₱1,000 / pc</option>
+              <option value="above-1000">₱1,000+ / pc (Premium)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="lm-msg lm-msg--error" id="qm-err-2" hidden></div>
+
+        <div class="qm-btn-row">
+          <button class="btn btn-outline qm-back-btn" onclick="qmPrevStep(2)">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <button class="btn btn-primary lm-submit qm-next-btn" onclick="qmNextStep(2)">
+            Next: Details <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Details & Customization -->
+      <div class="qm-panel" id="qm-panel-3" hidden>
+        <div class="lm-field">
+          <label for="qm-deadline">
+            <i class="fas fa-calendar-alt"></i> Target Delivery Date
+            <span class="lm-optional">(optional — rush orders accepted)</span>
+          </label>
+          <input type="date" id="qm-deadline" class="qm-date-input">
+        </div>
+
+        <div class="lm-field">
+          <label for="qm-details">
+            <i class="fas fa-comment-alt"></i> Project Details / Notes
+            <span class="lm-optional">(optional)</span>
+          </label>
+          <textarea id="qm-details" class="qm-textarea" rows="4"
+                    placeholder="Describe your customization needs, logo placement, color preferences, event date, or anything else we should know..."></textarea>
+        </div>
+
+        <div class="lm-field">
+          <label><i class="fas fa-paint-brush"></i> Customization Needed</label>
+          <div class="qm-checkboxes">
+            <label class="qm-check-item"><input type="checkbox" name="qm-custom" value="logo-print"> Logo Printing</label>
+            <label class="qm-check-item"><input type="checkbox" name="qm-custom" value="laser-engrave"> Laser Engraving</label>
+            <label class="qm-check-item"><input type="checkbox" name="qm-custom" value="embroidery"> Embroidery</label>
+            <label class="qm-check-item"><input type="checkbox" name="qm-custom" value="sublimation"> Sublimation</label>
+            <label class="qm-check-item"><input type="checkbox" name="qm-custom" value="packaging"> Custom Packaging</label>
+            <label class="qm-check-item"><input type="checkbox" name="qm-custom" value="not-sure"> Not Sure Yet</label>
+          </div>
+        </div>
+
+        <div class="lm-field">
+          <label for="qm-source">
+            <i class="fas fa-map-marker-alt"></i> How did you find us?
+            <span class="lm-optional">(optional)</span>
+          </label>
+          <select id="qm-source" class="qm-select">
+            <option value="" disabled selected>— Select —</option>
+            <option value="facebook">Facebook</option>
+            <option value="google">Google Search</option>
+            <option value="referral">Referral / Word of Mouth</option>
+            <option value="instagram">Instagram</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="lm-msg lm-msg--error"   id="qm-err-3"   hidden></div>
+        <div class="lm-msg lm-msg--success" id="qm-success" hidden></div>
+
+        <div class="qm-btn-row">
+          <button class="btn btn-outline qm-back-btn" id="qm-back-btn-3" onclick="qmPrevStep(3)">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <button class="btn btn-primary lm-submit qm-next-btn" id="qm-submit-btn" onclick="submitQuote()">
+            <i class="fas fa-paper-plane"></i> Send Quote Request
+          </button>
+        </div>
+      </div>
+
+      <!-- SUCCESS STATE -->
+      <div class="qm-panel qm-success-panel" id="qm-panel-success" hidden>
+        <div class="qm-success-icon">
+          <i class="fas fa-circle-check"></i>
+        </div>
+        <h3 class="qm-success-title">Quote Request Sent!</h3>
+        <p class="qm-success-msg">
+          Thank you! We've received your request and will send a detailed quote to
+          <strong id="qm-confirm-email"></strong> within <strong>24 hours</strong>.
+        </p>
+        <p class="qm-success-contact">
+          Need it faster? Call us at
+          <a href="tel:+639177142774">+63 917 714 2774</a> or
+          <a href="tel:+639339927410">+63 933 992 7410</a>
+        </p>
+        <button class="btn btn-primary lm-submit" onclick="closeModal('quote-modal')">
+          <i class="fas fa-check"></i> Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Shared & Page Scripts -->
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/quote-modal.js"></script>
+  <script src="assets/js/category-page.js"></script>
+</body>
+</html>

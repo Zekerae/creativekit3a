@@ -34,7 +34,7 @@ include __DIR__ . '/includes/navbar.php';
           <h1>BAMBOO TUMBLER</h1>
           <h2>with your desired design</h2>
           <p>We specialize in rush orders and make custom item personalization quick and easy.</p>
-          <a href="/product-category/accessories-gadgets" class="btn btn-white btn-large">BROWSE CATALOG</a>
+          <a href="/category-page.php?cat=drinkware" class="btn btn-white btn-large">BROWSE CATALOG</a>
         </div>
       </div>
 
@@ -47,21 +47,32 @@ include __DIR__ . '/includes/navbar.php';
           <span class="eyebrow">Showcase Your Brand with</span>
           <h1>CUSTOM CORPORATE JACKETS</h1>
           <p>Stylish and durable custom corporate jackets for events, recognition, and giveaways.</p>
-          <a href="/product-category/accessories-gadgets" class="btn btn-white btn-large">BROWSE CATALOG</a>
+          <a href="/category-page.php?cat=apparel" class="btn btn-white btn-large">BROWSE CATALOG</a>
         </div>
       </div>
 
       <!-- Slide 3 -->
       <div class="hero-slide">
         <div class="hero-slide-img">
-          <img src="/assets/images/tote-bags.png" alt="Custom Logo Tote Bags">
+          <img src="/assets/images/laptop-bag.png" alt="Custom Logo Bags &amp; Pouches">
         </div>
         <div class="hero-slide-content">
           <span class="eyebrow">Eco-Friendly &amp; Stylish</span>
-          <h1>CUSTOM LOGO TOTE BAGS</h1>
-          <p>Reusable, branded tote bags that leave a lasting impression at every event.</p>
-          <a href="/product-category/bags-pouches" class="btn btn-white btn-large">BROWSE CATALOG</a>
+          <h1>CUSTOM LOGO BAGS</h1>
+          <p>Reusable, branded bags that leave a lasting impression at every corporate event.</p>
+          <a href="/category-page.php?cat=bags-pouches" class="btn btn-white btn-large">BROWSE CATALOG</a>
         </div>
+      </div>
+
+      <!-- Carousel Arrows -->
+      <button class="carousel-btn prev" aria-label="Previous slide"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+      <button class="carousel-btn next" aria-label="Next slide"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+
+      <!-- Carousel Dots -->
+      <div class="carousel-dots" role="tablist" aria-label="Slide dots">
+        <button class="carousel-dot active" aria-label="Slide 1"></button>
+        <button class="carousel-dot" aria-label="Slide 2"></button>
+        <button class="carousel-dot" aria-label="Slide 3"></button>
       </div>
 
     </div>
@@ -74,7 +85,7 @@ include __DIR__ . '/includes/navbar.php';
     <div class="container">
       <div class="products-grid">
 
-        <div class="product-card" data-url="/product/car-charger-adapter">
+        <div class="product-card" data-url="/product/car-charger-adapters.php?cat=accessories-gadgets&amp;subcat=car&amp;item=car-charger-adapter">
           <div class="product-card-img">
             <img src="/assets/images/1.png" alt="Single USB Logo Car Charger" loading="lazy">
           </div>
@@ -87,7 +98,7 @@ include __DIR__ . '/includes/navbar.php';
           </div>
         </div>
 
-        <div class="product-card" data-url="/product/car-charger-dual">
+        <div class="product-card" data-url="/product/car-charger-adapters.php?cat=accessories-gadgets&amp;subcat=car&amp;item=car-charger-adapter">
           <div class="product-card-img">
             <img src="/assets/images/2.png" alt="Dual USB Fast Charging Car Adapter" loading="lazy">
           </div>
@@ -100,7 +111,7 @@ include __DIR__ . '/includes/navbar.php';
           </div>
         </div>
 
-        <div class="product-card" data-url="/product/car-organizers">
+        <div class="product-card" data-url="/product/car-charger-adapters.php?cat=accessories-gadgets&amp;subcat=car&amp;item=car-organizers">
           <div class="product-card-img">
             <img src="/assets/images/car-organizer.png" alt="Car Organizer" loading="lazy">
           </div>
@@ -113,7 +124,7 @@ include __DIR__ . '/includes/navbar.php';
           </div>
         </div>
 
-        <div class="product-card" data-url="/product/car-dashcams">
+        <div class="product-card" data-url="/product/car-charger-adapters.php?cat=accessories-gadgets&amp;subcat=car&amp;item=car-dashcams">
           <div class="product-card-img">
             <img src="/assets/images/dash-cam.png" alt="Dash Cam" loading="lazy">
           </div>
@@ -126,7 +137,7 @@ include __DIR__ . '/includes/navbar.php';
           </div>
         </div>
 
-        <div class="product-card" data-url="/product/laptop-backpack">
+        <div class="product-card" data-url="/category-page.php?cat=bags-pouches">
           <div class="product-card-img">
             <img src="/assets/images/laptop-bag.png" alt="Business Laptop Bag" loading="lazy">
           </div>
@@ -139,7 +150,7 @@ include __DIR__ . '/includes/navbar.php';
           </div>
         </div>
 
-        <div class="product-card" data-url="/product/computer-mouse">
+        <div class="product-card" data-url="/category-page.php?cat=accessories-gadgets">
           <div class="product-card-img">
             <img src="/assets/images/mouse-pad.png" alt="Mouse Pad" loading="lazy">
           </div>
@@ -152,7 +163,7 @@ include __DIR__ . '/includes/navbar.php';
           </div>
         </div>
 
-        <div class="product-card" data-url="/product/home-living-portable-fans">
+        <div class="product-card" data-url="/category-page.php?cat=home-living">
           <div class="product-card-img">
             <img src="/assets/images/handheld-vacuum.png" alt="Portable Handheld Vacuum" loading="lazy">
           </div>
@@ -165,7 +176,7 @@ include __DIR__ . '/includes/navbar.php';
           </div>
         </div>
 
-        <div class="product-card" data-url="/product/desk-clocks">
+        <div class="product-card" data-url="/category-page.php?cat=accessories-gadgets">
           <div class="product-card-img">
             <img src="/assets/images/wooven-clock.png" alt="Woven Clock" loading="lazy">
           </div>

@@ -63,7 +63,7 @@
            variantType → must match one of the variantTypes keys above
 
      HOW TO USE AN IMAGE:
-       - Local file in your project:  img: '/assets/images/my-photo.jpg'
+       - Local file in your project:  img: 'assets/images/my-photo.jpg'
        - Full URL from the web:       img: 'https://example.com/photo.jpg'
 
      DO NOT edit anything below the "ENGINE — DO NOT EDIT" line.
@@ -86,7 +86,7 @@
         name:    'Car Charger Adapters',          // ← Page title & hero heading
         eyebrow: 'Car Accessories',               // ← Small label above title
         price:   'As low as ₱85.00',             // ← Starting price in hero
-        heroImg: '/assets/images/car-charger-adapters.png',                  // ← Hero banner image (change this!)
+        heroImg: 'assets/images/car-charger-adapters.png',                  // ← Hero banner image (change this!)
         desc:    'Custom-branded car charger adapters — ideal for corporate giveaways, events, and everyday use. Choose from single-port, dual-port, and fast-charge variants.',
 
         // Filter tabs at the top of the items grid.
@@ -100,15 +100,15 @@
         ],
 
         // Individual item cards shown on the page.
-        // img: use '/assets/images/filename.jpg' for local files, or a full https:// URL
-        // CHANGED: Each item now has its own img path instead of all sharing '/assets/images/1.png'.
+        // img: use 'assets/images/filename.jpg' for local files, or a full https:// URL
+        // CHANGED: Each item now has its own img path instead of all sharing 'assets/images/1.png'.
         //          Replace each img value below with the correct file for that product.
-        //          Example: img: '/assets/images/car-charger-single-usba.jpg'
+        //          Example: img: 'assets/images/car-charger-single-usba.jpg'
         //                   img: 'https://yourcdn.com/car-charger-usba.jpg'
         items: [
-          { id:1, name:'Single USB-A Car Charger',       specs:'5V / 2.1A • USB-A • Compact',           price:'As low as ₱85.00',   img:'/assets/images/1.png',    badge:'',            variantType:'single',   url:'/product/car-charger-single-usba/'    },
-          { id:2, name:'Single USB-C Car Charger',       specs:'5V / 3A • USB-C • Compact',             price:'As low as ₱95.00',   img:'/assets/images/usb-c-adapter.png',    badge:'New',         variantType:'single',   url:'/product/car-charger-single-usbc/'    },
-          { id:3, name:'Dual Port USB-A Charger',        specs:'2x USB-A • 3.1A Total • Logo Printing', price:'As low as ₱110.00',  img:'/assets/images/dual-usb-adapter.png',      badge:'Best Seller', variantType:'dual',     url:'/product/car-charger-dual-usba/'      },
+          { id:1, name:'Single USB-A Car Charger',       specs:'5V / 2.1A • USB-A • Compact',           price:'As low as ₱85.00',   img:'assets/images/1.png',    badge:'',            variantType:'single',   url:'/product/car-charger-single-usba/'    },
+          { id:2, name:'Single USB-C Car Charger',       specs:'5V / 3A • USB-C • Compact',             price:'As low as ₱95.00',   img:'assets/images/usb-c-adapter.png',    badge:'New',         variantType:'single',   url:'/product/car-charger-single-usbc/'    },
+          { id:3, name:'Dual Port USB-A Charger',        specs:'2x USB-A • 3.1A Total • Logo Printing', price:'As low as ₱110.00',  img:'assets/images/dual-usb-adapter.png',      badge:'Best Seller', variantType:'dual',     url:'/product/car-charger-dual-usba/'      },
           
         ]
       },
@@ -121,7 +121,7 @@
         name:    'Car Organizers & Holders',
         eyebrow: 'Car Accessories',
         price:   'As low as ₱120.00',
-        heroImg: '/assets/images/car-organizer.png',      // ← Change to your real image
+        heroImg: 'assets/images/car-organizer.png',      // ← Change to your real image
         desc:    'Keep your car tidy and your brand visible. Choose from seat-back organizers, console trays, cup holders, and more — all customizable with your company logo.',
         variantTypes: [
           { key: 'seatback',  label: 'Seat-Back'  },
@@ -130,12 +130,12 @@
         ],
         items: [
           // CHANGED: Each item now has its own img path. Replace with your actual filenames.
-          { id:1, name:'Seat-Back Organizer (5 Pocket)', specs:'Oxford Cloth • 5 Pockets • Fits All Seats', price:'As low as ₱120.00', img:'/assets/images/car-organizer-seatback-5p.jpg',   badge:'Best Seller', variantType:'seatback',  url:'/product/car-organizer-seatback-5p/'   },
-          { id:2, name:'Seat-Back Tablet Holder',        specs:'Fits 7"–10" Tablets • Adjustable Strap',   price:'As low as ₱145.00', img:'/assets/images/car-organizer-tablet-holder.jpg', badge:'',            variantType:'seatback',  url:'/product/car-organizer-tablet-holder/' },
-          { id:3, name:'Center Console Organizer',       specs:'PU Leather • Armrest Box Insert',           price:'As low as ₱195.00', img:'/assets/images/car-organizer-console.jpg',       badge:'',            variantType:'console',   url:'/product/car-organizer-console/'       },
-          { id:4, name:'Cup & Card Holder Insert',       specs:'Fits Standard Cup Holders • Logo Pad',      price:'As low as ₱135.00', img:'/assets/images/car-organizer-cup-card.jpg',      badge:'',            variantType:'console',   url:'/product/car-organizer-cup-card/'      },
-          { id:5, name:'Dashboard Phone Mount & Tray',   specs:'Non-Slip Mat • Multi-Device Tray',          price:'As low as ₱110.00', img:'/assets/images/car-organizer-dash-tray.jpg',     badge:'',            variantType:'dashboard', url:'/product/car-organizer-dash-tray/'     },
-          { id:6, name:'Magnetic Dashboard Mount',       specs:'360° Rotation • Universal Phone Fit',       price:'As low as ₱125.00', img:'/assets/images/car-organizer-mag-mount.jpg',     badge:'New',         variantType:'dashboard', url:'/product/car-organizer-mag-mount/'     },
+          { id:1, name:'Seat-Back Organizer (5 Pocket)', specs:'Oxford Cloth • 5 Pockets • Fits All Seats', price:'As low as ₱120.00', img:'assets/images/car-organizer-seatback-5p.jpg',   badge:'Best Seller', variantType:'seatback',  url:'/product/car-organizer-seatback-5p/'   },
+          { id:2, name:'Seat-Back Tablet Holder',        specs:'Fits 7"–10" Tablets • Adjustable Strap',   price:'As low as ₱145.00', img:'assets/images/car-organizer-tablet-holder.jpg', badge:'',            variantType:'seatback',  url:'/product/car-organizer-tablet-holder/' },
+          { id:3, name:'Center Console Organizer',       specs:'PU Leather • Armrest Box Insert',           price:'As low as ₱195.00', img:'assets/images/car-organizer-console.jpg',       badge:'',            variantType:'console',   url:'/product/car-organizer-console/'       },
+          { id:4, name:'Cup & Card Holder Insert',       specs:'Fits Standard Cup Holders • Logo Pad',      price:'As low as ₱135.00', img:'assets/images/car-organizer-cup-card.jpg',      badge:'',            variantType:'console',   url:'/product/car-organizer-cup-card/'      },
+          { id:5, name:'Dashboard Phone Mount & Tray',   specs:'Non-Slip Mat • Multi-Device Tray',          price:'As low as ₱110.00', img:'assets/images/car-organizer-dash-tray.jpg',     badge:'',            variantType:'dashboard', url:'/product/car-organizer-dash-tray/'     },
+          { id:6, name:'Magnetic Dashboard Mount',       specs:'360° Rotation • Universal Phone Fit',       price:'As low as ₱125.00', img:'assets/images/car-organizer-mag-mount.jpg',     badge:'New',         variantType:'dashboard', url:'/product/car-organizer-mag-mount/'     },
         ]
       },
 
@@ -147,7 +147,7 @@
         name:    'Dash Cams',
         eyebrow: 'Car Accessories',
         price:   'As low as ₱450.00',
-        heroImg: '/assets/images/dash-cam.png',           // ← Change to your real image
+        heroImg: 'assets/images/dash-cam.png',           // ← Change to your real image
         desc:    'Brand your fleet or gift your clients a dash cam. Choose from single-lens, dual-lens, and 360° variants — all customizable with your company logo on the casing.',
         variantTypes: [
           { key: 'single', label: 'Single Lens' },
@@ -156,12 +156,12 @@
         ],
         items: [
           // CHANGED: Each item now has its own img path. Replace with your actual filenames.
-          { id:1, name:'1080p Full HD Dash Cam',        specs:'1080p • 140° FOV • Loop Recording',       price:'As low as ₱450.00',  img:'/assets/images/dashcam-1080p.jpg',    badge:'',        variantType:'single', url:'/product/dashcam-1080p/'         },
-          { id:2, name:'2K QHD Night Vision Dash Cam',  specs:'2K • Night Vision • G-Sensor • WDR',      price:'As low as ₱680.00',  img:'/assets/images/dashcam-2k-night.jpg', badge:'Popular', variantType:'single', url:'/product/dashcam-2k-night/'      },
-          { id:3, name:'4K Ultra HD Dash Cam',          specs:'4K • Sony Sensor • Parking Mode',         price:'As low as ₱950.00',  img:'/assets/images/dashcam-4k.jpg',       badge:'Premium', variantType:'single', url:'/product/dashcam-4k/'            },
-          { id:4, name:'Dual-Lens Front & Rear',        specs:'FHD + FHD • Front & Rear • 170° FOV',    price:'As low as ₱780.00',  img:'/assets/images/dashcam-dual-fhd.jpg', badge:'',        variantType:'dual',   url:'/product/dashcam-dual-fhd/'      },
-          { id:5, name:'Dual-Lens 4K + 1080p',         specs:'4K Front + 1080p Rear • GPS Logger',      price:'As low as ₱1,100.00',img:'/assets/images/dashcam-dual-4k.jpg',  badge:'New',     variantType:'dual',   url:'/product/dashcam-dual-4k/'       },
-          { id:6, name:'360° Interior & Exterior Cam', specs:'360° Cabin View • IR Night Vision • 4CH', price:'As low as ₱1,350.00',img:'/assets/images/dashcam-360.jpg',      badge:'',        variantType:'360',    url:'/product/dashcam-360/'           },
+          { id:1, name:'1080p Full HD Dash Cam',        specs:'1080p • 140° FOV • Loop Recording',       price:'As low as ₱450.00',  img:'assets/images/dashcam-1080p.jpg',    badge:'',        variantType:'single', url:'/product/dashcam-1080p/'         },
+          { id:2, name:'2K QHD Night Vision Dash Cam',  specs:'2K • Night Vision • G-Sensor • WDR',      price:'As low as ₱680.00',  img:'assets/images/dashcam-2k-night.jpg', badge:'Popular', variantType:'single', url:'/product/dashcam-2k-night/'      },
+          { id:3, name:'4K Ultra HD Dash Cam',          specs:'4K • Sony Sensor • Parking Mode',         price:'As low as ₱950.00',  img:'assets/images/dashcam-4k.jpg',       badge:'Premium', variantType:'single', url:'/product/dashcam-4k/'            },
+          { id:4, name:'Dual-Lens Front & Rear',        specs:'FHD + FHD • Front & Rear • 170° FOV',    price:'As low as ₱780.00',  img:'assets/images/dashcam-dual-fhd.jpg', badge:'',        variantType:'dual',   url:'/product/dashcam-dual-fhd/'      },
+          { id:5, name:'Dual-Lens 4K + 1080p',         specs:'4K Front + 1080p Rear • GPS Logger',      price:'As low as ₱1,100.00',img:'assets/images/dashcam-dual-4k.jpg',  badge:'New',     variantType:'dual',   url:'/product/dashcam-dual-4k/'       },
+          { id:6, name:'360° Interior & Exterior Cam', specs:'360° Cabin View • IR Night Vision • 4CH', price:'As low as ₱1,350.00',img:'assets/images/dashcam-360.jpg',      badge:'',        variantType:'360',    url:'/product/dashcam-360/'           },
         ]
       },
 
@@ -173,7 +173,7 @@
         name:    'Audio Accessories',
         eyebrow: 'Computer Accessories',
         price:   'As low as ₱95.00',
-        heroImg: '/assets/images/audio-accessories.png',              // ← Change to your real image
+        heroImg: 'assets/images/audio-accessories.png',              // ← Change to your real image
         desc:    'Custom-branded earphones, headsets, and speakers for corporate giveaways, events, and WFH kits.',
         variantTypes: [
           { key: 'earphone', label: 'Earphones' },
@@ -182,12 +182,12 @@
         ],
         items: [
           // CHANGED: Each item now has its own img path. Replace with your actual filenames.
-          { id:1, name:'Wired Earphones (3.5mm)',     specs:'3.5mm Jack • In-Ear • Logo Print',      price:'As low as ₱95.00',  img:'/assets/images/audio-earphone-wired.jpg',   badge:'',            variantType:'earphone', url:'/product/audio-earphone-wired/'   },
-          { id:2, name:'TWS Wireless Earbuds',        specs:'Bluetooth 5.0 • TWS • Charging Case',   price:'As low as ₱380.00', img:'/assets/images/audio-earphone-tws.jpg',     badge:'Best Seller', variantType:'earphone', url:'/product/audio-earphone-tws/'     },
-          { id:3, name:'USB Mono Headset',            specs:'USB • Noise Cancelling Mic • Foldable', price:'As low as ₱180.00', img:'/assets/images/audio-headset-usb.jpg',      badge:'',            variantType:'headset',  url:'/product/audio-headset-usb/'      },
-          { id:4, name:'Wireless Over-Ear Headset',   specs:'BT 5.0 • 20hr Battery • Foldable',     price:'As low as ₱560.00', img:'/assets/images/audio-headset-wireless.jpg', badge:'Premium',     variantType:'headset',  url:'/product/audio-headset-wireless/' },
-          { id:5, name:'Mini Bluetooth Speaker',      specs:'BT 5.0 • IPX5 • 6hr Battery',          price:'As low as ₱280.00', img:'/assets/images/audio-speaker-mini.jpg',     badge:'',            variantType:'speaker',  url:'/product/audio-speaker-mini/'     },
-          { id:6, name:'Cylindrical BT Speaker',      specs:'360° Sound • BT 5.0 • Fabric Body',    price:'As low as ₱450.00', img:'/assets/images/audio-speaker-cylinder.jpg', badge:'New',         variantType:'speaker',  url:'/product/audio-speaker-cylinder/' },
+          { id:1, name:'Wired Earphones (3.5mm)',     specs:'3.5mm Jack • In-Ear • Logo Print',      price:'As low as ₱95.00',  img:'assets/images/audio-earphone-wired.jpg',   badge:'',            variantType:'earphone', url:'/product/audio-earphone-wired/'   },
+          { id:2, name:'TWS Wireless Earbuds',        specs:'Bluetooth 5.0 • TWS • Charging Case',   price:'As low as ₱380.00', img:'assets/images/audio-earphone-tws.jpg',     badge:'Best Seller', variantType:'earphone', url:'/product/audio-earphone-tws/'     },
+          { id:3, name:'USB Mono Headset',            specs:'USB • Noise Cancelling Mic • Foldable', price:'As low as ₱180.00', img:'assets/images/audio-headset-usb.jpg',      badge:'',            variantType:'headset',  url:'/product/audio-headset-usb/'      },
+          { id:4, name:'Wireless Over-Ear Headset',   specs:'BT 5.0 • 20hr Battery • Foldable',     price:'As low as ₱560.00', img:'assets/images/audio-headset-wireless.jpg', badge:'Premium',     variantType:'headset',  url:'/product/audio-headset-wireless/' },
+          { id:5, name:'Mini Bluetooth Speaker',      specs:'BT 5.0 • IPX5 • 6hr Battery',          price:'As low as ₱280.00', img:'assets/images/audio-speaker-mini.jpg',     badge:'',            variantType:'speaker',  url:'/product/audio-speaker-mini/'     },
+          { id:6, name:'Cylindrical BT Speaker',      specs:'360° Sound • BT 5.0 • Fabric Body',    price:'As low as ₱450.00', img:'assets/images/audio-speaker-cylinder.jpg', badge:'New',         variantType:'speaker',  url:'/product/audio-speaker-cylinder/' },
         ]
       },
 
@@ -199,7 +199,7 @@
         name:    'Mobile Power Banks',
         eyebrow: 'Mobile Accessories',
         price:   'As low as ₱350.00',
-        heroImg: '/assets/images/mobile-powerbank.png',          // ← Change to your real image
+        heroImg: 'assets/images/mobile-powerbank.png',          // ← Change to your real image
         desc:    'Keep devices charged on the go. Corporate-branded power banks available in slim card-style, standard, and high-capacity options.',
         variantTypes: [
           { key: 'slim',     label: 'Slim / Card'        },
@@ -209,13 +209,13 @@
         ],
         items: [
           // CHANGED: Each item now has its own img path. Replace with your actual filenames.
-          { id:1, name:'Card-Style Power Bank 5,000mAh', specs:'5,000mAh • Credit Card Size • USB-C',   price:'As low as ₱350.00', img:'/assets/images/pb-card-5000.jpg',    badge:'',            variantType:'slim',     url:'/product/pb-card-5000/'    },
-          { id:2, name:'Slim Bar 8,000mAh',              specs:'8,000mAh • Slim Body • Dual Output',     price:'As low as ₱420.00', img:'/assets/images/pb-slim-8000.jpg',    badge:'Best Seller', variantType:'slim',     url:'/product/pb-slim-8000/'    },
-          { id:3, name:'Standard 10,000mAh Power Bank',  specs:'10,000mAh • USB-A + USB-C • 18W PD',    price:'As low as ₱480.00', img:'/assets/images/pb-std-10000.jpg',    badge:'',            variantType:'standard', url:'/product/pb-std-10000/'    },
-          { id:4, name:'Premium 10,000mAh with Display', specs:'10,000mAh • LED Display • 22.5W Fast',  price:'As low as ₱580.00', img:'/assets/images/pb-disp-10000.jpg',   badge:'New',         variantType:'standard', url:'/product/pb-disp-10000/'   },
-          { id:5, name:'20,000mAh High Capacity',        specs:'20,000mAh • 65W PD • Airline Safe',     price:'As low as ₱780.00', img:'/assets/images/pb-high-20000.jpg',   badge:'',            variantType:'high',     url:'/product/pb-high-20000/'   },
-          { id:6, name:'30,000mAh Rugged Power Bank',    specs:'30,000mAh • IP67 • Solar Panel',        price:'As low as ₱980.00', img:'/assets/images/pb-rugged-30000.jpg', badge:'Premium',     variantType:'high',     url:'/product/pb-rugged-30000/' },
-          { id:7, name:'Solar Charging Power Bank',      specs:'10,000mAh • Solar + USB-C • Rugged',    price:'As low as ₱650.00', img:'/assets/images/pb-solar.jpg',        badge:'Eco',         variantType:'solar',    url:'/product/pb-solar/'        },
+          { id:1, name:'Card-Style Power Bank 5,000mAh', specs:'5,000mAh • Credit Card Size • USB-C',   price:'As low as ₱350.00', img:'assets/images/pb-card-5000.jpg',    badge:'',            variantType:'slim',     url:'/product/pb-card-5000/'    },
+          { id:2, name:'Slim Bar 8,000mAh',              specs:'8,000mAh • Slim Body • Dual Output',     price:'As low as ₱420.00', img:'assets/images/pb-slim-8000.jpg',    badge:'Best Seller', variantType:'slim',     url:'/product/pb-slim-8000/'    },
+          { id:3, name:'Standard 10,000mAh Power Bank',  specs:'10,000mAh • USB-A + USB-C • 18W PD',    price:'As low as ₱480.00', img:'assets/images/pb-std-10000.jpg',    badge:'',            variantType:'standard', url:'/product/pb-std-10000/'    },
+          { id:4, name:'Premium 10,000mAh with Display', specs:'10,000mAh • LED Display • 22.5W Fast',  price:'As low as ₱580.00', img:'assets/images/pb-disp-10000.jpg',   badge:'New',         variantType:'standard', url:'/product/pb-disp-10000/'   },
+          { id:5, name:'20,000mAh High Capacity',        specs:'20,000mAh • 65W PD • Airline Safe',     price:'As low as ₱780.00', img:'assets/images/pb-high-20000.jpg',   badge:'',            variantType:'high',     url:'/product/pb-high-20000/'   },
+          { id:6, name:'30,000mAh Rugged Power Bank',    specs:'30,000mAh • IP67 • Solar Panel',        price:'As low as ₱980.00', img:'assets/images/pb-rugged-30000.jpg', badge:'Premium',     variantType:'high',     url:'/product/pb-rugged-30000/' },
+          { id:7, name:'Solar Charging Power Bank',      specs:'10,000mAh • Solar + USB-C • Rugged',    price:'As low as ₱650.00', img:'assets/images/pb-solar.jpg',        badge:'Eco',         variantType:'solar',    url:'/product/pb-solar/'        },
         ]
       },
 
@@ -235,7 +235,7 @@
         name:    'Bamboo Tumblers',
         eyebrow: 'Tumblers & Flasks',
         price:   'As low as ₱220.00',
-        heroImg: '/assets/images/tumbler.png',            // ← Change to your real image
+        heroImg: 'assets/images/bamboo-tumbler.png',            // ← Updated to existing asset
         desc:    'Eco-friendly bamboo tumblers with stainless steel liner — a perfect sustainable corporate giveaway. Available in multiple sizes and color wrap options.',
         variantTypes: [
           { key: 'small',  label: '350ml' },
@@ -244,10 +244,10 @@
         ],
         items: [
           // CHANGED: Each item now has its own img path. Replace with your actual filenames.
-          { id:1, name:'Bamboo Tumbler 350ml',      specs:'350ml • Bamboo Shell • Stainless Liner', price:'As low as ₱220.00', img:'/assets/images/tumbler-bamboo-350.jpg',   badge:'',            variantType:'small',  url:'/product/tumbler-bamboo-350/'   },
-          { id:2, name:'Bamboo Tumbler 500ml',      specs:'500ml • Bamboo Shell • Leak-Proof Lid',  price:'As low as ₱250.00', img:'/assets/images/tumbler-bamboo-500.jpg',   badge:'Best Seller', variantType:'medium', url:'/product/tumbler-bamboo-500/'   },
-          { id:3, name:'Bamboo Tumbler 700ml',      specs:'700ml • Bamboo Shell • Wide Mouth',      price:'As low as ₱290.00', img:'/assets/images/tumbler-bamboo-700.jpg',   badge:'',            variantType:'large',  url:'/product/tumbler-bamboo-700/'   },
-          { id:4, name:'Bamboo Travel Flask 500ml', specs:'500ml • Flask Shape • Gift Box Option',  price:'As low as ₱310.00', img:'/assets/images/tumbler-bamboo-flask.jpg', badge:'New',         variantType:'medium', url:'/product/tumbler-bamboo-flask/' },
+          { id:1, name:'Bamboo Tumbler 350ml',      specs:'350ml • Bamboo Shell • Stainless Liner', price:'As low as ₱220.00', img:'assets/images/tumbler-bamboo-350.jpg',   badge:'',            variantType:'small',  url:'/product/tumbler-bamboo-350/'   },
+          { id:2, name:'Bamboo Tumbler 500ml',      specs:'500ml • Bamboo Shell • Leak-Proof Lid',  price:'As low as ₱250.00', img:'assets/images/tumbler-bamboo-500.jpg',   badge:'Best Seller', variantType:'medium', url:'/product/tumbler-bamboo-500/'   },
+          { id:3, name:'Bamboo Tumbler 700ml',      specs:'700ml • Bamboo Shell • Wide Mouth',      price:'As low as ₱290.00', img:'assets/images/tumbler-bamboo-700.jpg',   badge:'',            variantType:'large',  url:'/product/tumbler-bamboo-700/'   },
+          { id:4, name:'Bamboo Travel Flask 500ml', specs:'500ml • Flask Shape • Gift Box Option',  price:'As low as ₱310.00', img:'assets/images/tumbler-bamboo-flask.jpg', badge:'New',         variantType:'medium', url:'/product/tumbler-bamboo-flask/' },
         ]
       },
 
@@ -320,7 +320,7 @@
         .replace(/-/g, ' ')
         .replace(/\b\w/g, c => c.toUpperCase());
       bcCatLink.textContent = catLabel;
-      bcCatLink.href = 'category-page.html?cat=' + params.cat;
+      bcCatLink.href = 'category-page.html?cat=' + encodeURIComponent(params.cat);
     }
 
     if (bcSubcatLink) {
@@ -330,7 +330,7 @@
         .replace(/\b\w/g, c => c.toUpperCase());
       bcSubcatLink.textContent = subcatLabel;
       // Back to category page filtered to this subcat
-      bcSubcatLink.href = 'category-page.html?cat=' + params.cat + '#subcat-' + params.subcat;
+      bcSubcatLink.href = 'category-page.html?cat=' + encodeURIComponent(params.cat);
     }
 
     if (bcItemName && itemData) {
@@ -475,9 +475,17 @@
       ? itemData.items.filter(i => i.variantType === activeVariantType)
       : itemData.items;
 
+    // Helper to extract numeric price for sorting
+    const parsePrice = (priceStr) => {
+      const num = parseFloat(String(priceStr).replace(/[^0-9.]/g, ''));
+      return isNaN(num) ? 0 : num;
+    };
+
     // Apply sort
-    if (sortVal === 'name-asc')  items = [...items].sort((a,b) => a.name.localeCompare(b.name));
-    if (sortVal === 'name-desc') items = [...items].sort((a,b) => b.name.localeCompare(a.name));
+    if (sortVal === 'name-asc')   items = [...items].sort((a,b) => a.name.localeCompare(b.name));
+    if (sortVal === 'name-desc')  items = [...items].sort((a,b) => b.name.localeCompare(a.name));
+    if (sortVal === 'price-asc')  items = [...items].sort((a,b) => parsePrice(a.price) - parsePrice(b.price));
+    if (sortVal === 'price-desc') items = [...items].sort((a,b) => parsePrice(b.price) - parsePrice(a.price));
 
     // Update count label
     const countEl = document.getElementById('items-showing-count');
@@ -513,10 +521,17 @@
       });
     }
 
-    // Attach click → navigate on each card
+    // Attach click → open quote modal for this variant
     grid.querySelectorAll('.item-card').forEach(card => {
       card.addEventListener('click', () => {
-        window.location.href = card.dataset.itemUrl;
+        if (typeof openModal === 'function') {
+          openModal('quote-modal');
+          const details = document.getElementById('qm-details');
+          const title = card.querySelector('.item-card-title')?.textContent;
+          if (details && title && !details.value.includes(title)) {
+            details.value = `Inquiring about variant: ${title}\n` + details.value;
+          }
+        }
       });
     });
   }
@@ -534,19 +549,19 @@
   /* Lean sibling map: categorySlug → array of { name, price, img, url } siblings */
   const SIBLING_DATA = {
     'accessories-gadgets': [
-      { name:'Car Organizers & Holders', price:'As low as ₱120.00', img:'/assets/images/car-organizer.png', url:'car-organizers.html?cat=accessories-gadgets&subcat=car&item=car-organizers'  },
-      { name:'Dash Cams',               price:'As low as ₱450.00', img:'/assets/images/dash-cam.png',       url:'items-page.html?cat=accessories-gadgets&subcat=car&item=car-dashcams'    },
-      { name:'Mobile Power Banks',      price:'As low as ₱350.00', img:'/assets/images/mobile-powerbank.png', url:'items-page.html?cat=accessories-gadgets&subcat=mobile&item=mobile-powerbanks' },
-      { name:'Audio Accessories',       price:'As low as ₱95.00',  img:'/assets/images/audio-accessories.png', url:'items-page.html?cat=accessories-gadgets&subcat=computer&item=computer-audio' },
+      { name:'Car Organizers & Holders', price:'As low as ₱120.00', img:'assets/images/car-organizer.png', url:'car-charger-adapters.html?cat=accessories-gadgets&subcat=car&item=car-organizers'  },
+      { name:'Dash Cams',               price:'As low as ₱450.00', img:'assets/images/dash-cam.png',       url:'car-charger-adapters.html?cat=accessories-gadgets&subcat=car&item=car-dashcams'    },
+      { name:'Mobile Power Banks',      price:'As low as ₱350.00', img:'assets/images/mobile-powerbank.png', url:'car-charger-adapters.html?cat=accessories-gadgets&subcat=mobile&item=mobile-powerbanks' },
+      { name:'Audio Accessories',       price:'As low as ₱95.00',  img:'assets/images/audio-accessories.png', url:'car-charger-adapters.html?cat=accessories-gadgets&subcat=computer&item=computer-audio' },
     ],
     'drinkware': [
-      { name:'Insulated & Double-Walled', price:'As low as ₱280.00', img:'https://pinoyballers.com/wp-content/uploads/2025/03/Silicone_Wristband-300x130.png', url:'category-page.html?cat=drinkware' },
-      { name:'Stainless Steel Tumblers',  price:'As low as ₱310.00', img:'https://pinoyballers.com/wp-content/uploads/2017/11/Custom-Baller-Bands-Xavier-Ateneo-High-School-2-300x182.jpeg', url:'category-page.html?cat=drinkware' },
+      { name:'Insulated & Double-Walled', price:'As low as ₱280.00', img:'assets/images/bamboo-tumbler.png', url:'category-page.html?cat=drinkware' },
+      { name:'Stainless Steel Tumblers',  price:'As low as ₱310.00', img:'assets/images/bamboo-tumbler.png', url:'category-page.html?cat=drinkware' },
     ],
     'pen-paper': [
-      { name:'Bamboo Pens',         price:'As low as ₱35.00',  img:'https://pinoyballers.com/wp-content/uploads/2021/12/pb-016-1-min-300x192.jpg',    url:'category-page.html?cat=pen-paper' },
-      { name:'Plastic Pens',        price:'As low as ₱22.00',  img:'https://pinoyballers.com/wp-content/uploads/2019/08/Soft-Enamel-Lapel-Pins-001-1-300x300.png', url:'category-page.html?cat=pen-paper' },
-      { name:'Custom Notebooks',    price:'As low as ₱95.00',  img:'https://pinoyballers.com/wp-content/uploads/2025/09/Elections-Ballers-Gov-Jerry-Singson-ONE-ILOCOS-SUR-300x209.jpg', url:'category-page.html?cat=pen-paper' },
+      { name:'Bamboo Pens',         price:'As low as ₱35.00',  img:'assets/images/desk-organizer.png',    url:'category-page.html?cat=pen-paper' },
+      { name:'Plastic Pens',        price:'As low as ₱22.00',  img:'assets/images/desk-organizer.png', url:'category-page.html?cat=pen-paper' },
+      { name:'Custom Notebooks',    price:'As low as ₱95.00',  img:'assets/images/wooven-clock.png', url:'category-page.html?cat=pen-paper' },
     ],
   };
 
@@ -597,7 +612,7 @@
      SEARCH: Live filter on items grid
   ============================================================ */
   function initSearch(itemData) {
-    const input = document.getElementById('items-search-input');
+    const input = document.getElementById('items-search-input') || document.getElementById('navbar-search-input');
     if (!input) return;
 
     input.addEventListener('input', function () {
@@ -647,7 +662,7 @@
     if (!itemData) {
       console.warn('[items-page.js] Item "' + params.item + '" not found in ITEMS_DATA["' + params.cat + '"].');
       // Fallback: redirect to category page
-      window.location.href = 'category-page.html?cat=' + params.cat;
+      window.location.href = 'category-page.html?cat=' + encodeURIComponent(params.cat);
       return;
     }
 

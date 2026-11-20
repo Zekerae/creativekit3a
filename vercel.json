@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/category-page", "destination": "/category-page.html" },
+    { "source": "/car-charger-adapters", "destination": "/car-charger-adapters.html" },
+    { "source": "/product/car-charger-adapters", "destination": "/car-charger-adapters.html" }
+  ]
+}

@@ -52,13 +52,13 @@ function nav_active(string $slug): string {
     <!-- Right side links -->
     <div class="navbar-right">
       <nav class="navbar-links" aria-label="Secondary navigation">
-        <a href="/faq/">About</a>
-        <a href="/product-category/accessories-gadgets"
+        <a href="/index.php#corporate-heading">About</a>
+        <a href="/category-page.php?cat=accessories-gadgets"
           <?= $active_nav ? 'style="color:var(--orange-primary);font-weight:700;"' : '' ?>>Category</a>
-        <a href="/contact-us/">Contact Us</a>
+        <a href="/index.php#contact-heading">Contact Us</a>
       </nav>
       <button class="btn-chat" onclick="openModal('quote-modal')" aria-label="Request a Quote">Request a Quote</button>
-      <a href="/cart/" class="navbar-cart" aria-label="Shopping cart">
+      <a href="/category-page.php?cat=accessories-gadgets" class="navbar-cart" aria-label="Shopping cart">
         <i class="fas fa-shopping-cart" aria-hidden="true"></i>
         <span>Cart</span>
         <span class="cart-count" aria-live="polite">0</span>
@@ -76,11 +76,11 @@ function nav_active(string $slug): string {
 
     <!-- ACCESSORIES & GADGETS -->
     <li class="mega-menu-item<?= nav_active('accessories-gadgets') ?>">
-      <a href="/product-category/accessories-gadgets">ACCESSORIES &amp; GADGETS <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=accessories-gadgets">ACCESSORIES &amp; GADGETS <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <h4>Car Accessories</h4>
-          <a href="/product/car-charger-adapters">Car Charger Adapters</a>
+          <a href="/product/car-charger-adapters.php">Car Charger Adapters</a>
           <a href="/product/car-organizers">Car Organizers &amp; Holders</a>
           <a href="/product/car-tools">Car Tools &amp; Emergency Gear</a>
           <a href="/product/car-dashcams">Dash Cams</a>
@@ -124,7 +124,7 @@ function nav_active(string $slug): string {
 
     <!-- APPAREL -->
     <li class="mega-menu-item<?= nav_active('apparel') ?>">
-      <a href="/product-category/apparel">APPAREL <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=apparel">APPAREL <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <h4>Caps</h4>
@@ -152,7 +152,7 @@ function nav_active(string $slug): string {
 
     <!-- BAGS & POUCHES -->
     <li class="mega-menu-item<?= nav_active('bags-pouches') ?>">
-      <a href="/product-category/bags-pouches">BAGS &amp; POUCHES <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=bags-pouches">BAGS &amp; POUCHES <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <h4>Backpacks</h4>
@@ -188,7 +188,7 @@ function nav_active(string $slug): string {
 
     <!-- DRINKWARE -->
     <li class="mega-menu-item<?= nav_active('drinkware') ?>">
-      <a href="/product-category/drinkware">DRINKWARE <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=drinkware">DRINKWARE <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <h4>Tumbler &amp; Flasks</h4>
@@ -214,7 +214,7 @@ function nav_active(string $slug): string {
 
     <!-- GIFT SET -->
     <li class="mega-menu-item<?= nav_active('giftset') ?>">
-      <a href="/product-category/giftset">GIFT SET <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=giftset">GIFT SET <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <a href="/product/gift-set-active-outdoors/">Active Outdoors Gift Sets</a>
@@ -231,7 +231,7 @@ function nav_active(string $slug): string {
 
     <!-- HOME LIVING -->
     <li class="mega-menu-item<?= nav_active('home-living') ?>">
-      <a href="/product-category/home-living">HOME LIVING <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=home-living">HOME LIVING <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <a href="/product/home-living-cleaning-essentials/">Cleaning Essentials</a>
@@ -247,7 +247,7 @@ function nav_active(string $slug): string {
 
     <!-- PEN & PAPER -->
     <li class="mega-menu-item<?= nav_active('pen-paper') ?>">
-      <a href="/product-category/pen-paper/">PEN &amp; PAPER <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=pen-paper">PEN &amp; PAPER <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <h4>Pen</h4>
@@ -270,7 +270,7 @@ function nav_active(string $slug): string {
 
     <!-- PU LEATHER -->
     <li class="mega-menu-item<?= nav_active('pu-leather') ?>">
-      <a href="/product-category-pu-leather/">PU LEATHER <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
+      <a href="/category-page.php?cat=pu-leather">PU LEATHER <i class="fas fa-chevron-down chevron" aria-hidden="true"></i></a>
       <div class="mega-dropdown">
         <div class="mega-dropdown-col">
           <a href="/product/pu-leather-card-cases/">Card Cases</a>
@@ -299,18 +299,18 @@ function nav_active(string $slug): string {
   </div>
   <div class="sidenav-body">
     <p class="sidenav-section-title">Categories</p>
-    <a href="/product-category/accessories-gadgets">ACCESSORIES &amp; GADGETS</a>
-    <a href="/product-category/apparel">APPAREL</a>
-    <a href="/product-category/bags-pouches">BAGS &amp; POUCHES</a>
-    <a href="/product-category/drinkware">DRINKWARE</a>
-    <a href="/product-category/giftset">GIFT SET</a>
-    <a href="/product-category/home-living">HOME LIVING</a>
-    <a href="/product-category/pen-paper/">PEN &amp; PAPER</a>
-    <a href="/product-category-pu-leather/">PU LEATHER</a>
+    <a href="/category-page.php?cat=accessories-gadgets">ACCESSORIES &amp; GADGETS</a>
+    <a href="/category-page.php?cat=apparel">APPAREL</a>
+    <a href="/category-page.php?cat=bags-pouches">BAGS &amp; POUCHES</a>
+    <a href="/category-page.php?cat=drinkware">DRINKWARE</a>
+    <a href="/category-page.php?cat=giftset">GIFT SET</a>
+    <a href="/category-page.php?cat=home-living">HOME LIVING</a>
+    <a href="/category-page.php?cat=pen-paper">PEN &amp; PAPER</a>
+    <a href="/category-page.php?cat=pu-leather">PU LEATHER</a>
     <p class="sidenav-section-title">Help</p>
-    <a href="/faq/">About</a>
-    <a href="/product-category/accessories-gadgets">All Categories</a>
-    <a href="/contact-us/">Contact Us</a>
+    <a href="/index.php#corporate-heading">About</a>
+    <a href="/category-page.php?cat=accessories-gadgets">All Categories</a>
+    <a href="/index.php#contact-heading">Contact Us</a>
     <p class="sidenav-section-title">Contact</p>
     <a href="tel:+639177142774"><i class="fas fa-mobile-alt"></i> +63 917 714 2774</a>
     <a href="tel:+639339927410"><i class="fas fa-phone"></i> +63 933 992 7410</a>

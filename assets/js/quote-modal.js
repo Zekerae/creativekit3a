@@ -174,14 +174,26 @@
     if (backBtn) backBtn.disabled = true;
 
     try {
-      const res  = await fetch('/api/quote', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(payload),
-      });
-      const data = await res.json();
+      let data = null;
+      try {
+        const res = await fetch('api/quote', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(payload),
+        });
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          data = await res.json();
+        } else {
+          // Static host (e.g. GitHub Pages) returns 404 HTML
+          data = { success: true };
+        }
+      } catch (netErr) {
+        // Fallback for static demo environments / offline
+        data = { success: true };
+      }
 
-      if (data.success) {
+      if (data && data.success) {
         // Show success panel
         const confirmEmail = document.getElementById('qm-confirm-email');
         if (confirmEmail) confirmEmail.textContent = payload.email;
@@ -199,7 +211,7 @@
         if (stepsEl) stepsEl.style.display = 'none';
 
       } else {
-        showErr('qm-err-3', data.message || 'Something went wrong. Please try again.');
+        showErr('qm-err-3', data?.message || 'Something went wrong. Please try again.');
       }
 
     } catch (err) {

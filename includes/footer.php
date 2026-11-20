@@ -60,9 +60,9 @@ $extra_js = $extra_js ?? [];
         <div class="footer-col">
           <h5>Customer Help</h5>
           <ul>
-            <li><a href="/faq/">About</a></li>
-            <li><a href="/product-category/accessories-gadgets">All Categories</a></li>
-            <li><a href="/contact-us/">Contact Us</a></li>
+            <li><a href="/index.php#corporate-heading">About</a></li>
+            <li><a href="/category-page.php?cat=accessories-gadgets">All Categories</a></li>
+            <li><a href="/index.php#contact-heading">Contact Us</a></li>
           </ul>
         </div>
 
@@ -97,14 +97,14 @@ $extra_js = $extra_js ?? [];
 <!-- Overlay — clicking outside closes the open modal -->
 <div class="lm-overlay" id="lm-overlay" onclick="closeAllModals()" aria-hidden="true"></div>
 
-<!-- ── LOGIN MODAL ──────────────────────────────────────────── -->
+<!-- ── AUTH MODAL (Login & Register) ───────────────────────── -->
 <div class="lm-modal" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
   <div class="lm-card">
     <button class="lm-close" onclick="closeModal('login-modal')" aria-label="Close">&times;</button>
 
     <div class="lm-header">
       <span class="lm-brand">CreativeKit3A</span>
-      <p class="lm-tagline">Sign in to your account</p>
+      <p class="lm-tagline" id="login-title">Access your account or register</p>
     </div>
 
     <div class="lm-tabs" role="tablist">
@@ -134,7 +134,7 @@ $extra_js = $extra_js ?? [];
       </div>
       <div class="lm-extras">
         <label class="lm-remember"><input type="checkbox" id="lm-remember"> Remember me</label>
-        <a href="/forgot-password/" class="lm-forgot">Forgot password?</a>
+        <a href="#forgot-password" class="lm-forgot">Forgot password?</a>
       </div>
       <div class="lm-msg lm-msg--error" id="lm-login-error" hidden></div>
       <button class="btn btn-primary lm-submit" id="lm-login-btn" onclick="submitLogin()">
@@ -142,23 +142,12 @@ $extra_js = $extra_js ?? [];
       </button>
       <p class="lm-switch">
         Don't have an account?
-        <a href="#" onclick="closeModal('login-modal'); openModal('register-modal'); return false;">Register here</a>
+        <a href="#" onclick="switchTab('register'); return false;">Register here</a>
       </p>
     </div>
-  </div>
-</div>
 
-<!-- ── REGISTER MODAL ───────────────────────────────────────── -->
-<div class="lm-modal" id="register-modal" role="dialog" aria-modal="true" aria-labelledby="register-title">
-  <div class="lm-card">
-    <button class="lm-close" onclick="closeModal('register-modal')" aria-label="Close">&times;</button>
-
-    <div class="lm-header">
-      <span class="lm-brand">CreativeKit3A</span>
-      <p class="lm-tagline">Create your account</p>
-    </div>
-
-    <div class="lm-panel" id="panel-register" role="tabpanel">
+    <!-- Register Panel -->
+    <div class="lm-panel" id="panel-register" role="tabpanel" hidden>
       <div class="lm-field-row">
         <div class="lm-field">
           <label for="lm-reg-firstname"><i class="fas fa-user"></i> First Name</label>
@@ -187,7 +176,7 @@ $extra_js = $extra_js ?? [];
         <label for="lm-reg-password"><i class="fas fa-lock"></i> Password</label>
         <div class="lm-pw-wrap">
           <input type="password" id="lm-reg-password" placeholder="At least 8 characters"
-                 autocomplete="new-password" required>
+                 autocomplete="new-password" required oninput="updateStrength(this.value)">
           <button type="button" class="lm-pw-toggle"
                   onclick="togglePw('lm-reg-password', this)" aria-label="Show password">
             <i class="fas fa-eye"></i>
@@ -210,7 +199,7 @@ $extra_js = $extra_js ?? [];
       <div class="lm-terms">
         <label>
           <input type="checkbox" id="lm-reg-terms" required>
-          I agree to the <a href="/terms-conditions/" target="_blank">Terms &amp; Conditions</a>
+          I agree to the Terms &amp; Conditions
         </label>
       </div>
       <div class="lm-msg lm-msg--error"  id="lm-reg-error"   hidden></div>
@@ -220,7 +209,7 @@ $extra_js = $extra_js ?? [];
       </button>
       <p class="lm-switch">
         Already have an account?
-        <a href="#" onclick="closeModal('register-modal'); openModal('login-modal'); return false;">Sign in here</a>
+        <a href="#" onclick="switchTab('login'); return false;">Sign in here</a>
       </p>
     </div>
   </div>

@@ -1,6 +1,68 @@
 
     /* ── Category Hero Banner ───────────────────────────────── */
-    
+    .cat-hero {
+      background: linear-gradient(135deg, #fff8f3 0%, #fff0e5 100%);
+      border-bottom: 2px solid var(--orange-pale);
+      padding: 36px 0 32px;
+    }
+
+    .cat-hero-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .cat-hero-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .cat-hero-icon-box {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-md);
+      background: var(--gradient-hero);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 16px rgba(255, 107, 0, 0.25);
+      flex-shrink: 0;
+    }
+
+    .cat-hero-title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 900;
+      color: var(--black);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cat-hero-desc {
+      font-size: 0.92rem;
+      color: var(--grey-mid);
+      max-width: 680px;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .cat-hero-count {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: var(--orange-pale);
+      color: var(--orange-primary);
+      border-radius: var(--radius-pill);
+      padding: 3px 12px;
+      vertical-align: middle;
+    }
 
     .cat-breadcrumb-bar {
       background: var(--gray-off);

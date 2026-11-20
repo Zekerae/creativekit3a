@@ -16,7 +16,7 @@
 --  No existing tables were modified. Only new tables are added.
 -- ============================================================
 
-USE pinoyballers_db;
+USE creativekit3a;
 
 -- ============================================================
 --  TABLE: product_variants

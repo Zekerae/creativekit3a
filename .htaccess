@@ -1,0 +1,25 @@
+# ============================================================
+# CreativeKit 3A — Apache mod_rewrite Configuration
+# ============================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Automatically detect RewriteBase if deployed in subfolder
+  RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
+  RewriteRule ^(.*)$ - [E=BASE:%1]
+
+  # API endpoints
+  RewriteRule ^api/quote/?$ api/quote.php [L,QSA]
+  RewriteRule ^api/auth/login/?$ api/auth/login.php [L,QSA]
+  RewriteRule ^api/auth/register/?$ api/auth/register.php [L,QSA]
+  RewriteRule ^api/contact/?$ api/contact.php [L,QSA]
+
+  # Pretty category URLs: /product-category/slug -> category-page.php?cat=slug
+  RewriteRule ^product-category/([a-zA-Z0-9_-]+)/?$ category-page.php?cat=$1 [L,QSA]
+  RewriteRule ^product-category-([a-zA-Z0-9_-]+)/?$ category-page.php?cat=$1 [L,QSA]
+
+  # Pretty product URLs: /product/car-charger-adapters -> product/car-charger-adapters.php
+  RewriteRule ^product/car-charger-adapters/?$ product/car-charger-adapters.php [L,QSA]
+  RewriteRule ^product/([a-zA-Z0-9_-]+)/?$ product/$1.php [L,QSA]
+</IfModule>

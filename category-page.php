@@ -40,11 +40,27 @@ include __DIR__ . '/includes/navbar.php';
     </div>
   </div>
 
-  <!-- Hidden spans used by JS to push data into the DOM -->
-  <span id="hero-title"         style="display:none;"></span>
-  <span id="hero-desc"          style="display:none;"></span>
-  <span id="hero-icon"          style="display:none;"></span>
-  <span id="hero-product-count" style="display:none;"></span>
+  <!-- ============================================================
+       CATEGORY HERO BANNER
+       ============================================================ -->
+  <section class="cat-hero" aria-labelledby="hero-title">
+    <div class="container cat-hero-inner">
+      <div class="cat-hero-left">
+        <div class="cat-hero-icon-box" id="hero-icon" aria-hidden="true">
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <div>
+          <h1 class="cat-hero-title">
+            <span id="hero-title">Accessories &amp; Gadgets</span>
+            <span class="cat-hero-count" id="hero-product-count">25+</span>
+          </h1>
+          <p class="cat-hero-desc" id="hero-desc">
+            Browse our full range of custom accessories, gadgets, tech items, and desk essentials.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- ============================================================
        SUBCATEGORY FILTER TABS (injected by JS)
