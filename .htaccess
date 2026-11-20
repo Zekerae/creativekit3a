@@ -9,11 +9,11 @@
   RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
   RewriteRule ^(.*)$ - [E=BASE:%1]
 
-  # API endpoints
-  RewriteRule ^api/quote/?$ api/quote.php [L,QSA]
-  RewriteRule ^api/auth/login/?$ api/auth/login.php [L,QSA]
-  RewriteRule ^api/auth/register/?$ api/auth/register.php [L,QSA]
-  RewriteRule ^api/contact/?$ api/contact.php [L,QSA]
+  # API endpoints (PHP backend for XAMPP / Apache)
+  RewriteRule ^api/quote/?$ api-php/quote.php [L,QSA]
+  RewriteRule ^api/auth/login/?$ api-php/auth/login.php [L,QSA]
+  RewriteRule ^api/auth/register/?$ api-php/auth/register.php [L,QSA]
+  RewriteRule ^api/contact/?$ api-php/contact.php [L,QSA]
 
   # Pretty category URLs: /product-category/slug -> category-page.php?cat=slug
   RewriteRule ^product-category/([a-zA-Z0-9_-]+)/?$ category-page.php?cat=$1 [L,QSA]

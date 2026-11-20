@@ -1,0 +1,6 @@
+# Ignore PHP files and legacy dynamic backend assets on Vercel
+*.php
+api-php/
+includes/
+database/
+.htaccess

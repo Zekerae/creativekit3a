@@ -64,10 +64,15 @@ creativekit3a/
 ├── category-page.php            # Dynamic category catalog page
 ├── car-charger-adapters.html    # Static product variant page
 ├── vercel.json                  # Vercel routing & clean URLs config
-├── api/                         # Backend APIs
-│   ├── quote.js / quote.php     # Multi-step Quote Request endpoints
-│   ├── contact.js / contact.php # Contact form submission endpoints
+├── .vercelignore                # Excludes PHP files from Vercel builds
+├── api/                         # Vercel Serverless Functions (Node.js)
+│   ├── quote.js                 # Multi-step Quote Request endpoint
+│   ├── contact.js               # Contact form submission endpoint
 │   └── auth/                    # Login & Register endpoints
+├── api-php/                     # PHP Backend APIs for XAMPP / Apache
+│   ├── quote.php                # Multi-step Quote Request PHP handler
+│   ├── contact.php              # Contact form submission PHP handler
+│   └── auth/                    # Login & Register PHP handlers
 ├── assets/
 │   ├── css/                     # style.css, category-page.css, quote-modal.css, car-charger-adapters.css
 │   ├── js/                      # main.js, category-page.js, quote-modal.js, car-charger-adapters.js
