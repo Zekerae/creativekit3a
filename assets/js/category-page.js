@@ -280,7 +280,9 @@
        ============================================================ */
     function buildCard(product) {
       const itemSlug  = product.url.replace(/^\/product\//, '').replace(/\/$/, '');
-      const itemsUrl  = `car-charger-adapters.html?cat=${slugKey}&subcat=${product.subcat}&item=${itemSlug}`;
+      const targetCat = product.catSlug || slugKey;
+      const itemsUrl  = `car-charger-adapters.html?cat=${targetCat}&subcat=${product.subcat}&item=${itemSlug}`;
+      const categoryTag = product.catName ? `<div style="font-size:0.75rem;color:var(--primary-color);font-weight:700;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px;">${product.catName}</div>` : '';
 
       return `
         <div class="product-card" data-product-id="${product.id}" data-url="${itemsUrl}">
@@ -288,6 +290,7 @@
             <img src="${product.img}" alt="${product.name}" loading="lazy">
           </div>
           <div class="product-card-body">
+            ${categoryTag}
             <div class="product-card-title">${product.name}</div>
             <div class="product-card-price">${product.price}</div>
           </div>
@@ -358,52 +361,160 @@
        FULL PAGE RENDER  (hero + tabs + grid)
        ============================================================ */
     let currentSubcat = '';
+    let currentSearchQuery = '';
 
     function renderPage(slug, subcatKey) {
+      currentSearchQuery = '';
       const cat = CATEGORY_DATA[slug];
       if (!cat) return;
       currentSubcat = subcatKey;
       const sortVal = document.getElementById('sort-select')?.value || 'default';
+
+      // Restore subcat tabs wrapper if previously hidden by search
+      const tabsWrapper = document.getElementById('subcat-tabs-wrapper');
+      if (tabsWrapper) tabsWrapper.style.display = '';
+
       renderHero(cat);
       renderTabs(cat, subcatKey);
       renderGrid(cat, subcatKey, sortVal);
     }
 
     /* ============================================================
-       INIT
+       UNIVERSAL SEARCH ENGINE
+       Searches across ALL products in all categories.
+       Excludes any products that do NOT match the keyword query.
        ============================================================ */
-    const slugKey = getCategorySlug();
+    function searchCatalog(query) {
+      const q = (query || '').trim().toLowerCase();
+      currentSearchQuery = q;
 
-    // Sort change listener
-    document.getElementById('sort-select').addEventListener('change', function () {
-      renderGrid(CATEGORY_DATA[slugKey], currentSubcat, this.value);
-    });
+      if (!q) {
+        renderPage(slugKey, currentSubcat);
+        return;
+      }
 
-    // Search input (live filter)
-    const searchInput = document.getElementById('navbar-search-input') || document.getElementById('cat-search-input');
-    if (searchInput) {
-      searchInput.addEventListener('input', function () {
-        const q = this.value.trim().toLowerCase();
-        if (!q) {
-          renderPage(slugKey, currentSubcat);
-          return;
-        }
-        const cat     = CATEGORY_DATA[slugKey];
-        const grid    = document.getElementById('cat-product-grid');
-        const results = cat.products.filter(p => p.name.toLowerCase().includes(q));
-        grid.innerHTML = '';
-        if (!results.length) {
-          grid.innerHTML = '<div class="no-results"><i class="fas fa-search"></i><p>No products match "<strong>' + q + '</strong>"</p></div>';
-          return;
-        }
-        results.forEach(p => grid.insertAdjacentHTML('beforeend', buildCard(p)));
-        grid.querySelectorAll('.product-card').forEach(card => {
-          card.addEventListener('click', () => { window.location.href = card.dataset.url; });
+      const queryWords = q.split(/\s+/).filter(Boolean);
+      const matches = [];
+
+      // Filter all categories
+      Object.keys(CATEGORY_DATA).forEach(catSlug => {
+        const cat = CATEGORY_DATA[catSlug];
+        cat.products.forEach(p => {
+          const pName   = p.name.toLowerCase();
+          const pSubcat = (p.subcat || '').toLowerCase();
+          const pCat    = cat.name.toLowerCase();
+
+          // Product MUST match all query tokens
+          const isMatch = queryWords.every(word =>
+            pName.includes(word) || pSubcat.includes(word) || pCat.includes(word)
+          );
+
+          if (isMatch) {
+            matches.push({
+              ...p,
+              catSlug: catSlug,
+              catName: cat.name
+            });
+          }
+        });
+      });
+
+      // Update Hero banner with search statistics
+      const titleEl       = document.getElementById('hero-title');
+      const breadcrumbEl  = document.getElementById('hero-breadcrumb-current');
+      const descEl        = document.getElementById('hero-desc');
+      const countEl       = document.getElementById('hero-product-count');
+      const iconEl        = document.getElementById('hero-icon');
+      const tabsWrapper   = document.getElementById('subcat-tabs-wrapper');
+
+      if (titleEl)      titleEl.textContent      = `Search: "${query.trim()}"`;
+      if (breadcrumbEl) breadcrumbEl.textContent = `Search: "${query.trim()}"`;
+      if (descEl)       descEl.textContent       = `Found ${matches.length} product(s) matching your keyword.`;
+      if (countEl)      countEl.textContent      = `${matches.length}`;
+      if (iconEl)       iconEl.innerHTML          = '<i class="fas fa-search"></i>';
+      if (tabsWrapper)  tabsWrapper.style.display = 'none';
+
+      document.title = `Search: "${query.trim()}" | CreativeKit3A`;
+
+      // Update sort bar indicators
+      const showingCountEl  = document.getElementById('showing-count');
+      const showingSubcatEl = document.getElementById('showing-subcat');
+      if (showingCountEl)  showingCountEl.textContent  = matches.length;
+      if (showingSubcatEl) showingSubcatEl.textContent = `matching "${query.trim()}"`;
+
+      // Render results grid
+      const grid = document.getElementById('cat-product-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      if (!matches.length) {
+        grid.innerHTML = `
+          <div class="no-results" style="text-align:center;padding:50px 20px;grid-column:1/-1;width:100%;">
+            <i class="fas fa-search" style="font-size:3rem;color:var(--grey-mid);margin-bottom:16px;display:block;"></i>
+            <h3 style="font-size:1.3rem;margin-bottom:8px;color:var(--text-dark);">No products match "<strong>${query.trim()}</strong>"</h3>
+            <p style="color:var(--grey-mid);margin-bottom:20px;">Please check your spelling or try searching for a different keyword.</p>
+            <a href="category-page.html" class="btn btn-primary" style="display:inline-block;">View All Categories</a>
+          </div>`;
+        return;
+      }
+
+      // Apply sorting
+      const sortVal = document.getElementById('sort-select')?.value || 'default';
+      let sortedMatches = [...matches];
+      if (sortVal === 'name-asc')  sortedMatches.sort((a,b) => a.name.localeCompare(b.name));
+      if (sortVal === 'name-desc') sortedMatches.sort((a,b) => b.name.localeCompare(a.name));
+
+      sortedMatches.forEach(p => {
+        grid.insertAdjacentHTML('beforeend', buildCard(p));
+      });
+
+      // Card navigation click listeners
+      grid.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', () => {
+          window.location.href = card.dataset.url;
         });
       });
     }
 
-    // Initial render
-    renderPage(slugKey, '');
+    /* ============================================================
+       INIT & EVENT LISTENERS
+       ============================================================ */
+    const slugKey = getCategorySlug();
+
+    // Sort dropdown change listener
+    document.getElementById('sort-select')?.addEventListener('change', function () {
+      if (currentSearchQuery) {
+        searchCatalog(currentSearchQuery);
+      } else {
+        renderGrid(CATEGORY_DATA[slugKey], currentSubcat, this.value);
+      }
+    });
+
+    // Search input (live filter across whole catalog)
+    const searchInput = document.getElementById('navbar-search-input') || document.getElementById('cat-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        const val = this.value;
+        const url = new URL(window.location.href);
+        if (val.trim()) {
+          url.searchParams.set('s', val.trim());
+        } else {
+          url.searchParams.delete('s');
+        }
+        window.history.replaceState({}, '', url);
+        searchCatalog(val);
+      });
+    }
+
+    // Check URL parameters for ?s=... on initial page load
+    const urlParams   = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('s');
+
+    if (searchParam) {
+      if (searchInput) searchInput.value = searchParam;
+      searchCatalog(searchParam);
+    } else {
+      renderPage(slugKey, '');
+    }
 
   })();

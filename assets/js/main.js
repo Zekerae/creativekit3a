@@ -507,23 +507,94 @@ const setNavbarHeightVar = () => {
    ============================================================ */
 const Search = (() => {
   const inputs = $$('.navbar-search input, .search-form input');
+  const searchIcons = $$('.navbar-search .search-icon, .navbar-search button');
+
+  const doSearch = (query) => {
+    const q = (query || '').trim();
+    if (!q) return;
+
+    if (window.location.pathname.includes('category-page.html') || window.location.pathname.endsWith('/category-page')) {
+      const input = document.getElementById('navbar-search-input') || document.getElementById('cat-search-input');
+      if (input) {
+        input.value = q;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    } else {
+      window.location.href = `category-page.html?s=${encodeURIComponent(q)}`;
+    }
+  };
 
   const init = () => {
     inputs.forEach((input) => {
+      // Enter key triggers catalog search
       on(input, 'keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          const q = input.value.trim();
-          if (q) {
-            // Replace with your actual search URL
-            window.location.href = `/?s=${encodeURIComponent(q)}`;
-          }
+          doSearch(input.value);
         }
+      });
+
+      // Live filter featured products if on homepage
+      const featuredSection = $('.products-section');
+      if (featuredSection) {
+        const featuredCards = $$('.products-section .product-card');
+        on(input, 'input', () => {
+          const q = input.value.trim().toLowerCase();
+          let matchCount = 0;
+
+          featuredCards.forEach((card) => {
+            const title = card.querySelector('.product-card-title')?.textContent.toLowerCase() || '';
+            const price = card.querySelector('.product-card-price')?.textContent.toLowerCase() || '';
+            const isMatch = !q || title.includes(q) || price.includes(q);
+            card.style.display = isMatch ? '' : 'none';
+            if (isMatch) matchCount++;
+          });
+
+          let noResults = $('#featured-no-results');
+          if (q && matchCount === 0) {
+            if (!noResults) {
+              noResults = document.createElement('div');
+              noResults.id = 'featured-no-results';
+              noResults.className = 'no-results';
+              noResults.style.cssText = 'text-align:center;padding:40px 20px;grid-column:1/-1;width:100%;';
+              noResults.innerHTML = `
+                <i class="fas fa-search" style="font-size:2rem;color:var(--grey-mid);margin-bottom:12px;display:block;"></i>
+                <p style="color:var(--text-dark);font-weight:600;margin-bottom:8px;">No featured items match "<strong>${input.value.trim()}</strong>"</p>
+                <button class="btn btn-primary btn-sm" onclick="Search.doSearch('${input.value.trim()}')">
+                  Search Entire Catalog <i class="fas fa-arrow-right"></i>
+                </button>`;
+              $('.products-grid')?.appendChild(noResults);
+            } else {
+              noResults.querySelector('p').innerHTML = `No featured items match "<strong>${input.value.trim()}</strong>"`;
+              noResults.querySelector('button').setAttribute('onclick', `Search.doSearch('${input.value.trim()}')`);
+              noResults.style.display = '';
+            }
+          } else if (noResults) {
+            noResults.style.display = 'none';
+          }
+        });
+      }
+    });
+
+    // If user loaded a non-category page with ?s=..., forward to category-page.html?s=...
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialQuery = urlParams.get('s');
+    if (initialQuery && !window.location.pathname.includes('category-page.html')) {
+      window.location.replace(`category-page.html?s=${encodeURIComponent(initialQuery)}`);
+      return;
+    }
+
+    // Clicking magnifying glass icon submits search
+    searchIcons.forEach((icon) => {
+      icon.style.cursor = 'pointer';
+      on(icon, 'click', () => {
+        const input = icon.closest('.navbar-search')?.querySelector('input');
+        if (input) doSearch(input.value);
       });
     });
   };
 
-  return { init };
+  return { init, doSearch };
 })();
 
 /* ============================================================

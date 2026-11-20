@@ -637,7 +637,16 @@
 
       results.forEach(item => grid.insertAdjacentHTML('beforeend', buildItemCard(item)));
       grid.querySelectorAll('.item-card').forEach(card => {
-        card.addEventListener('click', () => { window.location.href = card.dataset.itemUrl; });
+        card.addEventListener('click', () => {
+          if (typeof openModal === 'function') {
+            openModal('quote-modal');
+            const details = document.getElementById('qm-details');
+            const title = card.querySelector('.item-card-title')?.textContent;
+            if (details && title && !details.value.includes(title)) {
+              details.value = `Inquiring about variant: ${title}\n` + details.value;
+            }
+          }
+        });
       });
     });
   }
