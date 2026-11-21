@@ -1324,23 +1324,53 @@ const AuthModal = (() => {
   const renderAuthState = () => {
     try {
       const userStr = localStorage.getItem('ck_user');
-      const user = userStr ? JSON.parse(userStr) : null;
+      let user = null;
+      try {
+        user = userStr ? JSON.parse(userStr) : null;
+      } catch (_) {}
+
       const isAdmin = user && (user.role === 'admin' || user.email === 'admin@creativekit3a.com' || user.email === 'admin@ck3a.com');
 
-      // 1. Manage Top Bar Admin Link across all pages (Only visible for admin)
-      document.querySelectorAll('#top-bar-admin-link, .top-bar-admin-btn').forEach(btn => {
-        btn.style.display = isAdmin ? 'inline-flex' : 'none';
-      });
+      // 1. If not admin, aggressively remove any admin buttons from DOM
+      if (!isAdmin) {
+        document.querySelectorAll('#top-bar-admin-link, .top-bar-admin-btn').forEach(el => el.remove());
+      }
 
       // 2. Manage Auth buttons & user badges in .top-bar-auth, .topbar-links, .navbar-user-area
       document.querySelectorAll('.top-bar-auth, .topbar-links, .navbar-user-area').forEach(container => {
-        const signinBtn = container.querySelector('[onclick*="login-modal"], .top-bar-login, .btn-outline');
-        const registerBtn = container.querySelector('[onclick*="register-modal"], .top-bar-signup, .btn-primary');
+        const signinBtn   = container.querySelector('.top-bar-login, [onclick*="login-modal"]');
+        const registerBtn = container.querySelector('.top-bar-signup, [onclick*="register-modal"]');
         let badge = container.querySelector('.auth-status-badge');
+        let adminBtn = container.querySelector('#top-bar-admin-link');
 
         if (user && user.name) {
+          // Logged in: hide sign in and register
           if (signinBtn) signinBtn.style.display = 'none';
           if (registerBtn) registerBtn.style.display = 'none';
+
+          // Inject Management button ONLY if admin
+          if (isAdmin) {
+            if (!adminBtn) {
+              const isPhp = window.location.pathname.endsWith('.php');
+              const isInSubdir = window.location.pathname.includes('/product/');
+              const adminHref = isPhp
+                ? (isInSubdir ? '../admin/index.php' : 'admin/index.php')
+                : (isInSubdir ? '../admin/index.html' : 'admin/index.html');
+
+              adminBtn = document.createElement('a');
+              adminBtn.id = 'top-bar-admin-link';
+              adminBtn.className = 'btn btn-outline btn-sm top-bar-admin-btn admin-active';
+              adminBtn.href = adminHref;
+              adminBtn.style.cssText = 'text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-right:4px;';
+              adminBtn.innerHTML = '<i class="fas fa-chart-line"></i> Management';
+              container.insertBefore(adminBtn, container.firstChild);
+            } else {
+              adminBtn.classList.add('admin-active');
+              adminBtn.style.display = 'inline-flex';
+            }
+          } else if (adminBtn) {
+            adminBtn.remove();
+          }
 
           if (!badge) {
             badge = document.createElement('span');
@@ -1360,6 +1390,8 @@ const AuthModal = (() => {
               e.preventDefault();
               localStorage.removeItem('ck_user');
               badge.remove();
+              if (adminBtn) adminBtn.remove();
+              document.querySelectorAll('#top-bar-admin-link, .top-bar-admin-btn').forEach(el => el.remove());
               if (signinBtn) signinBtn.style.display = '';
               if (registerBtn) registerBtn.style.display = '';
               renderAuthState();
@@ -1367,10 +1399,12 @@ const AuthModal = (() => {
             };
           }
         } else {
-          // Logged out / Public guest
+          // Logged out / Public visitor: remove admin button and badge, restore Sign In & Register
+          if (adminBtn) adminBtn.remove();
+          document.querySelectorAll('#top-bar-admin-link, .top-bar-admin-btn').forEach(el => el.remove());
+          if (badge) badge.remove();
           if (signinBtn) signinBtn.style.display = '';
           if (registerBtn) registerBtn.style.display = '';
-          if (badge) badge.remove();
         }
       });
     } catch (_) {}

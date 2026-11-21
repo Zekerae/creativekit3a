@@ -43,6 +43,12 @@
   display: none !important;
 }
 
+/* Guard: Management link is strictly hidden from public visitors */
+#top-bar-admin-link:not(.admin-active),
+.top-bar-admin-btn:not(.admin-active) {
+  display: none !important;
+}
+
 /* ---- Reset & Base ---- */
 *, *::before, *::after {
   box-sizing: border-box;
