@@ -1,0 +1,16 @@
+/**
+ * ============================================================
+ * assets/css/home.css — Dedicated Styles for the Homepage
+ * Paired with: /index.php
+ *
+ * The homepage design (hero carousel, OUR PRODUCTS grid, corporate and
+ * contact sections) comes from the CreativeKit3A Main UI in
+ * assets/css/style.css. Only homepage-specific additions live here.
+ * ============================================================
+ */
+
+/* Product cards link to their product page */
+.product-grid .product-card[data-url] { cursor: pointer; }
+
+/* Single-slide carousels don't need arrows (home.js sets [hidden]) */
+.carousel-btn[hidden] { display: none; }

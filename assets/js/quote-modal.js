@@ -1,7 +1,17 @@
 /* ============================================================
    quote-modal.js
    Logic for the "Request a Quote" multi-step modal.
-   Compatible with static (Vercel / GitHub Pages) and PHP (XAMPP).
+
+   Load AFTER main.js (which defines openModal / closeModal).
+   <script src="/quote-modal.js"></script>
+
+   API endpoint:
+     POST /api/quote
+     Body JSON: { name, company, email, phone, product_type,
+                  quantity, budget, deadline, details,
+                  customization[], source }
+     Expected response: { success: true }
+                     OR { success: false, message: 'Reason...' }
    ============================================================ */
 
 (function () {
@@ -14,17 +24,13 @@
     const el = document.getElementById(id);
     if (!el) return;
     el.textContent = '⚠️ ' + msg;
-    el.removeAttribute('hidden');
-    el.style.display = 'block';
+    el.hidden = false;
   }
 
   /** Hide an error/success message */
   function hideMsg(id) {
     const el = document.getElementById(id);
-    if (el) {
-      el.setAttribute('hidden', '');
-      el.style.display = 'none';
-    }
+    if (el) el.hidden = true;
   }
 
   /** Returns trimmed value of an input/select by id */
@@ -38,13 +44,13 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
   }
 
-  /** Simple PH phone check */
+  /** Simple PH phone check (accepts +63... or 09...) */
   function isPhone(str) {
     return /^(\+63|0)[0-9]{9,10}$/.test(str.replace(/[\s\-]/g, ''));
   }
 
 
-  /* ── Wire up listeners on load ─────────────────────────── */
+  /* ── Set min date to today + 3 days ────────────────────── */
   window.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.getElementById('qm-deadline');
     if (dateInput) {
@@ -53,18 +59,13 @@
       dateInput.min = minDate.toISOString().split('T')[0];
     }
 
-    // Wire up any "Request a Quote" button (.btn-chat, .btn-quote, etc.)
-    document.querySelectorAll('.btn-chat, .btn-quote, [data-open-quote]').forEach(btn => {
+    // Wire up the "Request a Quote" btn-chat button if it exists
+    // and doesn't already have an onclick set in HTML
+    document.querySelectorAll('.btn-chat').forEach(btn => {
       if (!btn.getAttribute('onclick')) {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (typeof openModal === 'function') openModal('quote-modal');
-        });
+        btn.addEventListener('click', () => openModal('quote-modal'));
       }
     });
-
-    // Initialize modal state cleanly to step 1
-    resetQuoteModal();
   });
 
 
@@ -78,22 +79,22 @@
     hideMsg('qm-err-' + fromStep);
 
     if (fromStep === 1) {
-      const name = val('qm-name');
+      const name  = val('qm-name');
       const email = val('qm-email');
       const phone = val('qm-phone');
 
-      if (!name) return showErr('qm-err-1', 'Please enter your full name.');
-      if (!email) return showErr('qm-err-1', 'Please enter your email address.');
+      if (!name)          return showErr('qm-err-1', 'Please enter your full name.');
+      if (!email)         return showErr('qm-err-1', 'Please enter your email address.');
       if (!isEmail(email)) return showErr('qm-err-1', 'Please enter a valid email address.');
-      if (!phone) return showErr('qm-err-1', 'Please enter your mobile number.');
+      if (!phone)         return showErr('qm-err-1', 'Please enter your mobile number.');
       if (!isPhone(phone)) return showErr('qm-err-1', 'Please enter a valid PH mobile number (e.g. +63 917 000 0000).');
     }
 
     if (fromStep === 2) {
-      const product = val('qm-product-type');
+      const product  = val('qm-product-type');
       const quantity = val('qm-quantity');
 
-      if (!product) return showErr('qm-err-2', 'Please select a product category.');
+      if (!product)  return showErr('qm-err-2', 'Please select a product category.');
       if (!quantity) return showErr('qm-err-2', 'Please select a quantity range.');
     }
 
@@ -107,46 +108,25 @@
 
   /** Show the target step panel and update step dots */
   function goToStep(step) {
-    // 1. Manage Step panels
+    // Hide all panels
     for (let i = 1; i <= TOTAL_STEPS; i++) {
       const panel = document.getElementById('qm-panel-' + i);
-      if (panel) {
-        if (i === step) {
-          panel.removeAttribute('hidden');
-          panel.style.display = 'flex';
-        } else {
-          panel.setAttribute('hidden', '');
-          panel.style.display = 'none';
-        }
-      }
+      if (panel) panel.hidden = (i !== step);
     }
 
-    // 2. Hide success panel explicitly
-    const successPanel = document.getElementById('qm-panel-success');
-    if (successPanel) {
-      successPanel.setAttribute('hidden', '');
-      successPanel.style.display = 'none';
-    }
-
-    // 3. Ensure step dots bar is visible
-    const stepsEl = document.querySelector('#quote-modal .qm-steps');
-    if (stepsEl) {
-      stepsEl.removeAttribute('hidden');
-      stepsEl.style.display = 'flex';
-    }
-
-    // 4. Update step dots
+    // Update step dots
     for (let i = 1; i <= TOTAL_STEPS; i++) {
       const dot = document.getElementById('qm-step-dot-' + i);
       if (!dot) continue;
       dot.classList.remove('active', 'done');
-      if (i < step) dot.classList.add('done');
+      if (i < step)  dot.classList.add('done');
       if (i === step) dot.classList.add('active');
     }
 
-    // 5. Update connector lines
+    // Update connector lines
     const lines = document.querySelectorAll('#quote-modal .qm-step-line');
     lines.forEach((line, idx) => {
+      // Line at index 0 connects step 1→2, index 1 connects step 2→3
       line.classList.toggle('done', idx + 2 <= step);
     });
 
@@ -158,6 +138,34 @@
   }
 
 
+  /* ── Product link (hidden #qm-product, data from window.QM_PRODUCTS = products table) ── */
+
+  const qmCategory = document.getElementById('qm-product-type');
+  const qmProduct  = document.getElementById('qm-product');
+
+  function fillProducts(catId, selectId) {
+    if (qmProduct) qmProduct.value = selectId ? String(selectId) : '';
+  }
+
+  // Picking a different category manually clears any pre-selected product
+  if (qmCategory) {
+    qmCategory.addEventListener('change', function () { fillProducts(''); });
+  }
+
+  /**
+   * Open the quote modal pre-filled for a product from the database.
+   * Usage: openQuoteFor(productId)
+   */
+  window.openQuoteFor = function (productId) {
+    const prod = (window.QM_PRODUCTS || []).find(p => String(p.id) === String(productId));
+    if (prod && qmCategory) {
+      const opt = qmCategory.querySelector('option[data-cat-id="' + prod.cat + '"]');
+      if (opt) qmCategory.value = opt.value;
+    }
+    fillProducts(prod ? prod.cat : '', prod ? prod.id : '');
+    if (typeof window.openModal === 'function') window.openModal('quote-modal');
+  };
+
   /* ── Submit ─────────────────────────────────────────────── */
 
   window.submitQuote = async function () {
@@ -165,7 +173,7 @@
     hideMsg('qm-success');
 
     const submitBtn = document.getElementById('qm-submit-btn');
-    const backBtn = document.getElementById('qm-back-btn-3');
+    const backBtn   = document.getElementById('qm-back-btn-3');
 
     // Collect customization checkboxes
     const customization = [...document.querySelectorAll('input[name="qm-custom"]:checked')]
@@ -173,17 +181,17 @@
 
     // Build payload
     const payload = {
-      name: val('qm-name'),
-      company: val('qm-company'),
-      email: val('qm-email'),
-      phone: val('qm-phone'),
-      product_type: val('qm-product-type'),
-      quantity: val('qm-quantity'),
-      budget: val('qm-budget'),
-      deadline: val('qm-deadline'),
-      details: val('qm-details'),
+      name:          val('qm-name'),
+      company:       val('qm-company'),
+      email:         val('qm-email'),
+      phone:         val('qm-phone'),
+      product_type:  val('qm-product-type'),
+      quantity:      val('qm-quantity'),
+      budget:        val('qm-budget'),
+      deadline:      val('qm-deadline'),
+      details:       val('qm-details'),
       customization: customization,
-      source: val('qm-source'),
+      source:        val('qm-source'),
     };
 
     // Disable buttons + show spinner
@@ -193,84 +201,47 @@
     }
     if (backBtn) backBtn.disabled = true;
 
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('action', 'submit');
+    formData.append('is_ajax', '1');
+    formData.append('name', payload.name);
+    formData.append('company', payload.company);
+    formData.append('email', payload.email);
+    formData.append('phone', payload.phone);
+    formData.append('product_type', payload.product_type);
+    formData.append('product_id', val('qm-product'));
+    formData.append('quantity', payload.quantity);
+    formData.append('budget', payload.budget);
+    formData.append('deadline', payload.deadline);
+    formData.append('details', payload.details);
+
     try {
-      let data = null;
-      const isPhp = window.location.pathname.endsWith('.php');
-      const isInSubdir = window.location.pathname.includes('/product/');
-      const endpoint = isPhp
-        ? (isInSubdir ? '../api-php/quote.php' : 'api-php/quote.php')
-        : (isInSubdir ? '../api/quote' : 'api/quote');
+      const res = await fetch((window.BASE_URL || '') + '/actions/quote-actions.php', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
 
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          data = await res.json();
-        } else {
-          // Static host (e.g. GitHub Pages) fallback
-          data = {
-            success: true,
-            quote_ref: 'CK3A-' + Math.floor(100000 + Math.random() * 900000)
-          };
-        }
-      } catch (netErr) {
-        // Fallback for static demo environments / offline
-        data = {
-          success: true,
-          quote_ref: 'CK3A-' + Math.floor(100000 + Math.random() * 900000)
-        };
-      }
-
-      if (data && data.success) {
-        // Set confirmation email
+      if (data.success) {
+        // Show success panel
         const confirmEmail = document.getElementById('qm-confirm-email');
-        if (confirmEmail) confirmEmail.textContent = payload.email || 'your email';
+        if (confirmEmail) confirmEmail.textContent = payload.email;
 
-        // Display quote reference badge
-        const quoteRef = data.quote_ref || ('CK3A-' + Math.floor(100000 + Math.random() * 900000));
-        let refEl = document.getElementById('qm-confirm-ref');
-        if (!refEl) {
-          const successMsg = document.querySelector('#qm-panel-success .qm-success-msg');
-          if (successMsg) {
-            refEl = document.createElement('div');
-            refEl.id = 'qm-confirm-ref';
-            refEl.className = 'qm-confirm-ref-badge';
-            successMsg.insertAdjacentElement('afterend', refEl);
-          }
-        }
-        if (refEl) {
-          refEl.innerHTML = `<i class="fas fa-receipt"></i> Reference Code: <strong>${quoteRef}</strong>`;
-        }
-
-        // Hide all form panels
         for (let i = 1; i <= TOTAL_STEPS; i++) {
           const p = document.getElementById('qm-panel-' + i);
-          if (p) {
-            p.setAttribute('hidden', '');
-            p.style.display = 'none';
-          }
+          if (p) p.hidden = true;
         }
 
-        // Hide step indicators
-        const stepsEl = document.querySelector('#quote-modal .qm-steps');
-        if (stepsEl) {
-          stepsEl.setAttribute('hidden', '');
-          stepsEl.style.display = 'none';
-        }
-
-        // Show success panel
         const successPanel = document.getElementById('qm-panel-success');
-        if (successPanel) {
-          successPanel.removeAttribute('hidden');
-          successPanel.style.display = 'flex';
-        }
+        if (successPanel) successPanel.hidden = false;
+
+        // Hide step dots
+        const stepsEl = document.querySelector('#quote-modal .qm-steps');
+        if (stepsEl) stepsEl.style.display = 'none';
 
       } else {
-        showErr('qm-err-3', data?.message || 'Something went wrong. Please try again.');
+        showErr('qm-err-3', data.message || 'Something went wrong. Please try again.');
       }
 
     } catch (err) {
@@ -287,86 +258,56 @@
   };
 
 
-  /* ── Helper: Open quote modal with pre-filled product details ─── */
-  window.openQuoteForProduct = function (productTitle, categoryKey, customDetails) {
-    if (typeof openModal === 'function') {
-      openModal('quote-modal');
-    }
-
-    // Pre-fill details text
-    const details = document.getElementById('qm-details');
-    if (details) {
-      let text = `Inquiry regarding: ${productTitle || 'Product'}`;
-      if (customDetails) text += `\n${customDetails}`;
-      if (!details.value.includes(productTitle)) {
-        details.value = text + (details.value ? `\n\n${details.value}` : '');
-      }
-    }
-
-    // Auto-select category if provided
-    if (categoryKey) {
-      const select = document.getElementById('qm-product-type');
-      if (select) {
-        const option = Array.from(select.options).find(opt =>
-          opt.value === categoryKey ||
-          opt.value.includes(categoryKey) ||
-          categoryKey.includes(opt.value)
-        );
-        if (option) select.value = option.value;
-      }
-    }
-  };
-
-
-  /* ── Reset modal state on open / close ───────────────────── */
-  const _origOpen = window.openModal;
-  window.openModal = function (id) {
-    if (id === 'quote-modal') {
-      resetQuoteModal();
-    }
-    if (typeof _origOpen === 'function') _origOpen(id);
-  };
-
-  const _origClose = window.closeModal;
+  /* ── Reset modal state on close ─────────────────────────── */
+  /**
+   * Call this when the modal closes so the next open starts fresh.
+   * Hook into closeModal by patching it after main.js loads.
+   */
+  const _originalClose = window.closeModal;
   window.closeModal = function (id) {
-    if (typeof _origClose === 'function') _origClose(id);
+    _originalClose(id);
     if (id === 'quote-modal') {
       resetQuoteModal();
     }
   };
 
   function resetQuoteModal() {
+    // Reset step
     goToStep(1);
 
-    const successPanel = document.getElementById('qm-panel-success');
-    if (successPanel) {
-      successPanel.setAttribute('hidden', '');
-      successPanel.style.display = 'none';
-    }
-
+    // Show steps bar again (in case success panel hid it)
     const stepsEl = document.querySelector('#quote-modal .qm-steps');
-    if (stepsEl) {
-      stepsEl.removeAttribute('hidden');
-      stepsEl.style.display = 'flex';
-    }
+    if (stepsEl) stepsEl.style.display = '';
 
-    ['qm-name', 'qm-company', 'qm-email', 'qm-phone',
-      'qm-details', 'qm-deadline'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
+    // Hide success panel
+    const successPanel = document.getElementById('qm-panel-success');
+    if (successPanel) successPanel.hidden = true;
 
-    ['qm-product-type', 'qm-quantity', 'qm-budget', 'qm-source'].forEach(id => {
+    // Show panel 1
+    const p1 = document.getElementById('qm-panel-1');
+    if (p1) p1.hidden = false;
+
+    // Clear all inputs
+    ['qm-name','qm-company','qm-email','qm-phone',
+     'qm-details','qm-deadline'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+    ['qm-product-type','qm-quantity','qm-budget','qm-source'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.selectedIndex = 0;
     });
+    fillProducts('');
 
     document.querySelectorAll('input[name="qm-custom"]').forEach(cb => {
       cb.checked = false;
     });
 
-    ['qm-err-1', 'qm-err-2', 'qm-err-3', 'qm-success'].forEach(hideMsg);
+    // Hide all messages
+    ['qm-err-1','qm-err-2','qm-err-3','qm-success'].forEach(hideMsg);
 
+    // Reset submit button
     const submitBtn = document.getElementById('qm-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = false;

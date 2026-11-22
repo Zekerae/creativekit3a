@@ -1,0 +1,214 @@
+/**
+ * ============================================================
+ * assets/css/product-form.css — Dedicated Styles for Product Form
+ * Paired with: /pages/product-form.php
+ * ============================================================
+ */
+
+.form-page-wrapper {
+  padding: 35px 0 70px;
+}
+
+.form-container {
+  max-width: 1040px;
+}
+
+.form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.form-header h1 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--black-deep);
+  margin-bottom: 4px;
+}
+
+.form-header p {
+  color: var(--grey-dark);
+  font-size: 0.9375rem;
+}
+
+/* ---- Card Form Layout ---- */
+.product-form-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--grey-border);
+  padding: 32px;
+}
+
+.form-sections-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 7px;
+}
+
+.required {
+  color: var(--danger);
+}
+
+.helper-text {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--grey-mid);
+}
+
+.info-tag {
+  font-size: 0.7rem;
+  background: var(--orange-bg);
+  color: var(--orange-primary);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  cursor: help;
+}
+
+/* SKU & Price Input Groups */
+.sku-input-wrap {
+  display: flex;
+  gap: 6px;
+}
+
+.price-input-wrap {
+  position: relative;
+}
+
+.currency-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  color: var(--orange-primary);
+  font-size: 1rem;
+}
+
+.price-input-wrap input {
+  padding-left: 32px;
+}
+
+/* Side Panels */
+.side-panel-card {
+  background: #FAFAFA;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  border: 1px solid var(--grey-border);
+  margin-bottom: 20px;
+}
+
+.side-panel-card h4 {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--black-deep);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Checkbox Custom */
+.custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  user-select: none;
+}
+
+.custom-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--orange-primary);
+  cursor: pointer;
+}
+
+/* Image Live Preview */
+.image-preview-wrap {
+  width: 100%;
+  height: 180px;
+  background: var(--white);
+  border: 1.5px dashed var(--grey-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 10px;
+  transition: all 0.2s ease;
+}
+
+.image-preview-wrap img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.image-preview-wrap:hover img {
+  transform: scale(1.05);
+}
+
+/* Footer Actions */
+.form-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--grey-border);
+}
+
+/* ---- Responsive Breakpoints ---- */
+@media (max-width: 900px) {
+  .form-sections-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .product-form-card {
+    padding: 22px 18px;
+  }
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+  .form-footer-actions {
+    flex-direction: column-reverse;
+  }
+  .form-footer-actions .btn {
+    width: 100%;
+  }
+}

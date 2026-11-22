@@ -4,8 +4,39 @@
  * ─────────────────────────────────────────────────────────────
  * Request a Quote multi-step modal component.
  * Included inside includes/footer.php.
+ *
+ * The category and product dropdowns are filled from the single
+ * creativekit3a_db database (categories + products tables) through
+ * config/db.php — nothing is hardcoded. The selected product's id is
+ * submitted so quote_requests.product_id links to products.id.
  * ─────────────────────────────────────────────────────────────
  */
+$qm_groups   = [];   // main category name => [ [id, name], ... ] subcategories
+$qm_products = [];   // [ { id, name, cat } ] active products (cat = subcategory id)
+$qm_pdo = function_exists('get_db') ? get_db() : null;
+if ($qm_pdo) {
+    try {
+        $rows = $qm_pdo->query(
+            "SELECT sc.id, sc.name, mc.name AS parent_name
+             FROM categories AS sc
+             INNER JOIN categories AS mc ON sc.parent_id = mc.id
+             WHERE sc.is_active = 1 AND mc.is_active = 1
+             ORDER BY mc.sort_order ASC, sc.sort_order ASC"
+        )->fetchAll();
+        foreach ($rows as $r) {
+            $qm_groups[$r['parent_name']][] = ['id' => (int)$r['id'], 'name' => $r['name']];
+        }
+        $qm_products = $qm_pdo->query(
+            "SELECT p.id, p.name, p.category_id AS cat
+             FROM products AS p
+             WHERE p.status = 'active'
+             ORDER BY p.name ASC"
+        )->fetchAll();
+    } catch (PDOException $e) {
+        $qm_groups = [];
+        $qm_products = [];
+    }
+}
 ?>
 <!-- ============================================================
      REQUEST A QUOTE MODAL  (#quote-modal)
@@ -95,45 +126,28 @@
     </div>
 
     <!-- ── STEP 2: Product Info ────────────────────────────── -->
-    <div class="lm-panel qm-panel" id="qm-panel-2" hidden style="display:none;">
+    <div class="lm-panel qm-panel" id="qm-panel-2" hidden>
 
       <div class="lm-field">
         <label for="qm-product-type"><i class="fas fa-tag"></i> Product Category <span class="qm-req">*</span></label>
         <select id="qm-product-type" class="qm-select" required>
           <option value="" disabled selected>— Select a category —</option>
-          <optgroup label="Accessories &amp; Gadgets">
-            <option value="car-accessories">Car Accessories</option>
-            <option value="computer-accessories">Computer Accessories</option>
-            <option value="desk-accessories">Desk Accessories</option>
-            <option value="mobile-accessories">Mobile Accessories</option>
-            <option value="gadgets">Gadgets</option>
-          </optgroup>
-          <optgroup label="Apparel">
-            <option value="caps">Caps</option>
-            <option value="jackets">Jackets</option>
-            <option value="shirts">Shirts</option>
-          </optgroup>
-          <optgroup label="Bags &amp; Pouches">
-            <option value="backpacks">Backpacks</option>
-            <option value="eco-bags">Eco Bags</option>
-            <option value="laptop-bags">Laptop Bags</option>
-            <option value="tote-bags">Tote Bags</option>
-            <option value="travel-bags">Travel Bags</option>
-          </optgroup>
-          <optgroup label="Drinkware">
-            <option value="tumblers">Tumblers &amp; Flasks</option>
-            <option value="mugs">Mugs &amp; Cups</option>
-            <option value="water-bottles">Water Bottles</option>
-          </optgroup>
-          <optgroup label="Other">
-            <option value="gift-set">Gift Sets</option>
-            <option value="home-living">Home Living</option>
-            <option value="pen-paper">Pen &amp; Paper</option>
-            <option value="pu-leather">PU Leather</option>
-            <option value="other">Other / Not Listed</option>
-          </optgroup>
+          <?php foreach ($qm_groups as $group => $subs): ?>
+            <optgroup label="<?= htmlspecialchars($group) ?>">
+              <?php foreach ($subs as $sub): ?>
+                <option value="<?= htmlspecialchars($sub['name']) ?>" data-cat-id="<?= (int)$sub['id'] ?>"><?= htmlspecialchars($sub['name']) ?></option>
+              <?php endforeach; ?>
+            </optgroup>
+          <?php endforeach; ?>
+          <option value="Other / Not Listed">Other / Not Listed</option>
         </select>
       </div>
+
+      <!-- Backend hook: product id set by openQuoteFor() so the quote links to products.id -->
+      <input type="hidden" id="qm-product" value="">
+      <script>
+        window.QM_PRODUCTS = <?= json_encode($qm_products, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+      </script>
 
       <div class="lm-field-row">
         <div class="lm-field">
@@ -181,7 +195,7 @@
     </div>
 
     <!-- ── STEP 3: Details & Submit ────────────────────────── -->
-    <div class="lm-panel qm-panel" id="qm-panel-3" hidden style="display:none;">
+    <div class="lm-panel qm-panel" id="qm-panel-3" hidden>
 
       <div class="lm-field">
         <label for="qm-details">
@@ -236,7 +250,7 @@
     </div>
 
     <!-- ── SUCCESS STATE ───────────────────────────────────── -->
-    <div class="qm-panel qm-success-panel" id="qm-panel-success" hidden style="display:none;">
+    <div class="qm-panel qm-success-panel" id="qm-panel-success" hidden>
       <div class="qm-success-icon">
         <i class="fas fa-circle-check"></i>
       </div>
