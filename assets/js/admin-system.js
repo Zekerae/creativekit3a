@@ -316,13 +316,23 @@
     if (elProcurement) elProcurement.textContent = '₱' + totalProcurementSpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (elActivePO) elActivePO.textContent = activePOCount;
 
-    // Update Tab Badges
+    // Update Tab Badges & Sidebar Badges
     const invBadge = document.getElementById('tab-badge-inventory');
     const poBadge = document.getElementById('tab-badge-purchasing');
     const userBadge = document.getElementById('tab-badge-users');
-    if (invBadge) invBadge.textContent = lowStockCount > 0 ? `${lowStockCount} alerts` : inventory.length;
+    const sideInvBadge = document.getElementById('side-badge-inventory');
+    const sidePoBadge = document.getElementById('side-badge-purchasing');
+    const sideUserBadge = document.getElementById('side-badge-users');
+
+    const invText = lowStockCount > 0 ? `${lowStockCount} alerts` : inventory.length;
+    if (invBadge) invBadge.textContent = invText;
+    if (sideInvBadge) sideInvBadge.textContent = lowStockCount > 0 ? lowStockCount : inventory.length;
+
     if (poBadge) poBadge.textContent = purchasing.length;
+    if (sidePoBadge) sidePoBadge.textContent = purchasing.length;
+
     if (userBadge) userBadge.textContent = users.length;
+    if (sideUserBadge) sideUserBadge.textContent = users.length;
 
     renderAuditLogs();
   }
@@ -513,7 +523,9 @@
     if (elAdmin) elAdmin.textContent = adminCount;
     if (elStaff) elStaff.textContent = staffCount;
     if (elCustomer) elCustomer.textContent = customerCount;
+    const sideUserBadge = document.getElementById('side-badge-users');
     if (tabUserBadge) tabUserBadge.textContent = totalUsers;
+    if (sideUserBadge) sideUserBadge.textContent = totalUsers;
 
     const q = filterKeyword.toLowerCase().trim();
     const filtered = users.filter(u => {
@@ -582,12 +594,11 @@
   /* ── 7. INTERACTIVE ACTIONS ── */
   window.AdminApp = {
     switchTab(tabId) {
-      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+      document.querySelectorAll('.hover-sidebar-link[data-tab]').forEach(l => l.classList.toggle('active', l.dataset.tab === tabId));
       document.querySelectorAll('.tab-content-panel').forEach(p => p.style.display = 'none');
 
-      const targetTab = document.querySelector(`[data-tab="${tabId}"]`);
       const targetPanel = document.getElementById(`panel-${tabId}`);
-      if (targetTab) targetTab.classList.add('active');
       if (targetPanel) targetPanel.style.display = 'block';
 
       if (tabId === 'information') renderMISDashboard();
@@ -1133,6 +1144,18 @@
           <button onclick="AdminApp.logout()" style="background:none;border:none;color:#ef4444;cursor:pointer;font-weight:700;font-size:0.75rem;margin-left:4px;" title="Sign out of Admin">(Sign Out)</button>
         </div>`;
     }
+
+    const sideUserName = document.getElementById('side-user-name');
+    const sideUserRole = document.getElementById('side-user-role');
+    const sideUserAvatar = document.getElementById('side-user-avatar');
+
+    if (sideUserName) sideUserName.textContent = user.name || 'Admin';
+    if (sideUserRole) sideUserRole.textContent = (user.role ? user.role.toUpperCase() : 'ADMIN') + ' ACCESS';
+    if (sideUserAvatar) {
+      const parts = (user.name || 'Admin').trim().split(/\s+/);
+      const initials = parts.map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'AD';
+      sideUserAvatar.textContent = initials;
+    }
     return true;
   }
 
@@ -1157,6 +1180,43 @@
         AdminApp.switchTab(tab.dataset.tab);
       });
     });
+
+    // Sidebar link bindings
+    document.querySelectorAll('.hover-sidebar-link[data-tab]').forEach(link => {
+      link.addEventListener('click', () => {
+        AdminApp.switchTab(link.dataset.tab);
+        const sidebar = document.getElementById('hover-sidebar');
+        if (sidebar && !sidebar.classList.contains('pinned')) {
+          sidebar.classList.remove('open');
+        }
+      });
+    });
+
+    // Pin button toggle
+    const pinBtn = document.getElementById('sidebar-pin-btn');
+    const sidebar = document.getElementById('hover-sidebar');
+    if (pinBtn && sidebar) {
+      const isPinned = localStorage.getItem('ck_sidebar_pinned') === 'true';
+      if (isPinned) {
+        sidebar.classList.add('pinned');
+        document.body.classList.add('sidebar-pinned');
+      }
+
+      pinBtn.addEventListener('click', () => {
+        const pinned = sidebar.classList.toggle('pinned');
+        document.body.classList.toggle('sidebar-pinned', pinned);
+        localStorage.setItem('ck_sidebar_pinned', pinned ? 'true' : 'false');
+        showToast(pinned ? 'Navigation sidebar pinned to left.' : 'Navigation sidebar unpinned (auto-hides on hover).');
+      });
+    }
+
+    // Hover sensor click for touch/mobile
+    const hoverZone = document.getElementById('sidebar-hover-zone');
+    if (hoverZone && sidebar) {
+      hoverZone.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+      });
+    }
 
     // Inventory search & filters
     const searchInput = document.getElementById('inv-search-input');

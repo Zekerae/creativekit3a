@@ -15,6 +15,85 @@
 </head>
 <body class="admin-body">
 
+  <!-- ============================================================
+       HOVER-ACTIVATED LEFT SIDEBAR NAVIGATION
+       ============================================================ -->
+  <!-- Left-edge hover detector strip -->
+  <div class="sidebar-hover-zone" id="sidebar-hover-zone" aria-hidden="true">
+    <div class="sidebar-hover-indicator" title="Hover to view navigation">
+      <i class="fas fa-chevron-right"></i>
+    </div>
+  </div>
+
+  <!-- The sliding sidebar -->
+  <aside class="hover-sidebar" id="hover-sidebar" aria-label="Portal Navigation Sidebar">
+    <div class="hover-sidebar-header">
+      <div class="hover-sidebar-brand">
+        <img src="../assets/images/logo.png" alt="" onerror="this.style.display='none'">
+        <div>
+          <h4>CreativeKit 3A</h4>
+          <span>Staff & Operations</span>
+        </div>
+      </div>
+      <button class="hover-sidebar-pin-btn" id="sidebar-pin-btn" title="Pin / Unpin sidebar" aria-label="Toggle pin sidebar">
+        <i class="fas fa-thumbtack"></i>
+      </button>
+    </div>
+
+    <div class="hover-sidebar-nav">
+      <p class="hover-sidebar-heading">Core Systems</p>
+      <button class="hover-sidebar-link active" data-tab="information">
+        <div class="link-label"><i class="fas fa-chart-pie"></i><span>Information System</span></div>
+        <span class="badge" style="background:rgba(255,255,255,0.1);color:#94a3b8;">MIS</span>
+      </button>
+
+      <button class="hover-sidebar-link" data-tab="inventory">
+        <div class="link-label"><i class="fas fa-boxes-stacked"></i><span>Inventory System</span></div>
+        <span class="badge" id="side-badge-inventory" style="background:#fee2e2;color:#ef4444;">0</span>
+      </button>
+
+      <button class="hover-sidebar-link" data-tab="purchasing">
+        <div class="link-label"><i class="fas fa-cart-flatbed"></i><span>Purchasing System</span></div>
+        <span class="badge" id="side-badge-purchasing" style="background:#e0e7ff;color:#4f46e5;">0</span>
+      </button>
+
+      <button class="hover-sidebar-link" data-tab="users">
+        <div class="link-label"><i class="fas fa-users-cog"></i><span>User Control Panel</span></div>
+        <span class="badge" id="side-badge-users" style="background:#dbeafe;color:#2563eb;">0</span>
+      </button>
+
+      <p class="hover-sidebar-heading" style="margin-top:16px;">Quick Actions</p>
+      <button class="hover-sidebar-link" onclick="AdminApp.openAddUserModal()">
+        <div class="link-label"><i class="fas fa-user-plus"></i><span>Add New User</span></div>
+      </button>
+
+      <button class="hover-sidebar-link" onclick="AdminApp.exportReportCSV()">
+        <div class="link-label"><i class="fas fa-file-csv"></i><span>Export Inventory</span></div>
+      </button>
+
+      <button class="hover-sidebar-link" onclick="AdminApp.exportUsersCSV()">
+        <div class="link-label"><i class="fas fa-file-export"></i><span>Export Users CSV</span></div>
+      </button>
+
+      <a href="../index.html" class="hover-sidebar-link">
+        <div class="link-label"><i class="fas fa-store"></i><span>Storefront Home</span></div>
+      </a>
+    </div>
+
+    <div class="hover-sidebar-footer">
+      <div class="hover-sidebar-user">
+        <div class="user-avatar-sm" id="side-user-avatar">AD</div>
+        <div class="user-info-sm">
+          <strong id="side-user-name">Administrator</strong>
+          <span id="side-user-role">Full Access</span>
+        </div>
+      </div>
+      <button class="hover-sidebar-logout" onclick="AdminApp.logout()" title="Sign Out">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </aside>
+
   <!-- Top Navigation Bar -->
   <header class="admin-navbar">
     <a href="index.html" class="admin-brand">
