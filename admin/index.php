@@ -76,6 +76,10 @@ if ($db_connected) {
         <i class="fas fa-cart-flatbed"></i> Purchasing System
         <span class="badge" id="tab-badge-purchasing">0</span>
       </button>
+      <button class="admin-tab" data-tab="users">
+        <i class="fas fa-users-cog"></i> User Control Panel
+        <span class="badge" id="tab-badge-users">0</span>
+      </button>
     </div>
 
     <div>
@@ -391,6 +395,114 @@ if ($db_connected) {
 
     </section>
 
+    <!-- ============================================================
+         4. USER CONTROL PANEL (IDENTITY & ACCESS CONTROL)
+         ============================================================ -->
+    <section class="tab-content-panel" id="panel-users" style="display:none;">
+
+      <!-- Executive User KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon primary"><i class="fas fa-users"></i></div>
+          <div class="kpi-info">
+            <h4>Total Registered Users</h4>
+            <div class="kpi-value" id="kpi-total-users">0</div>
+            <div class="kpi-subtext">Across all security roles</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon purple"><i class="fas fa-user-shield"></i></div>
+          <div class="kpi-info">
+            <h4>Administrators</h4>
+            <div class="kpi-value" id="kpi-admin-users">0</div>
+            <div class="kpi-subtext">Full system governance access</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon success"><i class="fas fa-user-tie"></i></div>
+          <div class="kpi-info">
+            <h4>Staff Officers</h4>
+            <div class="kpi-value" id="kpi-staff-users">0</div>
+            <div class="kpi-subtext">Sales & procurement managers</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon warning"><i class="fas fa-user-tag"></i></div>
+          <div class="kpi-info">
+            <h4>Customer Accounts</h4>
+            <div class="kpi-value" id="kpi-customer-users">0</div>
+            <div class="kpi-subtext">Verified corporate B2B clients</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main User Management Table Card -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <div>
+            <h3><i class="fas fa-id-card"></i> User & Access Control Management</h3>
+            <p style="margin:4px 0 0 0;font-size:0.83rem;color:var(--admin-text-muted);">
+              Manage role-based access control (RBAC), edit account permissions, toggle activation, and provision user credentials.
+            </p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-admin btn-admin-secondary btn-admin-sm" onclick="AdminApp.exportUsersCSV()">
+              <i class="fas fa-file-csv"></i> Export Users
+            </button>
+            <button class="btn-admin btn-admin-primary btn-admin-sm" onclick="AdminApp.openAddUserModal()">
+              <i class="fas fa-user-plus"></i> Add New User
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="filter-toolbar">
+          <input type="text" id="user-search-input" class="filter-search-input" placeholder="Search by name, email, or phone number...">
+          
+          <select id="user-role-filter" class="admin-select" style="min-width:150px;">
+            <option value="all">All Security Roles</option>
+            <option value="admin">Administrator</option>
+            <option value="staff">Staff Officer</option>
+            <option value="customer">Customer</option>
+          </select>
+
+          <select id="user-status-filter" class="admin-select" style="min-width:140px;">
+            <option value="all">All Statuses</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive / Suspended</option>
+          </select>
+
+          <button class="btn-admin btn-admin-secondary btn-admin-sm" onclick="AdminApp.resetUserFilters()">
+            <i class="fas fa-undo"></i> Reset
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User Details</th>
+                <th>Phone</th>
+                <th>Security Role</th>
+                <th>Status</th>
+                <th>Registration Date</th>
+                <th>Last Login</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <!-- Populated via admin-system.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
   </main>
 
   <!-- ============================================================
@@ -491,6 +603,134 @@ if ($db_connected) {
         <button class="btn-admin btn-admin-secondary" onclick="AdminApp.closeCreatePOModal()">Cancel</button>
         <button class="btn-admin btn-admin-primary" onclick="AdminApp.submitCreatePO()">
           <i class="fas fa-paper-plane"></i> Issue Purchase Order
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 3: ADD NEW USER
+       ============================================================ -->
+  <div class="admin-modal-overlay" id="modal-add-user">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3><i class="fas fa-user-plus"></i> Add New System User</h3>
+        <button class="cart-drawer-close" onclick="AdminApp.closeAddUserModal()">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="new-user-fname">First Name *</label>
+            <input type="text" id="new-user-fname" placeholder="e.g. Juan">
+          </div>
+          <div class="form-group">
+            <label for="new-user-lname">Last Name *</label>
+            <input type="text" id="new-user-lname" placeholder="e.g. Dela Cruz">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="new-user-email">Email Address *</label>
+          <input type="email" id="new-user-email" placeholder="name@company.com">
+        </div>
+
+        <div class="form-group">
+          <label for="new-user-phone">Mobile / Phone Number</label>
+          <input type="tel" id="new-user-phone" placeholder="+63 917 000 0000">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="new-user-role">Security Role *</label>
+            <select id="new-user-role" class="admin-select">
+              <option value="customer">Customer (Storefront Access)</option>
+              <option value="staff">Staff (Sales & Quotes Access)</option>
+              <option value="admin">Administrator (Full Control)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="new-user-status">Account Status *</label>
+            <select id="new-user-status" class="admin-select">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive / Suspended</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="new-user-pw">Initial Password *</label>
+          <input type="password" id="new-user-pw" placeholder="Minimum 6 characters">
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button class="btn-admin btn-admin-secondary" onclick="AdminApp.closeAddUserModal()">Cancel</button>
+        <button class="btn-admin btn-admin-primary" onclick="AdminApp.submitAddUser()">
+          <i class="fas fa-check"></i> Create User Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL 4: EDIT USER & PERMISSIONS
+       ============================================================ -->
+  <div class="admin-modal-overlay" id="modal-edit-user">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3><i class="fas fa-user-edit"></i> Edit User & Permissions</h3>
+        <button class="cart-drawer-close" onclick="AdminApp.closeEditUserModal()">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <input type="hidden" id="edit-user-id">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="edit-user-fname">First Name *</label>
+            <input type="text" id="edit-user-fname">
+          </div>
+          <div class="form-group">
+            <label for="edit-user-lname">Last Name *</label>
+            <input type="text" id="edit-user-lname">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-user-email">Email Address *</label>
+          <input type="email" id="edit-user-email">
+        </div>
+
+        <div class="form-group">
+          <label for="edit-user-phone">Mobile / Phone Number</label>
+          <input type="tel" id="edit-user-phone">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label for="edit-user-role">Security Role *</label>
+            <select id="edit-user-role" class="admin-select">
+              <option value="customer">Customer</option>
+              <option value="staff">Staff Officer</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-user-status">Account Status *</label>
+            <select id="edit-user-status" class="admin-select">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive / Suspended</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-user-pw">Reset Password (Optional)</label>
+          <input type="password" id="edit-user-pw" placeholder="Leave blank to keep existing password">
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button class="btn-admin btn-admin-secondary" onclick="AdminApp.closeEditUserModal()">Cancel</button>
+        <button class="btn-admin btn-admin-primary" onclick="AdminApp.submitEditUser()">
+          <i class="fas fa-save"></i> Save Changes
         </button>
       </div>
     </div>

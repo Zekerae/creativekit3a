@@ -12,7 +12,8 @@
     PURCHASING: 'ck_admin_purchasing',
     SUPPLIERS: 'ck_admin_suppliers',
     AUDIT_LOGS: 'ck_admin_audit_logs',
-    MOVEMENTS: 'ck_admin_movements'
+    MOVEMENTS: 'ck_admin_movements',
+    USERS: 'ck_admin_users'
   };
 
   /* ── 1. DEFAULT SEED DATA ── */
@@ -107,6 +108,93 @@
     { id: 3, module: 'Quotes', action: 'Approval', details: 'Quotation inquiry CK3A-849201 marked as Approved & In Production.', user: 'Sales Manager', time: '2026-11-20 11:45' }
   ];
 
+  const DEFAULT_USERS = [
+    {
+      id: 1,
+      name: 'Lead Administrator',
+      firstName: 'Lead',
+      lastName: 'Administrator',
+      email: 'admin@creativekit3a.com',
+      phone: '+63 917 111 2233',
+      role: 'admin',
+      status: 'active',
+      createdAt: '2026-01-10',
+      lastLogin: '2026-11-23 01:02'
+    },
+    {
+      id: 2,
+      name: 'System Admin',
+      firstName: 'System',
+      lastName: 'Admin',
+      email: 'admin@ck3a.com',
+      phone: '+63 918 222 3344',
+      role: 'admin',
+      status: 'active',
+      createdAt: '2026-02-15',
+      lastLogin: '2026-11-22 18:30'
+    },
+    {
+      id: 3,
+      name: 'Ramon Valdez',
+      firstName: 'Ramon',
+      lastName: 'Valdez',
+      email: 'procurement@creativekit3a.com',
+      phone: '+63 919 333 4455',
+      role: 'staff',
+      status: 'active',
+      createdAt: '2026-03-01',
+      lastLogin: '2026-11-21 14:22'
+    },
+    {
+      id: 4,
+      name: 'Analyn Santos',
+      firstName: 'Analyn',
+      lastName: 'Santos',
+      email: 'sales.staff@creativekit3a.com',
+      phone: '+63 920 444 5566',
+      role: 'staff',
+      status: 'active',
+      createdAt: '2026-04-12',
+      lastLogin: '2026-11-22 09:15'
+    },
+    {
+      id: 5,
+      name: 'Juan Dela Cruz',
+      firstName: 'Juan',
+      lastName: 'Dela Cruz',
+      email: 'juan.delacruz@acmecorp.ph',
+      phone: '+63 922 555 6677',
+      role: 'customer',
+      status: 'active',
+      createdAt: '2026-05-18',
+      lastLogin: '2026-11-20 16:40'
+    },
+    {
+      id: 6,
+      name: 'Maria Clara',
+      firstName: 'Maria',
+      lastName: 'Clara',
+      email: 'maria.clara@sanmiguel.com.ph',
+      phone: '+63 923 666 7788',
+      role: 'customer',
+      status: 'active',
+      createdAt: '2026-06-25',
+      lastLogin: '2026-11-19 11:05'
+    },
+    {
+      id: 7,
+      name: 'Roberto Garcia',
+      firstName: 'Roberto',
+      lastName: 'Garcia',
+      email: 'rgarcia@inactivecorp.com',
+      phone: '+63 925 888 9900',
+      role: 'customer',
+      status: 'inactive',
+      createdAt: '2026-07-02',
+      lastLogin: '2026-09-14 08:12'
+    }
+  ];
+
   /* ── 2. STATE STORE HELPERS ── */
   function getStore(key, defaults) {
     try {
@@ -121,12 +209,59 @@
     localStorage.setItem(key, JSON.stringify(value));
   }
 
+  function showToast(msg, type = 'info') {
+    if (typeof window.showToast === 'function') {
+      window.showToast(msg, type);
+      return;
+    }
+    let toast = document.getElementById('admin-mini-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'admin-mini-toast';
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:12px 20px;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.2);z-index:99999;font-size:0.875rem;font-weight:600;display:none;transition:opacity 0.2s ease;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => { toast.style.display = 'none'; }, 200);
+    }, 3000);
+  }
+
   /* ── 3. STATE INITIALIZATION ── */
   let inventory = getStore(KEYS.INVENTORY, DEFAULT_INVENTORY);
   let purchasing = getStore(KEYS.PURCHASING, DEFAULT_PURCHASE_ORDERS);
   let suppliers = getStore(KEYS.SUPPLIERS, DEFAULT_SUPPLIERS);
   let movements = getStore(KEYS.MOVEMENTS, DEFAULT_MOVEMENTS);
   let auditLogs = getStore(KEYS.AUDIT_LOGS, DEFAULT_AUDIT_LOGS);
+  let users = getStore(KEYS.USERS, DEFAULT_USERS);
+
+  // Sync session user from ck_user if present
+  try {
+    const sessionUser = JSON.parse(localStorage.getItem('ck_user') || 'null');
+    if (sessionUser && sessionUser.email) {
+      const emailLower = sessionUser.email.toLowerCase();
+      const existing = users.find(u => u.email.toLowerCase() === emailLower);
+      if (!existing) {
+        users.unshift({
+          id: Date.now(),
+          name: sessionUser.name || sessionUser.email.split('@')[0],
+          firstName: sessionUser.name ? sessionUser.name.split(' ')[0] : 'User',
+          lastName: sessionUser.name ? sessionUser.name.split(' ').slice(1).join(' ') : '',
+          email: sessionUser.email,
+          phone: sessionUser.phone || '—',
+          role: sessionUser.role || 'customer',
+          status: 'active',
+          createdAt: new Date().toISOString().split('T')[0],
+          lastLogin: new Date().toLocaleString()
+        });
+        setStore(KEYS.USERS, users);
+      }
+    }
+  } catch (_) {}
 
   function logAudit(module, action, details) {
     const entry = {
@@ -184,8 +319,10 @@
     // Update Tab Badges
     const invBadge = document.getElementById('tab-badge-inventory');
     const poBadge = document.getElementById('tab-badge-purchasing');
+    const userBadge = document.getElementById('tab-badge-users');
     if (invBadge) invBadge.textContent = lowStockCount > 0 ? `${lowStockCount} alerts` : inventory.length;
     if (poBadge) poBadge.textContent = purchasing.length;
+    if (userBadge) userBadge.textContent = users.length;
 
     renderAuditLogs();
   }
@@ -355,6 +492,93 @@
     `).join('');
   }
 
+  /* ── 6.5. USER CONTROL PANEL (Identity & Access Control) ── */
+  function renderUsersTable(filterKeyword = '', filterRole = 'all', filterStatus = 'all') {
+    const tbody = document.getElementById('users-table-body');
+    if (!tbody) return;
+
+    // Update KPI counters
+    const totalUsers = users.length;
+    const adminCount = users.filter(u => u.role === 'admin').length;
+    const staffCount = users.filter(u => u.role === 'staff').length;
+    const customerCount = users.filter(u => u.role === 'customer').length;
+
+    const elTotal = document.getElementById('kpi-total-users');
+    const elAdmin = document.getElementById('kpi-admin-users');
+    const elStaff = document.getElementById('kpi-staff-users');
+    const elCustomer = document.getElementById('kpi-customer-users');
+    const tabUserBadge = document.getElementById('tab-badge-users');
+
+    if (elTotal) elTotal.textContent = totalUsers;
+    if (elAdmin) elAdmin.textContent = adminCount;
+    if (elStaff) elStaff.textContent = staffCount;
+    if (elCustomer) elCustomer.textContent = customerCount;
+    if (tabUserBadge) tabUserBadge.textContent = totalUsers;
+
+    const q = filterKeyword.toLowerCase().trim();
+    const filtered = users.filter(u => {
+      const matchKeyword = !q ||
+        (u.name && u.name.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q)) ||
+        (u.phone && u.phone.toLowerCase().includes(q));
+      const matchRole = filterRole === 'all' || u.role === filterRole;
+      const matchStatus = filterStatus === 'all' || u.status === filterStatus;
+      return matchKeyword && matchRole && matchStatus;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--admin-text-muted);font-weight:600;"><i class="fas fa-user-slash" style="margin-right:6px;color:#94a3b8;"></i> No user accounts match the selected filters.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(u => {
+      const initials = ((u.firstName ? u.firstName[0] : (u.name ? u.name[0] : 'U')) + (u.lastName ? u.lastName[0] : '')).toUpperCase() || 'U';
+      const roleBadgeClass = u.role === 'admin' ? 'badge-role-admin' : (u.role === 'staff' ? 'badge-role-staff' : 'badge-role-customer');
+      const roleIcon = u.role === 'admin' ? 'fa-user-shield' : (u.role === 'staff' ? 'fa-user-tie' : 'fa-user');
+      const roleLabel = u.role === 'admin' ? 'Administrator' : (u.role === 'staff' ? 'Staff Officer' : 'Customer');
+
+      const statusBadge = u.status === 'active'
+        ? `<span class="badge-status badge-active"><i class="fas fa-check-circle"></i> Active</span>`
+        : `<span class="badge-status badge-inactive"><i class="fas fa-ban"></i> Inactive</span>`;
+
+      const isProtected = (u.email && u.email.toLowerCase() === 'admin@creativekit3a.com') || u.id === 1;
+
+      return `
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar-circle ${u.role}">${initials}</div>
+              <div>
+                <div class="user-name-title">${u.name} ${isProtected ? '<span style="font-size:0.7rem;color:#ff6b00;" title="Primary Root Administrator"><i class="fas fa-crown"></i></span>' : ''}</div>
+                <div class="user-email-subtitle"><a href="mailto:${u.email}" style="color:inherit;text-decoration:none;">${u.email}</a></div>
+              </div>
+            </div>
+          </td>
+          <td><span style="font-size:0.83rem;color:var(--admin-text-dark);">${u.phone || '—'}</span></td>
+          <td><span class="badge-status ${roleBadgeClass}"><i class="fas ${roleIcon}"></i> ${roleLabel}</span></td>
+          <td>${statusBadge}</td>
+          <td><span style="font-size:0.82rem;color:var(--admin-text-muted);">${u.createdAt || '2026-01-01'}</span></td>
+          <td><span style="font-size:0.82rem;color:var(--admin-text-muted);">${u.lastLogin || 'Never'}</span></td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex;gap:6px;align-items:center;">
+              <button class="btn-admin btn-admin-secondary btn-admin-sm" onclick="AdminApp.openEditUserModal(${u.id})" title="Edit user details and role permissions">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              ${isProtected ? '' : `
+                <button class="btn-admin btn-admin-sm" style="${u.status === 'active' ? 'background:#fee2e2;color:#991b1b;border:1px solid #fecaca;' : 'background:#dcfce7;color:#166534;border:1px solid #bbf7d0;'}" onclick="AdminApp.toggleUserStatus(${u.id})" title="${u.status === 'active' ? 'Deactivate Account' : 'Activate Account'}">
+                  <i class="fas ${u.status === 'active' ? 'fa-user-slash' : 'fa-user-check'}"></i> ${u.status === 'active' ? 'Deactivate' : 'Activate'}
+                </button>
+                <button class="btn-admin btn-admin-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;" onclick="AdminApp.deleteUser(${u.id})" title="Delete Account">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              `}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
   /* ── 7. INTERACTIVE ACTIONS ── */
   window.AdminApp = {
     switchTab(tabId) {
@@ -369,6 +593,7 @@
       if (tabId === 'information') renderMISDashboard();
       if (tabId === 'inventory') { renderInventoryTable(); renderMovementsTable(); }
       if (tabId === 'purchasing') { renderPurchasingTable(); renderSuppliersTable(); }
+      if (tabId === 'users') { AdminApp.filterUsers(); }
     },
 
     openStockAdjustModal(itemId) {
@@ -588,6 +813,258 @@
       logAudit('System', 'Report Export', 'Exported executive inventory CSV report.');
     },
 
+    /* ── User Control Panel Methods ── */
+    filterUsers() {
+      const q = document.getElementById('user-search-input')?.value || '';
+      const role = document.getElementById('user-role-filter')?.value || 'all';
+      const status = document.getElementById('user-status-filter')?.value || 'all';
+      renderUsersTable(q, role, status);
+    },
+
+    resetUserFilters() {
+      const searchEl = document.getElementById('user-search-input');
+      const roleEl = document.getElementById('user-role-filter');
+      const statusEl = document.getElementById('user-status-filter');
+      if (searchEl) searchEl.value = '';
+      if (roleEl) roleEl.value = 'all';
+      if (statusEl) statusEl.value = 'all';
+      renderUsersTable('', 'all', 'all');
+    },
+
+    openAddUserModal() {
+      ['new-user-fname', 'new-user-lname', 'new-user-email', 'new-user-phone', 'new-user-pw'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const roleEl = document.getElementById('new-user-role');
+      if (roleEl) roleEl.value = 'customer';
+      const statusEl = document.getElementById('new-user-status');
+      if (statusEl) statusEl.value = 'active';
+      const modal = document.getElementById('modal-add-user');
+      if (modal) modal.classList.add('open');
+    },
+
+    closeAddUserModal() {
+      const modal = document.getElementById('modal-add-user');
+      if (modal) modal.classList.remove('open');
+    },
+
+    submitAddUser() {
+      const fname = document.getElementById('new-user-fname')?.value.trim();
+      const lname = document.getElementById('new-user-lname')?.value.trim();
+      const email = document.getElementById('new-user-email')?.value.trim();
+      const phone = document.getElementById('new-user-phone')?.value.trim();
+      const role = document.getElementById('new-user-role')?.value || 'customer';
+      const status = document.getElementById('new-user-status')?.value || 'active';
+      const pw = document.getElementById('new-user-pw')?.value;
+
+      if (!fname || !lname || !email) {
+        alert('Please fill out first name, last name, and email address.');
+        return;
+      }
+
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      if (!pw || pw.length < 6) {
+        alert('Initial password must be at least 6 characters.');
+        return;
+      }
+
+      const emailLower = email.toLowerCase();
+      if (users.some(u => u.email.toLowerCase() === emailLower)) {
+        alert('A user with this email address already exists.');
+        return;
+      }
+
+      const newUser = {
+        id: Date.now(),
+        name: `${fname} ${lname}`.trim(),
+        firstName: fname,
+        lastName: lname,
+        email: emailLower,
+        phone: phone || '—',
+        role: role,
+        status: status,
+        createdAt: new Date().toISOString().split('T')[0],
+        lastLogin: 'Never'
+      };
+
+      users.unshift(newUser);
+      setStore(KEYS.USERS, users);
+
+      logAudit('Identity & Access', 'User Provisioned', `Created new account for ${newUser.name} (${newUser.email}) with role '${role}'.`);
+
+      this.closeAddUserModal();
+      this.filterUsers();
+      showToast(`User account for ${newUser.name} created successfully.`);
+    },
+
+    openEditUserModal(userId) {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+
+      const idEl = document.getElementById('edit-user-id');
+      const fnameEl = document.getElementById('edit-user-fname');
+      const lnameEl = document.getElementById('edit-user-lname');
+      const emailEl = document.getElementById('edit-user-email');
+      const phoneEl = document.getElementById('edit-user-phone');
+      const roleEl = document.getElementById('edit-user-role');
+      const statusEl = document.getElementById('edit-user-status');
+      const pwEl = document.getElementById('edit-user-pw');
+
+      if (idEl) idEl.value = user.id;
+      if (fnameEl) fnameEl.value = user.firstName || (user.name ? user.name.split(' ')[0] : '');
+      if (lnameEl) lnameEl.value = user.lastName || (user.name ? user.name.split(' ').slice(1).join(' ') : '');
+      if (emailEl) emailEl.value = user.email;
+      if (phoneEl) phoneEl.value = user.phone === '—' ? '' : (user.phone || '');
+      if (roleEl) roleEl.value = user.role;
+      if (statusEl) statusEl.value = user.status;
+      if (pwEl) pwEl.value = '';
+
+      const isProtected = user.email.toLowerCase() === 'admin@creativekit3a.com' || user.id === 1;
+      if (roleEl) roleEl.disabled = isProtected;
+      if (statusEl) statusEl.disabled = isProtected;
+
+      const modal = document.getElementById('modal-edit-user');
+      if (modal) modal.classList.add('open');
+    },
+
+    closeEditUserModal() {
+      const modal = document.getElementById('modal-edit-user');
+      if (modal) modal.classList.remove('open');
+    },
+
+    submitEditUser() {
+      const id = parseInt(document.getElementById('edit-user-id')?.value, 10);
+      const user = users.find(u => u.id === id);
+      if (!user) return;
+
+      const fname = document.getElementById('edit-user-fname')?.value.trim();
+      const lname = document.getElementById('edit-user-lname')?.value.trim();
+      const email = document.getElementById('edit-user-email')?.value.trim();
+      const phone = document.getElementById('edit-user-phone')?.value.trim();
+      const role = document.getElementById('edit-user-role')?.value || user.role;
+      const status = document.getElementById('edit-user-status')?.value || user.status;
+      const pw = document.getElementById('edit-user-pw')?.value;
+
+      if (!fname || !lname || !email) {
+        alert('First name, last name, and email are required.');
+        return;
+      }
+
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      const emailLower = email.toLowerCase();
+      const emailConflict = users.some(u => u.id !== id && u.email.toLowerCase() === emailLower);
+      if (emailConflict) {
+        alert('Another user is already registered with this email address.');
+        return;
+      }
+
+      const isProtected = user.email.toLowerCase() === 'admin@creativekit3a.com' || user.id === 1;
+
+      user.firstName = fname;
+      user.lastName = lname;
+      user.name = `${fname} ${lname}`.trim();
+      user.email = emailLower;
+      user.phone = phone || '—';
+      if (!isProtected) {
+        user.role = role;
+        user.status = status;
+      }
+
+      setStore(KEYS.USERS, users);
+
+      let auditMsg = `Updated account profile for ${user.name} (${user.email}).`;
+      if (pw && pw.length >= 6) {
+        auditMsg += ' Security credentials (password) reset.';
+      }
+
+      logAudit('Identity & Access', 'User Updated', auditMsg);
+
+      this.closeEditUserModal();
+      this.filterUsers();
+      showToast(`User profile for ${user.name} updated successfully.`);
+    },
+
+    toggleUserStatus(userId) {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+
+      if (user.email.toLowerCase() === 'admin@creativekit3a.com' || user.id === 1) {
+        alert('Root administrator account cannot be deactivated.');
+        return;
+      }
+
+      const nextStatus = user.status === 'active' ? 'inactive' : 'active';
+      user.status = nextStatus;
+      setStore(KEYS.USERS, users);
+
+      logAudit('Identity & Access', 'Status Toggled', `User ${user.name} (${user.email}) marked as ${nextStatus}.`);
+
+      this.filterUsers();
+      showToast(`Account for ${user.name} is now ${nextStatus.toUpperCase()}.`);
+    },
+
+    deleteUser(userId) {
+      const user = users.find(u => u.id === userId);
+      if (!user) return;
+
+      if (user.email.toLowerCase() === 'admin@creativekit3a.com' || user.id === 1) {
+        alert('Root administrator account cannot be deleted.');
+        return;
+      }
+
+      if (!confirm(`Are you sure you want to permanently delete user account: ${user.name} (${user.email})?\n\nThis action cannot be undone.`)) {
+        return;
+      }
+
+      users = users.filter(u => u.id !== userId);
+      setStore(KEYS.USERS, users);
+
+      logAudit('Identity & Access', 'User Deleted', `Permanently deleted user account ${user.name} (${user.email}).`);
+
+      this.filterUsers();
+      showToast(`User account ${user.name} deleted.`);
+    },
+
+    exportUsersCSV() {
+      let csvContent = 'data:text/csv;charset=utf-8,';
+      csvContent += 'User ID,Full Name,First Name,Last Name,Email,Phone,Security Role,Account Status,Registered Date,Last Login\n';
+
+      users.forEach(u => {
+        const row = [
+          u.id,
+          `"${u.name || ''}"`,
+          `"${u.firstName || ''}"`,
+          `"${u.lastName || ''}"`,
+          `"${u.email || ''}"`,
+          `"${u.phone || ''}"`,
+          u.role,
+          u.status,
+          u.createdAt || '',
+          `"${u.lastLogin || ''}"`
+        ].join(',');
+        csvContent += row + '\n';
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `CreativeKit3A_Users_Export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      logAudit('Identity & Access', 'Export Users CSV', 'Exported directory of system users to CSV.');
+    },
+
     handleGateLogin: function (e) {
       if (e) e.preventDefault();
       const email = document.getElementById('gate-admin-email')?.value.trim();
@@ -698,12 +1175,31 @@
     if (catSelect) catSelect.addEventListener('change', handleFilterChange);
     if (statusSelect) statusSelect.addEventListener('change', handleFilterChange);
 
+    // User search & filters
+    const userSearchInput = document.getElementById('user-search-input');
+    const userRoleFilter = document.getElementById('user-role-filter');
+    const userStatusFilter = document.getElementById('user-status-filter');
+
+    if (userSearchInput) userSearchInput.addEventListener('input', () => AdminApp.filterUsers());
+    if (userRoleFilter) userRoleFilter.addEventListener('change', () => AdminApp.filterUsers());
+    if (userStatusFilter) userStatusFilter.addEventListener('change', () => AdminApp.filterUsers());
+
+    // Modal overlay backdrop click to close
+    document.querySelectorAll('.admin-modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay && overlay.id !== 'admin-auth-gate') {
+          overlay.classList.remove('open');
+        }
+      });
+    });
+
     // Initial render
     renderMISDashboard();
     renderInventoryTable();
     renderMovementsTable();
     renderPurchasingTable();
     renderSuppliersTable();
+    renderUsersTable();
   });
 
 })();
