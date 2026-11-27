@@ -348,71 +348,113 @@ CREATE TABLE hero_banners (
 
 ---
 
-## 4. Data Dictionary & Table Specifications
+## 4. Data Dictionary & Table Specifications (Including ID & Action Meanings)
 
-### 4.1 `users`
-| Column | Type | Nullable | Key | Default | Description |
-|---|---|---|---|---|---|
-| `id` | INT UNSIGNED | No | PK | Auto | Unique user identifier |
-| `first_name` | VARCHAR(100) | No | | | User's given name |
-| `last_name` | VARCHAR(100) | No | | | User's surname |
-| `email` | VARCHAR(255) | No | UK | | Account login email |
-| `phone` | VARCHAR(30) | Yes | | NULL | Contact mobile number |
-| `password_hash`| VARCHAR(255) | No | | | Bcrypt hashed credential |
-| `role` | ENUM | No | IDX | `'customer'` | `'admin'`, `'staff'`, `'customer'` |
-| `is_active` | TINYINT(1) | No | | 1 | Account status flag (1=active, 0=disabled) |
-| `last_login_at`| DATETIME | Yes | | NULL | Timestamp of last authenticated session |
+Every table below documents **what each Primary Key (`id`), Foreign Key (`*_id`), and behavioral column actually does** inside the live CreativeKit 3A application.
 
-### 4.2 `categories`
-| Column | Type | Nullable | Key | Default | Description |
+### 4.1 `users` (Authentication, Staff & Customer Accounts)
+| Column | Type | Nullable | Key | Default | What It Does on the Website |
 |---|---|---|---|---|---|
-| `id` | INT UNSIGNED | No | PK | Auto | Category identifier |
-| `parent_id` | INT UNSIGNED | Yes | FK | NULL | `NULL` = Top-level category; Parent ID = Subcategory |
-| `name` | VARCHAR(150) | No | | | Display name (e.g. *Drinkware*, *Bags*) |
-| `slug` | VARCHAR(160) | No | UK | | URL-safe slug (`drinkware`, `apparel`) |
-| `description` | TEXT | Yes | | NULL | SEO catalog overview copy |
-| `icon` | VARCHAR(50) | Yes | | `'fa-box'` | FontAwesome icon class |
-| `sku_prefix` | VARCHAR(20) | Yes | | NULL | SKU generation mask (e.g. `DRK-`) |
-| `sort_order` | SMALLINT | No | | 0 | Display priority sequence |
+| `id` | INT UNSIGNED | No | PK | Auto | **Unique User ID.** Identifies every account; referenced by `products.created_by`, `quote_requests.assigned_to`, and `activity_log.user_id` to trace ownership and actions. |
+| `first_name` | VARCHAR(100) | No | | | User's given name displayed in topbar greetings, staff assignments, and dashboard logs. |
+| `last_name` | VARCHAR(100) | No | | | User's surname combined with `first_name` via `CONCAT()` in reports and activity feeds. |
+| `email` | VARCHAR(255) | No | UK | | Unique login email used for authentication in `auth/login.php` and account lookup. |
+| `phone` | VARCHAR(30) | Yes | | NULL | Contact mobile number displayed in the User Control Panel and staff directory. |
+| `password_hash`| VARCHAR(255) | No | | | Bcrypt-hashed password verified via `password_verify()` on sign-in (never stored in plain text). |
+| `role` | ENUM | No | IDX | `'customer'` | **RBAC Security Role.** `'admin'` gets full CRUD, delete, and User Control Panel access; `'staff'` manages quotes/products; `'customer'` accesses storefront & quoting only. |
+| `is_active` | TINYINT(1) | No | | 1 | Account activation switch (`1` = allowed to log in, `0` = suspended/blocked in `auth/login.php`). |
+| `created_at` | DATETIME | No | | `CURRENT_TIMESTAMP` | Date/time the user registered or was provisioned by an admin. |
+| `updated_at` | DATETIME | No | | `ON UPDATE` | Timestamp of the last profile, role, or status edit. |
+| `last_login_at`| DATETIME | Yes | | NULL | Updated on every successful login to audit account activity and idle sessions. |
 
-### 4.3 `products`
-| Column | Type | Nullable | Key | Default | Description |
+### 4.2 `categories` (Hierarchical Main & Subcategory Navigation)
+| Column | Type | Nullable | Key | Default | What It Does on the Website |
 |---|---|---|---|---|---|
-| `id` | INT UNSIGNED | No | PK | Auto | Product identifier |
-| `category_id` | INT UNSIGNED | No | FK | | Foreign key referencing `categories.id` |
-| `name` | VARCHAR(200) | No | | | Product title |
-| `slug` | VARCHAR(220) | No | IDX | | URL identifier (`car-charger-adapter`) |
-| `sku` | VARCHAR(50) | Yes | UK | NULL | Unique stock keeping unit (`GAD-CHG-001`) |
-| `price_min` | DECIMAL(10,2)| No | | 0.00 | Minimum unit starting price (₱) |
-| `image` | VARCHAR(255) | Yes | | placeholder| Product image path |
-| `badge` | VARCHAR(50) | Yes | | NULL | Card tag (`Best Seller`, `Popular`) |
-| `status` | ENUM | No | IDX | `'active'` | `'active'`, `'draft'`, `'archived'` |
-| `created_by` | INT UNSIGNED | Yes | FK | NULL | Admin/Staff user who registered product |
+| `id` | INT UNSIGNED | No | PK | Auto | **Category ID.** Identifies a main category (`1–8`) or subcategory (`9–38`). Referenced by `products.category_id` and self-referenced by `categories.parent_id`. |
+| `parent_id` | INT UNSIGNED | Yes | FK | NULL | **Self-Referencing Parent ID.** `NULL` = top-level Mega Menu category (e.g., *Drinkware*); storing a parent `id` turns the row into a subcategory nested under that parent (e.g., *Tumblers & Flasks* $\to$ *Drinkware*). |
+| `name` | VARCHAR(150) | No | | | Category title rendered in the storefront Mega Menu, sidebar filters, and catalog banners. |
+| `slug` | VARCHAR(160) | No | UK | | URL-friendly identifier passed in `?cat=drinkware` to load category pages cleanly. |
+| `description` | TEXT | Yes | | NULL | Hero banner description shown at the top of `category-page.php`. |
+| `icon` | VARCHAR(50) | Yes | | `'fa-box'` | FontAwesome icon class rendered beside category links. |
+| `sku_prefix` | VARCHAR(20) | Yes | | NULL | Suggested SKU prefix (e.g., `DRK-TUM`) auto-filled when creating products in that category. |
+| `default_specs` | VARCHAR(255) | Yes | | NULL | Default product specification template suggested in `pages/product-form.php`. |
+| `image` | VARCHAR(255) | Yes | | NULL | Category banner image path under `assets/images/categories/`. |
+| `sort_order` | SMALLINT | No | | 0 | Controls left-to-right display order in the Mega Menu and catalog grid. |
+| `is_active` | TINYINT(1) | No | | 1 | Toggles visibility of the category across the public storefront (`1` = visible, `0` = hidden). |
 
-### 4.4 `product_variants`
-| Column | Type | Nullable | Key | Default | Description |
+### 4.3 `products` (Central Merchandising Catalog)
+| Column | Type | Nullable | Key | Default | What It Does on the Website |
 |---|---|---|---|---|---|
-| `id` | INT UNSIGNED | No | PK | Auto | Variant identifier |
-| `product_id` | INT UNSIGNED | No | FK | | Foreign key referencing `products.id` |
-| `variant_type` | VARCHAR(50) | Yes | | NULL | Filter grouping key (e.g. `single`, `dual`) |
-| `variant_label`| VARCHAR(100) | Yes | | NULL | Visual tab label (e.g. `Single Port`) |
-| `name` | VARCHAR(200) | No | | | Variant item name |
-| `specs` | VARCHAR(255) | Yes | | NULL | Technical specs (voltage, capacity, material) |
-| `price` | DECIMAL(10,2)| No | | 0.00 | Specific price per item (₱) |
-| `image` | VARCHAR(512) | Yes | | NULL | Variant image asset |
+| `id` | INT UNSIGNED | No | PK | Auto | **Product ID.** Uniquely identifies each catalog product; referenced by `product_variants.product_id`, `quote_requests.product_id`, and `hero_banners.product_id`. |
+| `category_id` | INT UNSIGNED | No | FK | | **Foreign Key $\to$ `categories.id`.** Assigns the product to its subcategory so it appears under the right Mega Menu column and catalog filter. |
+| `name` | VARCHAR(200) | No | | | Product display title shown on catalog cards, search results, and quote forms. |
+| `slug` | VARCHAR(220) | No | IDX | | URL-safe product key used to route to product detail pages (`?item=car-charger-adapter`). |
+| `sku` | VARCHAR(50) | Yes | UK | NULL | Unique Stock Keeping Unit (`GAD-CHG-001`) preventing duplicate inventory entries. |
+| `description` | TEXT | Yes | | NULL | Detailed product copy queried by the header search bar (`SQL LIKE`) and product detail page. |
+| `specs` | VARCHAR(255) | Yes | | NULL | Summary technical specifications (e.g., material, voltage, imprint type). |
+| `price_min` | DECIMAL(10,2)| No | | 0.00 | Starting unit price (₱) shown on cards (`0.00` renders as *"Ask for Quote"*). |
+| `image` | VARCHAR(255) | Yes | | placeholder| Primary catalog thumbnail (`onerror` falls back to `placeholder.png`). |
+| `badge` | VARCHAR(50) | Yes | | NULL | Highlight ribbon (`Best Seller`, `Popular`, `New`) displayed on cards. |
+| `status` | ENUM | No | IDX | `'active'` | Publishing state: `'active'` (live on storefront), `'draft'` (staff preview only), `'archived'` (hidden). |
+| `is_featured` | TINYINT(1) | No | | 0 | Flags product to appear in the homepage **OUR PRODUCTS** showcase (`1` = featured). |
+| `created_by` | INT UNSIGNED | Yes | FK | NULL | **Creator User ID $\to$ `users.id`.** Records which admin or staff officer added the product to the catalog. |
 
-### 4.5 `quote_requests`
-| Column | Type | Nullable | Key | Default | Description |
+### 4.4 `product_variants` (Product Item Variations & Filter Tabs)
+| Column | Type | Nullable | Key | Default | What It Does on the Website |
 |---|---|---|---|---|---|
-| `id` | INT UNSIGNED | No | PK | Auto | Lead quotation number |
-| `product_id` | INT UNSIGNED | Yes | FK | NULL | Catalog product referenced |
-| `customer_name`| VARCHAR(100) | No | | | Contact person full name |
-| `company` | VARCHAR(100) | Yes | | NULL | Corporate entity name |
-| `email` | VARCHAR(100) | No | | | Customer communication email |
-| `phone` | VARCHAR(30) | Yes | | NULL | Phone or mobile number |
-| `quantity` | INT | Yes | | 100 | Order volume inquired |
-| `status` | ENUM | No | IDX | `'new'` | `'new'`, `'reviewing'`, `'quoted'`, `'accepted'`, `'declined'` |
-| `assigned_to` | INT UNSIGNED | Yes | FK | NULL | Staff member assigned to follow up |
+| `id` | INT UNSIGNED | No | PK | Auto | **Variant ID.** Uniquely identifies an individual purchasable/quotable item option (e.g., *Single Port USB-A Charger* or *500ml Bamboo Tumbler*). |
+| `product_id` | INT UNSIGNED | No | FK | | **Parent Product ID $\to$ `products.id`.** Groups multiple variations under one parent product page (`product/car-charger-adapters.php`). |
+| `variant_type` | VARCHAR(50) | Yes | | NULL | Machine filter key (`single`, `dual`) used by product page JavaScript filter tabs. |
+| `variant_label`| VARCHAR(100) | Yes | | NULL | Human-readable filter tab label (`Single Port`, `Dual Port`, `500ml`) clicked by shoppers. |
+| `type_order` | SMALLINT | No | | 0 | Controls the left-to-right display sequence of filter tabs. |
+| `name` | VARCHAR(200) | No | | | Specific variant item title shown on the item card. |
+| `specs` | VARCHAR(255) | Yes | | NULL | Variant-specific specs (output wattage, capacity, dimensions). |
+| `price` | DECIMAL(10,2)| No | | 0.00 | Exact per-unit wholesale/base price (₱) for that variant. |
+| `image` | VARCHAR(512) | Yes | | NULL | Variant-specific photograph under `assets/images/items/`. |
+| `badge` | VARCHAR(50) | Yes | | NULL | Variant highlight badge (e.g., `Fast Charge`). |
+| `sort_order` | SMALLINT | No | | 0 | Controls display order of variant cards inside its tab. |
+
+### 4.5 `quote_requests` (B2B Quotation Leads & Pipeline)
+| Column | Type | Nullable | Key | Default | What It Does on the Website |
+|---|---|---|---|---|---|
+| `id` | INT UNSIGNED | No | PK | Auto | **Quote Reference ID.** Unique quotation ticket number (`#1`, `#2`, etc.) shown to the customer upon submission and tracked in `pages/quotes.php`. |
+| `product_id` | INT UNSIGNED | Yes | FK | NULL | **Target Product ID $\to$ `products.id`.** Links the inquiry to the exact catalog product requested (`NULL` if submitted as a general/mixed inquiry). |
+| `customer_name`| VARCHAR(100) | No | | | B2B buyer's full name submitted in Step 1 of the Quote Modal. |
+| `company` | VARCHAR(100) | Yes | | NULL | Corporate organization or client company name. |
+| `email` | VARCHAR(100) | No | | | Buyer email address where formal PDF quotations are sent. |
+| `phone` | VARCHAR(30) | Yes | | NULL | Client contact number for sales follow-up. |
+| `product_type` | VARCHAR(100) | Yes | | NULL | Selected product category/name summary text from Step 2 of the Quote Modal. |
+| `quantity` | INT | Yes | | 100 | Requested unit order volume used to calculate bulk tier pricing. |
+| `budget` | VARCHAR(50) | Yes | | NULL | Estimated total budget range entered by the client. |
+| `deadline` | DATE | Yes | | NULL | Target event/delivery deadline date. |
+| `details` | TEXT | Yes | | NULL | Logo imprint instructions, color notes, and custom packaging requests from Step 3. |
+| `status` | ENUM | No | IDX | `'new'` | Lead pipeline stage: `'new'` $\to$ `'reviewing'` $\to$ `'quoted'` $\to$ `'accepted'` / `'declined'`. Powers dashboard KPI & Quote Pipeline charts. |
+| `assigned_to` | INT UNSIGNED | Yes | FK | NULL | **Assigned Staff ID $\to$ `users.id`.** Identifies which admin or sales staff member owns and follows up on this quotation lead. |
+
+### 4.6 `activity_log` (Recent Website Actions & Security Audit Trail)
+| Column | Type | Nullable | Key | Default | What It Does on the Website |
+|---|---|---|---|---|---|
+| `id` | INT UNSIGNED | No | PK | Auto | **Audit Entry ID.** Sequentially identifies each recorded action displayed in the Dashboard's **Recent Activity** table (`pages/dashboard.php`). |
+| `user_id` | INT UNSIGNED | Yes | FK | NULL | **Actor User ID $\to$ `users.id`.** Identifies which authenticated admin, staff, or customer performed the action (`NULL` when a guest submits a public quote). |
+| `action` | VARCHAR(50) | No | IDX | | **Recent Website Action Type.** Captures the exact event performed on the website:<br>• `login` / `logout` / `register` *(session & customer registration events)*<br>• `create_product` / `update_product` / `delete_product` *(catalog CRUD operations)*<br>• `submit_quote` / `update_quote` / `assign_quote` / `delete_quote` *(quote pipeline & status updates)*<br>• `create_user` *(new account provisioning)* |
+| `entity_type` | VARCHAR(50) | Yes | | NULL | **Target Module Type.** Identifies which website object was acted upon (`'product'`, `'quote'`, `'user'`, or `NULL` for login/logout events). |
+| `entity_id` | INT UNSIGNED | Yes | | NULL | **Target Record ID.** Stores the specific Primary Key (`id`) of the affected row inside the table indicated by `entity_type` (e.g., `entity_type = 'quote'` + `entity_id = 4` traces directly to `quote_requests.id = 4`). |
+| `details` | TEXT | Yes | | NULL | Human-readable summary printed on the dashboard timeline (e.g., *"Created product 'Corporate Jackets' (SKU: APP-004)"* or *"Quote #4 status updated to 'accepted'"*). |
+| `ip_address` | VARCHAR(45) | Yes | | NULL | Client IPv4/IPv6 address (`$_SERVER['REMOTE_ADDR']`) recorded for security traceability. |
+| `created_at` | DATETIME | No | IDX | `CURRENT_TIMESTAMP` | Exact timestamp used to sort recent actions newest-first (`ORDER BY created_at DESC LIMIT 8`). |
+
+### 4.7 `hero_banners` (Homepage Promotional Carousel)
+| Column | Type | Nullable | Key | Default | What It Does on the Website |
+|---|---|---|---|---|---|
+| `id` | INT UNSIGNED | No | PK | Auto | **Banner Slide ID.** Uniquely identifies each promotional slide rendered in the homepage Hero Carousel (`index.php`). |
+| `product_id` | INT UNSIGNED | Yes | FK | NULL | **Featured Product ID $\to$ `products.id`.** Connects the slide's call-to-action button directly to the promoted product's detail page. |
+| `eyebrow` | VARCHAR(100) | Yes | | NULL | Small uppercase kicker tag shown above the slide headline (e.g., *CORPORATE APPAREL*). |
+| `title` | VARCHAR(150) | No | | | Main hero display headline rendered on the carousel slide. |
+| `subtitle` | VARCHAR(150) | Yes | | NULL | Secondary promotional subheading under the title. |
+| `body` | TEXT | Yes | | NULL | Short marketing paragraph describing customization options for the featured item. |
+| `image` | VARCHAR(255) | No | | | Banner artwork path under `assets/images/hero/`. |
+| `sort_order` | SMALLINT | No | | 0 | Controls the slide playback sequence in the carousel. |
+| `is_active` | TINYINT(1) | No | | 1 | Toggles whether the slide is displayed on the live homepage (`1` = active). |
 
 ---
 
